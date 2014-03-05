@@ -33,7 +33,7 @@ class Graph
 
     throw "Adding node to two graphs at once" if node.graph and !ignore
 
-    node.link @
+    node.setGraph @
     @nodes.push node
 
   remove: (node, ignore) ->
@@ -46,5 +46,6 @@ class Graph
     ignore || node.disconnect()
 
     @nodes.splice @nodes.indexOf(node), 1
+    node.setGraph null
 
 module.exports = Graph

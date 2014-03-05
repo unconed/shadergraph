@@ -3,14 +3,9 @@ Graph = require './graph'
 class Outlet
   @ID = 0
 
-  constructor: (inout, name, hint, type, meta) ->
-
+  constructor: (@inout, @name, @hint, @type, @meta = {}) ->
     @node     = null
-    @inout    = inout
-    @name     = name
-    @hint     = hint || name
-    @type     = type
-    @meta     = meta || {}
+    @hint    ?= name
     @index    = ++Outlet.ID
     @key      = null
 
@@ -70,6 +65,6 @@ class Outlet
         @output = []
 
   # Link to given node.
-  link: (@node) ->
+  setNode: (@node) ->
 
 module.exports = Outlet

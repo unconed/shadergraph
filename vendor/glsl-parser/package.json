@@ -1,0 +1,38 @@
+{
+  "name": "glsl-parser",
+  "version": "0.0.5",
+  "description": "transform streamed glsl tokens into an ast",
+  "main": "index.js",
+  "dependencies": {
+    "glsl-tokenizer": "~0.0.2",
+    "through": "~1.1.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/chrisdickinson/glsl-parser.git"
+  },
+  "keywords": [
+    "glsl",
+    "parser",
+    "ast",
+    "through",
+    "stream"
+  ],
+  "author": {
+    "name": "Chris Dickinson",
+    "email": "chris@neversaw.us"
+  },
+  "license": "MIT",
+  "readme": "glsl-parser\n===========\n\na through stream that takes tokens from [glsl-tokenizer](https://github.com/chrisdickinson/glsl-tokenizer) and turns them into\nan AST.\n\n```javascript\n\nvar tokenizer = require('glsl-tokenizer')()\n  , fs = require('fs')\n  , parser = require('./index')\n\nvar num = 0\n\nfs.createReadStream('test.glsl')\n  .pipe(tokenizer)\n  .pipe(parser())\n  .on('data', function(x) {\n    console.log('ast of', x.type)\n  })\n\n```\n\nsimilar to [JSONStream](https://github.com/dominictarr/JSONStream), you may pass selectors\ninto the constructor to match only AST elements at that level. viable selectors are strings\nand regexen, and they'll be matched against the emitted node's `type`.\n\nnodes\n-----\n\n```\n\nstmtlist\nstmt\nstruct\nfunction\nfunctionargs\ndecl\ndecllist\nforloop\nwhileloop\nif\nexpr\nprecision\ncomment\npreprocessor\nkeyword\nident\nreturn\ncontinue\nbreak\ndiscard\ndo-while\nbinary\nternary\nunary\n\n```\n\nlegal & caveats\n===============\n\nknown bugs\n----------\n\n* because i am not smart enough to write a fully streaming parser, the current parser \"cheats\" a bit when it encounters a `expr` node! it actually waits until it has all the tokens it needs to build a tree for a given expression, then builds it and emits the constituent child nodes in the expected order. the `expr` parsing is heavily influenced by [crockford's tdop article](http://javascript.crockford.com/tdop/tdop.html). the rest of the parser is heavily influenced by fever dreams.\n\n* the parser might hit a state where it's looking at what *could be* an expression, or it could be a declaration --\nthat is, the statement starts with a previously declared `struct`. it'll opt to pretend it's a declaration, but that\nmight not be the case -- it might be a user-defined constructor starting a statement!\n\n* \"unhygenic\" `#if` / `#endif` macros are completely unhandled at the moment, since they're a bit of a pain.\nif you've got unhygenic macros in your code, move the #if / #endifs to statement level, and have them surround\nwholly parseable code. this sucks, and i am sorry.\n\nlicense\n-------\n\nMIT\n",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/chrisdickinson/glsl-parser/issues"
+  },
+  "homepage": "https://github.com/chrisdickinson/glsl-parser",
+  "_id": "glsl-parser@0.0.5",
+  "_from": "glsl-parser@"
+}

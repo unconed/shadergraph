@@ -17,7 +17,7 @@ class Node
     return @owner
 
   # Become part of the given graph
-  link: (@graph) ->
+  setGraph: (@graph) ->
 
   # Retrieve input
   getIn: (name) ->
@@ -141,7 +141,7 @@ class Node
     throw "Adding two identical outlets to same node. (#{key})" if @outlets[key]
 
     # Link back outlet
-    outlet.link @
+    outlet.setNode @
 
     # Add to name hash and inout list
     @inputs.push(outlet)  if outlet.inout == Graph.IN
@@ -170,7 +170,7 @@ class Node
     outlet.disconnect()
 
     # Unlink outlet.
-    outlet.link null
+    outlet.setNode null
 
     # Remove from name list and inout list.
     delete @outlets[key]

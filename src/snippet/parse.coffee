@@ -20,8 +20,9 @@ parseGLSL = (name, code) ->
 
   tock = tick()
 
-  # Sync stream hack
+  # Sync stream hack (vendor/through)
   [[ast], errors] = tokenizer().process parser(), code
+
   tock 'GLSL Tokenize & Parse'
 
   if !ast || errors.length
@@ -48,7 +49,7 @@ processAST = (ast) ->
 mapSymbols = (node) ->
   switch node.type
     when 'decl'
-      return [decl.decl(node), true]
+      return [decl.decl(node), false]
   return [null, true]
 
 # Identify externals and main function
@@ -69,8 +70,21 @@ extractSymbols = (functions) ->
 
   [main, externals]
 
-# Main compilation run
+# Walk AST, apply map and collect values
+walk = (map, node, i = 0, d = 0, out = []) ->
+  #console.log "                ".substring(16 - d), node.type, node.token?.data, node.token?.type
 
+  [value, recurse] = map node
+  out.push value if value?
+
+  if recurse
+    walk map, child, i, d + 1, out for child, i in node.children
+
+  out
+
+
+# Main compilation run
+###
 compile = (ast) ->
 
   # Walk AST
@@ -86,21 +100,8 @@ compile = (ast) ->
   preprocessor = (node) ->
     pragma = node.token.data.split(' ')[1]
 
-  # ####
 
+###
 
-
-
-# Walk AST, apply map and collect values
-walk = (map, node, i = 0, d = 0, out = []) ->
-  console.log "                ".substring(16 - d), node.type, node.token?.data, node.token?.type
-
-  [value, recurse] = map node
-  out.push value if value?
-
-  if recurse
-    walk map, child, i, d + 1, out for child, i in node.children
-
-  out
 
 module.exports = parse

@@ -716,7 +716,7 @@ exports.parse = require('./parse');
 
 
 },{"./parse":10,"./snippet":11}],10:[function(require,module,exports){
-var compile, decl, extractSymbols, mapSymbols, parse, parseGLSL, parser, processAST, tick, tokenizer, walk;
+var decl, extractSymbols, mapSymbols, parse, parseGLSL, parser, processAST, tick, tokenizer, walk;
 
 tokenizer = require('../../vendor/glsl-tokenizer');
 
@@ -771,7 +771,7 @@ processAST = function(ast) {
 mapSymbols = function(node) {
   switch (node.type) {
     case 'decl':
-      return [decl.decl(node), true];
+      return [decl.decl(node), false];
   }
   return [null, true];
 };
@@ -802,27 +802,8 @@ extractSymbols = function(functions) {
   return [main, externals];
 };
 
-compile = function(ast) {
-  var map, preprocessor, stmt;
-  map = function(node) {
-    switch (node.type) {
-      case 'preprocessor':
-        preprocessor(node);
-        break;
-      case 'stmt':
-        stmt(node);
-    }
-    return [null, true];
-  };
-  stmt = function(node) {};
-  return preprocessor = function(node) {
-    var pragma;
-    return pragma = node.token.data.split(' ')[1];
-  };
-};
-
 walk = function(map, node, i, d, out) {
-  var child, recurse, value, _i, _len, _ref, _ref1, _ref2, _ref3;
+  var child, recurse, value, _i, _len, _ref, _ref1;
   if (i == null) {
     i = 0;
   }
@@ -832,20 +813,37 @@ walk = function(map, node, i, d, out) {
   if (out == null) {
     out = [];
   }
-  console.log("                ".substring(16 - d), node.type, (_ref = node.token) != null ? _ref.data : void 0, (_ref1 = node.token) != null ? _ref1.type : void 0);
-  _ref2 = map(node), value = _ref2[0], recurse = _ref2[1];
+  _ref = map(node), value = _ref[0], recurse = _ref[1];
   if (value != null) {
     out.push(value);
   }
   if (recurse) {
-    _ref3 = node.children;
-    for (i = _i = 0, _len = _ref3.length; _i < _len; i = ++_i) {
-      child = _ref3[i];
+    _ref1 = node.children;
+    for (i = _i = 0, _len = _ref1.length; _i < _len; i = ++_i) {
+      child = _ref1[i];
       walk(map, child, i, d + 1, out);
     }
   }
   return out;
 };
+
+
+/*
+compile = (ast) ->
+
+   * Walk AST
+
+  map = (node) ->
+    switch node.type
+      when 'preprocessor' then preprocessor(node)
+      when 'stmt'         then stmt(node)
+    [null, true]
+
+  stmt = (node) ->
+
+  preprocessor = (node) ->
+    pragma = node.token.data.split(' ')[1]
+ */
 
 module.exports = parse;
 

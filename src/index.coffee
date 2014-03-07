@@ -9,11 +9,10 @@ class ShaderGraph
   shader: () ->
     new Factory @library
 
-  Graph: require('./graph')
+  @Graph: require('./graph')
 
 module.exports = ShaderGraph
 window.ShaderGraph = ShaderGraph
-
 
 
 
@@ -249,3 +248,4 @@ snippets = {
 
 shadergraph = new ShaderGraph snippets
 shader = shadergraph.shader().snippet('test')
+

@@ -17,7 +17,7 @@ class Factory
 
   snippet: (name, uniforms) ->
     snippet = @library.fetch name
-    block = Snippet.Apply snippet, uniforms
+    block = snippet.apply uniforms
 
     @
 

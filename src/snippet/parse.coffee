@@ -11,8 +11,9 @@ tick = () ->
 
 # Parse a GLSL snippet
 parse = (name, code) ->
-  ast = parseGLSL name, code
-  processAST ast
+  ast        = parseGLSL name, code
+  symbols    = processAST ast
+
   throw "lol error"
 
 # Parse GLSL language into AST
@@ -20,7 +21,7 @@ parseGLSL = (name, code) ->
 
   tock = tick()
 
-  # Sync stream hack (vendor/through)
+  # Sync stream hack (see /vendor/through)
   [[ast], errors] = tokenizer().process parser(), code
 
   tock 'GLSL Tokenize & Parse'
@@ -37,25 +38,31 @@ parseGLSL = (name, code) ->
 processAST = (ast) ->
   tock = tick()
 
-  functions = walk mapSymbols, ast
-  [main, externals] = extractSymbols functions
+  symbols = walk mapSymbols, ast
+  [main, internals, externals] = extractSymbols symbols
+
+  signatures = extractSignatures main, externals
 
   tock 'GLSL AST'
 
   window.main = main
   window.externals = externals
+  window.signatures = signatures
+
+  {main, externals, signatures}
 
 # Extract functions and external symbols from AST
 mapSymbols = (node) ->
   switch node.type
     when 'decl'
-      return [decl.decl(node), false]
+      return [decl.node(node), false]
   return [null, true]
 
 # Identify externals and main function
 extractSymbols = (functions) ->
-  externals = []
   main = null
+  internals = []
+  externals = []
 
   for f in functions
     if !f.body
@@ -63,12 +70,72 @@ extractSymbols = (functions) ->
       externals.push f
     else
       # Remove earlier forward declaration
-      externals = (e for e in externals when e.ident != f.ident)
+      internals.push(e) for e in externals when e.ident == f.ident
+      externals    = (e for e in externals when e.ident != f.ident)
 
       # Last function is main
       main = f
 
-  [main, externals]
+  [main, internals, externals]
+
+# Generate type signatures and appropriate ins/outs
+extractSignatures = (main, externals) ->
+  sigs =
+    uniform: {}
+    attribute: {}
+    varying: {}
+    external: []
+    main: null
+
+  defn = (symbol) ->
+    decl.type symbol.ident, symbol.type, symbol.quant, symbol.inout
+
+  func = (symbol, inout) ->
+    signature = (defn arg for arg in symbol.args)
+
+    # split inouts into in and out
+    for d in signature when d.inout == decl.inout
+      a = d
+      b = decl.copy d
+
+      a.inout = decl.in
+      b.inout = decl.out
+      b.name += '__inout'
+
+      signature.push b
+
+    # add out for return type
+    if symbol.type != 'void'
+      signature.push decl.type '_return__', symbol.type, false, 'out'
+
+    # make type string
+    ins = (d.type for d in signature when d.inout == decl.in).join ','
+    outs = (d.type for d in signature when d.inout == decl.out).join ','
+    type = "(#{ins})(#{outs})"
+
+    def =
+      name: symbol.ident
+      type: type
+      signature: signature
+      inout: inout
+
+  # parse main
+  sigs.main = func main, decl.out
+
+  for symbol in externals
+    switch symbol.decl
+
+      # parse uniforms/attributes/varyings
+      when 'external'
+        def = defn symbol
+        sigs[symbol.storage][def.name] = def
+
+      # parse callbacks
+      when 'function'
+        def = func symbol, decl.in
+        sigs.external.push def
+
+  sigs
 
 # Walk AST, apply map and collect values
 walk = (map, node, i = 0, d = 0, out = []) ->
@@ -102,6 +169,5 @@ compile = (ast) ->
 
 
 ###
-
 
 module.exports = parse

@@ -32,7 +32,7 @@ Factory = (function() {
   Factory.prototype.snippet = function(name, uniforms) {
     var block, snippet;
     snippet = this.library.fetch(name);
-    block = Snippet.Apply(snippet, uniforms);
+    block = snippet.apply(uniforms);
     return this;
   };
 
@@ -567,7 +567,7 @@ ShaderGraph = (function() {
     return new Factory(this.library);
   };
 
-  ShaderGraph.prototype.Graph = require('./graph');
+  ShaderGraph.Graph = require('./graph');
 
   return ShaderGraph;
 
@@ -628,8 +628,65 @@ var decl, get;
 
 module.exports = decl = {};
 
+decl["in"] = 0;
+
+decl.out = 1;
+
+decl.inout = 2;
+
 get = function(n) {
   return n.token.data;
+};
+
+decl.copy = function(type) {
+  var inout, name, value, _ref;
+  _ref = type, name = _ref.name, type = _ref.type, value = _ref.value, inout = _ref.inout;
+  return {
+    name: name,
+    type: type,
+    value: value,
+    inout: inout
+  };
+};
+
+decl.type = function(name, spec, quant, inout) {
+  var defaults, dirs, three, type, value, _ref;
+  three = {
+    float: 'f',
+    vec2: 'v2',
+    vec3: 'v3',
+    vec4: 'v4',
+    mat3: 'm3',
+    mat4: 'm4',
+    sampler2D: 't',
+    samplerCube: 't'
+  };
+  defaults = {
+    float: 0,
+    vec2: window.THREE ? new THREE.Vector3() : null,
+    vec3: window.THREE ? new THREE.Vector3() : null,
+    vec4: window.THREE ? new THREE.Vector4() : null,
+    mat4: window.THREE ? new THREE.Matrix4() : null,
+    sampler2D: 0,
+    samplerCube: 0
+  };
+  dirs = {
+    "in": decl["in"],
+    out: decl.out,
+    inout: decl.inout
+  };
+  type = three[spec];
+  if (quant) {
+    type += 'v';
+  }
+  value = defaults[type];
+  inout = (_ref = dirs[inout]) != null ? _ref : dirs["in"];
+  return {
+    name: name,
+    type: type,
+    value: value,
+    inout: inout
+  };
 };
 
 decl.decl = function(node) {
@@ -645,65 +702,69 @@ decl.decl = function(node) {
 decl.external = function(node) {
   var c, ident, list, quant, storage, struct, type;
   c = node.children;
-  storage = c[1];
-  struct = c[3];
-  type = c[4];
+  storage = get(c[1]);
+  struct = get(c[3]);
+  type = get(c[4]);
   list = c[5];
-  ident = list.children[0];
+  ident = get(list.children[0]);
   quant = list.children[1];
   return {
+    decl: 'external',
     node: node,
-    storage: get(storage),
-    type: get(type),
-    ident: get(ident),
+    storage: storage,
+    type: type,
+    ident: ident,
     quant: !!quant
   };
 };
 
 decl["function"] = function(node) {
-  var args, body, c, child, func, ident, storage, struct, type;
+  var args, body, c, child, decls, func, ident, storage, struct, type;
   c = node.children;
-  storage = c[1];
-  struct = c[3];
-  type = c[4];
+  storage = get(c[1]);
+  struct = get(c[3]);
+  type = get(c[4]);
   func = c[5];
-  ident = func.children[0];
+  ident = get(func.children[0]);
   args = func.children[1];
   body = func.children[2];
+  decls = (function() {
+    var _i, _len, _ref, _results;
+    _ref = args.children;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      child = _ref[_i];
+      _results.push(decl.argument(child));
+    }
+    return _results;
+  })();
   return {
+    decl: 'function',
     node: node,
-    storage: get(storage),
-    type: get(type),
-    ident: get(ident),
-    args: (function() {
-      var _i, _len, _ref, _results;
-      _ref = args.children;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        child = _ref[_i];
-        _results.push(decl.argument(child));
-      }
-      return _results;
-    })(),
-    body: !!body
+    storage: storage,
+    type: type,
+    ident: ident,
+    body: !!body,
+    args: decls
   };
 };
 
 decl.argument = function(node) {
   var c, ident, inout, list, quant, storage, type;
   c = node.children;
-  storage = c[1];
-  inout = c[2];
-  type = c[4];
+  storage = get(c[1]);
+  inout = get(c[2]);
+  type = get(c[4]);
   list = c[5];
-  ident = list.children[0];
+  ident = get(list.children[0]);
   quant = list.children[1];
   return {
+    decl: 'argument',
     node: node,
-    storage: get(storage),
-    inout: get(inout),
-    type: get(type),
-    ident: get(ident),
+    storage: storage,
+    inout: inout,
+    type: type,
+    ident: ident,
     quant: !!quant
   };
 };
@@ -716,7 +777,7 @@ exports.parse = require('./parse');
 
 
 },{"./parse":10,"./snippet":11}],10:[function(require,module,exports){
-var decl, extractSymbols, mapSymbols, parse, parseGLSL, parser, processAST, tick, tokenizer, walk;
+var decl, extractSignatures, extractSymbols, mapSymbols, parse, parseGLSL, parser, processAST, tick, tokenizer, walk;
 
 tokenizer = require('../../vendor/glsl-tokenizer');
 
@@ -736,9 +797,9 @@ tick = function() {
 };
 
 parse = function(name, code) {
-  var ast;
+  var ast, symbols;
   ast = parseGLSL(name, code);
-  processAST(ast);
+  symbols = processAST(ast);
   throw "lol error";
 };
 
@@ -759,13 +820,20 @@ parseGLSL = function(name, code) {
 };
 
 processAST = function(ast) {
-  var externals, functions, main, tock, _ref;
+  var externals, internals, main, signatures, symbols, tock, _ref;
   tock = tick();
-  functions = walk(mapSymbols, ast);
-  _ref = extractSymbols(functions), main = _ref[0], externals = _ref[1];
+  symbols = walk(mapSymbols, ast);
+  _ref = extractSymbols(symbols), main = _ref[0], internals = _ref[1], externals = _ref[2];
+  signatures = extractSignatures(main, externals);
   tock('GLSL AST');
   window.main = main;
-  return window.externals = externals;
+  window.externals = externals;
+  window.signatures = signatures;
+  return {
+    main: main,
+    externals: externals,
+    signatures: signatures
+  };
 };
 
 mapSymbols = function(node) {
@@ -777,19 +845,26 @@ mapSymbols = function(node) {
 };
 
 extractSymbols = function(functions) {
-  var e, externals, f, main, _i, _len;
-  externals = [];
+  var e, externals, f, internals, main, _i, _j, _len, _len1;
   main = null;
+  internals = [];
+  externals = [];
   for (_i = 0, _len = functions.length; _i < _len; _i++) {
     f = functions[_i];
     if (!f.body) {
       externals.push(f);
     } else {
+      for (_j = 0, _len1 = externals.length; _j < _len1; _j++) {
+        e = externals[_j];
+        if (e.ident === f.ident) {
+          internals.push(e);
+        }
+      }
       externals = (function() {
-        var _j, _len1, _results;
+        var _k, _len2, _results;
         _results = [];
-        for (_j = 0, _len1 = externals.length; _j < _len1; _j++) {
-          e = externals[_j];
+        for (_k = 0, _len2 = externals.length; _k < _len2; _k++) {
+          e = externals[_k];
           if (e.ident !== f.ident) {
             _results.push(e);
           }
@@ -799,7 +874,91 @@ extractSymbols = function(functions) {
       main = f;
     }
   }
-  return [main, externals];
+  return [main, internals, externals];
+};
+
+extractSignatures = function(main, externals) {
+  var def, defn, func, sigs, symbol, _i, _len;
+  sigs = {
+    uniform: {},
+    attribute: {},
+    varying: {},
+    external: [],
+    main: null
+  };
+  defn = function(symbol) {
+    return decl.type(symbol.ident, symbol.type, symbol.quant, symbol.inout);
+  };
+  func = function(symbol, inout) {
+    var a, arg, b, d, def, ins, outs, signature, type, _i, _len;
+    signature = (function() {
+      var _i, _len, _ref, _results;
+      _ref = symbol.args;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        arg = _ref[_i];
+        _results.push(defn(arg));
+      }
+      return _results;
+    })();
+    for (_i = 0, _len = signature.length; _i < _len; _i++) {
+      d = signature[_i];
+      if (d.inout === decl.inout) {
+        a = d;
+        b = decl.copy(d);
+        a.inout = decl["in"];
+        b.inout = decl.out;
+        b.name += '__inout';
+        signature.push(b);
+      }
+    }
+    if (symbol.type !== 'void') {
+      signature.push(decl.type('_return__', symbol.type, false, 'out'));
+    }
+    ins = ((function() {
+      var _j, _len1, _results;
+      _results = [];
+      for (_j = 0, _len1 = signature.length; _j < _len1; _j++) {
+        d = signature[_j];
+        if (d.inout === decl["in"]) {
+          _results.push(d.type);
+        }
+      }
+      return _results;
+    })()).join(',');
+    outs = ((function() {
+      var _j, _len1, _results;
+      _results = [];
+      for (_j = 0, _len1 = signature.length; _j < _len1; _j++) {
+        d = signature[_j];
+        if (d.inout === decl.out) {
+          _results.push(d.type);
+        }
+      }
+      return _results;
+    })()).join(',');
+    type = "(" + ins + ")(" + outs + ")";
+    return def = {
+      name: symbol.ident,
+      type: type,
+      signature: signature,
+      inout: inout
+    };
+  };
+  sigs.main = func(main, decl.out);
+  for (_i = 0, _len = externals.length; _i < _len; _i++) {
+    symbol = externals[_i];
+    switch (symbol.decl) {
+      case 'external':
+        def = defn(symbol);
+        sigs[symbol.storage][def.name] = def;
+        break;
+      case 'function':
+        def = func(symbol, decl["in"]);
+        sigs.external.push(def);
+    }
+  }
+  return sigs;
 };
 
 walk = function(map, node, i, d, out) {
@@ -849,7 +1008,9 @@ module.exports = parse;
 
 
 },{"../../vendor/glsl-parser":12,"../../vendor/glsl-tokenizer":16,"./decl":8}],11:[function(require,module,exports){
-var Snippet;
+var Snippet, apply, make, parse;
+
+parse = require('./parse');
 
 Snippet = (function() {
   function Snippet() {}
@@ -858,10 +1019,19 @@ Snippet = (function() {
 
 })();
 
+make = function(name, code) {
+  var snippet;
+  return snippet = new Snippet(parse(name, code));
+};
+
+apply = function(snippet, uniforms) {
+  return block;
+};
+
 module.exports = Snippet;
 
 
-},{}],12:[function(require,module,exports){
+},{"./parse":10}],12:[function(require,module,exports){
 module.exports = require('./lib/index')
 
 },{"./lib/index":14}],13:[function(require,module,exports){
@@ -1204,7 +1374,7 @@ var stmt_type = _ = [
   , 'decllist'
   , 'forloop'
   , 'whileloop'
-  , 'if'
+  , 'i'+'f'
   , 'expr'
   , 'precision'
   , 'comment'

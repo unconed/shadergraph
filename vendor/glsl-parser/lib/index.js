@@ -70,7 +70,7 @@ var stmt_type = _ = [
   , 'decllist'
   , 'forloop'
   , 'whileloop'
-  , 'if'
+  , 'i'+'f'
   , 'expr'
   , 'precision'
   , 'comment'

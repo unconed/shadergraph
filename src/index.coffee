@@ -66,7 +66,17 @@ void snippetTest(
 }
 """
 
-coode = """
+
+
+
+
+
+
+
+
+
+
+code = """
 uniform vec3 color;
 
 #pragma external
@@ -74,9 +84,16 @@ const void callback(const in vec4 rgba);
 
 #pragma export
 void main() { gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); };
+
 """
 
-coode = """
+
+
+
+
+
+
+code = """
 uniform vec2 sampleStep;
 
 uniform float fadeOut;
@@ -190,6 +207,8 @@ void main() {
   vec2 xy = (vUV * 2.0 - 1.0) * vec2(16.0/9.0, 1.0);
   vec2 pos = xy;
 
+  callback();
+
   if (field > 0.0) {
 
     if (field < 1.0) {
@@ -237,6 +256,35 @@ void main() {
 
   gl_FragColor = vec4(sample.xyz - vec3(fadeOut), 1.0);
 
+}
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+coode = """
+uniform vec2 sampleStep;
+
+uniform float fadeOut;
+uniform float field;
+uniform float time;
+
+uniform sampler2D texture;
+varying vec2 vUV;
+
+float randf(vec2 xy) {
+  return fract(sin(dot(xy, vec2(3.1380, 7.41)) * 1.0 * 2.0 / 3.0 / 4.0 * 5.0) * 1414.32);
 }
 
 """

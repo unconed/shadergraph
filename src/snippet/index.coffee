@@ -1,2 +1,2 @@
 exports.Snippet = require './snippet'
-exports.parse = require './parse'
+exports.load = exports.Snippet.load

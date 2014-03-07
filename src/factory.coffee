@@ -7,14 +7,6 @@ class Factory
   constructor: (@library) ->
     @end()
 
-  _push: () ->
-    @_stack.unshift new State
-    @_state = @_stack[0]
-
-  _pop: () ->
-    @_state = @_stack[1]
-    @_stack.shift
-
   snippet: (name, uniforms) ->
     snippet = @library.fetch name
     block = snippet.apply uniforms
@@ -29,6 +21,8 @@ class Factory
     @_state.start = [node] if !@_state.start.length
     @_state.end = [node]
 
+    @
+
   prepend: (node) ->
     @graph.add node
 
@@ -42,8 +36,6 @@ class Factory
   group: () ->
     @_push()
     @_push()
-
-    @
 
   pass: () ->
     @next()
@@ -62,8 +54,7 @@ class Factory
   combine: () ->
     throw "Popping factory stack too far" if @_stack.length <= 2
 
-    @next()
-    @_pop()
+    @next()._pop()
 
     sub = @_pop()
     main = @_state
@@ -96,5 +87,16 @@ class Factory
         graph.tail().owner().compile()
 
     graph
+
+  _push: () ->
+    @_stack.unshift new State
+    @_state = @_stack[0]
+    @
+
+  _pop: () ->
+    @_state = @_stack[1]
+    @_stack.shift
+    @
+
 
 module.exports = Factory

@@ -19,16 +19,6 @@ Factory = (function() {
     this.end();
   }
 
-  Factory.prototype._push = function() {
-    this._stack.unshift(new State);
-    return this._state = this._stack[0];
-  };
-
-  Factory.prototype._pop = function() {
-    this._state = this._stack[1];
-    return this._stack.shift;
-  };
-
   Factory.prototype.snippet = function(name, uniforms) {
     var block, snippet;
     snippet = this.library.fetch(name);
@@ -47,7 +37,8 @@ Factory = (function() {
     if (!this._state.start.length) {
       this._state.start = [node];
     }
-    return this._state.end = [node];
+    this._state.end = [node];
+    return this;
   };
 
   Factory.prototype.prepend = function(node) {
@@ -67,8 +58,7 @@ Factory = (function() {
 
   Factory.prototype.group = function() {
     this._push();
-    this._push();
-    return this;
+    return this._push();
   };
 
   Factory.prototype.pass = function() {
@@ -90,8 +80,7 @@ Factory = (function() {
     if (this._stack.length <= 2) {
       throw "Popping factory stack too far";
     }
-    this.next();
-    this._pop();
+    this.next()._pop();
     sub = this._pop();
     main = this._state;
     if (sub.start.length) {
@@ -126,6 +115,18 @@ Factory = (function() {
       };
     }
     return graph;
+  };
+
+  Factory.prototype._push = function() {
+    this._stack.unshift(new State);
+    this._state = this._stack[0];
+    return this;
+  };
+
+  Factory.prototype._pop = function() {
+    this._state = this._stack[1];
+    this._stack.shift;
+    return this;
   };
 
   return Factory;
@@ -579,9 +580,11 @@ window.ShaderGraph = ShaderGraph;
 
 code = "// Comment\nuniform float uf;\nuniform float ufv1[3];\nuniform vec2 uv2;\n// Comment\nuniform vec2 uv2v[3];\nuniform vec3 uv3;\nuniform vec3 uv3v[3];\nuniform vec4 uv4;\nuniform vec4 uv4v[3];\nuniform sampler2D ut;\nuniform sampler2D utv[3];\nvarying float vf;\nvarying float vfv1[3];\nvarying mat3 vm3;\nvarying mat3 vm3v[3];\nvarying mat4 vm4;\nvarying mat4 vm4v[3];\nattribute float af;\nattribute float afv1[3];\nattribute vec3 av3;\nattribute vec3 av3v[3];\nattribute mat4 am4;\nattribute mat4 am4v[3];\n\nvoid callback1(in vec4 v4in);\n\nvoid callback2(in vec3 v3in, out vec4 v4out);\n\nvoid callback3(in vec3 v3in, in vec4 v4in, out vec4 v4out);\n\nvoid snippetTest(\n  in vec3 v3in, in vec4 v4in, mat3 m3vin[3],\n  out vec4 v4out, out vec4 v4vout[3], out mat4 m4out, out mat4 m4vout[3],\n  inout vec3 v3inout) {\n    callback1(v4in);\n    callback2(v3in, v4out);\n    callback3(v3in, v4in, v4out);\n    gl_FragColor = vec4(v4in.xyz, 1.0);\n}";
 
-coode = "uniform vec3 color;\n\n#pragma external\nconst void callback(const in vec4 rgba);\n\n#pragma export\nvoid main() { gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); };";
+code = "uniform vec3 color;\n\n#pragma external\nconst void callback(const in vec4 rgba);\n\n#pragma export\nvoid main() { gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); };\n";
 
-coode = "uniform vec2 sampleStep;\n\nuniform float fadeOut;\nuniform float field;\nuniform float time;\n\nuniform sampler2D texture;\nvarying vec2 vUV;\n\nfloat randf(vec2 xy) {\n  return fract(sin(dot(xy, vec2(3.1380, 7.41)) * 13.414) * 1414.32);\n}\n\nconst float c = .9999875;\nconst float s = .005;\nconst mat2 roto1 = mat2(c, s, -s, c);\nconst mat2 roto2 = mat2(c, -s, s, c);\n\nconst float c2 = .9998;\nconst float s2 = .02;\nconst mat2 roto3 = mat2(c2, -s2, s2, c2);\n\nvec2 rotozoom(vec2 xy) {\n  float r = sqrt(dot(xy, xy));\n  xy *= (7.0 * r + sin(r)) * .125 / r;\n  xy *= roto1;\n\n  return xy;\n}\n\nvec2 planeproject(vec2 xy) {\n  float f = .0625 * (15.0 + 1.0 / (-xy.y + 1.5));\n  xy *= f;\n  xy *= roto2;\n\n  return xy;\n}\n\nvec2 ball(vec2 xy) {\n  float r = sqrt(dot(xy, xy));\n  xy *= (3.0 + 1.75 * tan(r * .5) / r) * .25;\n  xy *= roto3;\n\n  return xy;\n}\n\nvec2 swirl(vec2 xy) {\n  vec2 a = xy * 2.25 * 6.28;\n  xy += vec2(sin(a.y), sin(a.x)) * .01;\n\n  vec2 b = xy * 4.5 * 6.28;\n  xy += vec2(-sin(b.y), sin(b.x)) * .01;\n\n  vec2 c = xy * 9.0 * 6.28;\n  xy += vec2(-sin(c.y), -sin(c.x)) * .01;\n  return xy;\n}\n\nvec2 warp(vec2 xy, float q) {\n\n  float r = sqrt(dot(xy, xy));\n  float th = atan(xy.y, xy.x) * 6.0;\n  float f = .99 * (r + sin(r * r * q * .5 + time + sin(th) * 2.0) * .02) / r;\n\n  return xy * f;\n}\n\nvec2 tiles(vec2 xy) {\n\n  vec2 grid = floor(xy * 9.0);\n  float index = mod(grid.x + grid.y + (1.0 + grid.x) * grid.x * grid.y * 3.0, 4.0);\n\n  float d = .01;\n  if (index < .5) {\n    xy.x += d;\n  }\n  else if (index < 1.5) {\n    xy.x -= d;\n  }\n  else if (index < 2.5) {\n    xy.y += d;\n  }\n  else {\n    xy.y -= d;\n  }\n\n  return xy;\n}\n\nvec2 flower(vec2 xy) {\n  vec2 orig = xy;\n  float r = sqrt(dot(xy, xy));\n  float th = atan(xy.y, xy.x);\n\n  float th2 = th + sin(r * 64.0);\n  float r2 = r + sin(th * 64.0);\n\n  return mix(orig, vec2(cos(th2) * r2, sin(th2) * r2), .01);\n}\n\nvec2 rotate(vec2 xy, vec2 ref, float a) {\n  vec2 diff = xy - ref;\n  float c = cos(a);\n  float s = sin(a);\n  return ref + diff * mat2(c, -s, s, c);\n}\n\nvoid callback();\n\nvoid main() {\n  vec2 xy = (vUV * 2.0 - 1.0) * vec2(16.0/9.0, 1.0);\n  vec2 pos = xy;\n\n  if (field > 0.0) {\n\n    if (field < 1.0) {\n      xy = mix(xy, rotozoom(pos), clamp(field, 0.0, 1.0));\n    }\n    else if (field < 2.0) {\n      xy = rotozoom(pos);\n      xy = mix(xy, planeproject(pos), clamp(field - 1.0, 0.0, 1.0));\n    }\n    else if (field < 3.0) {\n      xy = planeproject(pos);\n      xy = mix(xy, ball(pos), clamp(field - 2.0, 0.0, 1.0));\n    }\n    else if (field < 4.0) {\n      xy = ball(pos);\n      xy = mix(xy, rotate(xy, pos, time), clamp(field - 3.0, 0.0, 1.0));\n    }\n    else if (field < 5.0) {\n      xy = ball(pos);\n      xy = rotate(xy, pos, time);\n      xy = mix(xy, rotate(swirl(pos), pos, time), clamp(field - 4.0, 0.0, 1.0) * .5);\n    }\n    else if (field < 6.0) {\n      xy = ball(pos);\n      xy = rotate(xy, pos, time);\n      xy = mix(xy, rotate(swirl(pos), pos, time), .5);\n      xy = mix(xy, mix(rotate(warp(pos * 1.131, 32.0) / 1.131, pos, -time * 1.711), rotate(warp(pos, 27.0), pos, time), .5), clamp(field - 5.0, 0.0, 1.0));\n    }\n    else if (field < 7.0) {\n      xy = mix(rotate(warp(pos * 1.131, 32.0) / 1.131, pos, -time * 1.711), rotate(warp(pos, 27.0), pos, time), .5);\n      xy = mix(xy, rotate(tiles(pos), pos, -time), clamp(field - 6.0, 0.0, 1.0));\n    }\n    else { //if (field < 8.0) {\n      xy = rotate(tiles(pos), pos, -time) * .995;\n      xy = mix(xy, flower(pos), clamp(field - 7.0, 0.0, 1.0));\n    }\n\n    xy += sampleStep * .2;\n  }\n\n  xy *= vec2(9.0/16.0, 1.0);\n\n  vec2 uv = fract(xy * .5 + .5);\n  vec4 sample = texture2D(texture, uv);\n\n  gl_FragColor = vec4(sample.xyz - vec3(fadeOut), 1.0);\n\n}\n";
+code = "uniform vec2 sampleStep;\n\nuniform float fadeOut;\nuniform float field;\nuniform float time;\n\nuniform sampler2D texture;\nvarying vec2 vUV;\n\nfloat randf(vec2 xy) {\n  return fract(sin(dot(xy, vec2(3.1380, 7.41)) * 13.414) * 1414.32);\n}\n\nconst float c = .9999875;\nconst float s = .005;\nconst mat2 roto1 = mat2(c, s, -s, c);\nconst mat2 roto2 = mat2(c, -s, s, c);\n\nconst float c2 = .9998;\nconst float s2 = .02;\nconst mat2 roto3 = mat2(c2, -s2, s2, c2);\n\nvec2 rotozoom(vec2 xy) {\n  float r = sqrt(dot(xy, xy));\n  xy *= (7.0 * r + sin(r)) * .125 / r;\n  xy *= roto1;\n\n  return xy;\n}\n\nvec2 planeproject(vec2 xy) {\n  float f = .0625 * (15.0 + 1.0 / (-xy.y + 1.5));\n  xy *= f;\n  xy *= roto2;\n\n  return xy;\n}\n\nvec2 ball(vec2 xy) {\n  float r = sqrt(dot(xy, xy));\n  xy *= (3.0 + 1.75 * tan(r * .5) / r) * .25;\n  xy *= roto3;\n\n  return xy;\n}\n\nvec2 swirl(vec2 xy) {\n  vec2 a = xy * 2.25 * 6.28;\n  xy += vec2(sin(a.y), sin(a.x)) * .01;\n\n  vec2 b = xy * 4.5 * 6.28;\n  xy += vec2(-sin(b.y), sin(b.x)) * .01;\n\n  vec2 c = xy * 9.0 * 6.28;\n  xy += vec2(-sin(c.y), -sin(c.x)) * .01;\n  return xy;\n}\n\nvec2 warp(vec2 xy, float q) {\n\n  float r = sqrt(dot(xy, xy));\n  float th = atan(xy.y, xy.x) * 6.0;\n  float f = .99 * (r + sin(r * r * q * .5 + time + sin(th) * 2.0) * .02) / r;\n\n  return xy * f;\n}\n\nvec2 tiles(vec2 xy) {\n\n  vec2 grid = floor(xy * 9.0);\n  float index = mod(grid.x + grid.y + (1.0 + grid.x) * grid.x * grid.y * 3.0, 4.0);\n\n  float d = .01;\n  if (index < .5) {\n    xy.x += d;\n  }\n  else if (index < 1.5) {\n    xy.x -= d;\n  }\n  else if (index < 2.5) {\n    xy.y += d;\n  }\n  else {\n    xy.y -= d;\n  }\n\n  return xy;\n}\n\nvec2 flower(vec2 xy) {\n  vec2 orig = xy;\n  float r = sqrt(dot(xy, xy));\n  float th = atan(xy.y, xy.x);\n\n  float th2 = th + sin(r * 64.0);\n  float r2 = r + sin(th * 64.0);\n\n  return mix(orig, vec2(cos(th2) * r2, sin(th2) * r2), .01);\n}\n\nvec2 rotate(vec2 xy, vec2 ref, float a) {\n  vec2 diff = xy - ref;\n  float c = cos(a);\n  float s = sin(a);\n  return ref + diff * mat2(c, -s, s, c);\n}\n\nvoid callback();\n\nvoid main() {\n  vec2 xy = (vUV * 2.0 - 1.0) * vec2(16.0/9.0, 1.0);\n  vec2 pos = xy;\n\n  callback();\n\n  if (field > 0.0) {\n\n    if (field < 1.0) {\n      xy = mix(xy, rotozoom(pos), clamp(field, 0.0, 1.0));\n    }\n    else if (field < 2.0) {\n      xy = rotozoom(pos);\n      xy = mix(xy, planeproject(pos), clamp(field - 1.0, 0.0, 1.0));\n    }\n    else if (field < 3.0) {\n      xy = planeproject(pos);\n      xy = mix(xy, ball(pos), clamp(field - 2.0, 0.0, 1.0));\n    }\n    else if (field < 4.0) {\n      xy = ball(pos);\n      xy = mix(xy, rotate(xy, pos, time), clamp(field - 3.0, 0.0, 1.0));\n    }\n    else if (field < 5.0) {\n      xy = ball(pos);\n      xy = rotate(xy, pos, time);\n      xy = mix(xy, rotate(swirl(pos), pos, time), clamp(field - 4.0, 0.0, 1.0) * .5);\n    }\n    else if (field < 6.0) {\n      xy = ball(pos);\n      xy = rotate(xy, pos, time);\n      xy = mix(xy, rotate(swirl(pos), pos, time), .5);\n      xy = mix(xy, mix(rotate(warp(pos * 1.131, 32.0) / 1.131, pos, -time * 1.711), rotate(warp(pos, 27.0), pos, time), .5), clamp(field - 5.0, 0.0, 1.0));\n    }\n    else if (field < 7.0) {\n      xy = mix(rotate(warp(pos * 1.131, 32.0) / 1.131, pos, -time * 1.711), rotate(warp(pos, 27.0), pos, time), .5);\n      xy = mix(xy, rotate(tiles(pos), pos, -time), clamp(field - 6.0, 0.0, 1.0));\n    }\n    else { //if (field < 8.0) {\n      xy = rotate(tiles(pos), pos, -time) * .995;\n      xy = mix(xy, flower(pos), clamp(field - 7.0, 0.0, 1.0));\n    }\n\n    xy += sampleStep * .2;\n  }\n\n  xy *= vec2(9.0/16.0, 1.0);\n\n  vec2 uv = fract(xy * .5 + .5);\n  vec4 sample = texture2D(texture, uv);\n\n  gl_FragColor = vec4(sample.xyz - vec3(fadeOut), 1.0);\n\n}\n";
+
+coode = "uniform vec2 sampleStep;\n\nuniform float fadeOut;\nuniform float field;\nuniform float time;\n\nuniform sampler2D texture;\nvarying vec2 vUV;\n\nfloat randf(vec2 xy) {\n  return fract(sin(dot(xy, vec2(3.1380, 7.41)) * 1.0 * 2.0 / 3.0 / 4.0 * 5.0) * 1414.32);\n}\n";
 
 window.code = code;
 
@@ -609,11 +612,10 @@ Library = (function() {
     if (this.snippets[name] == null) {
       throw "Unknown snippet `" + name + "`";
     }
-    if (this.objects[name] != null) {
-      return this.objects[name].clone();
-    } else {
-      return this.objects[name] = Snippet.parse(name, this.snippets[name]);
+    if (this.objects[name] == null) {
+      this.objects[name] = Snippet.load(name, this.snippets[name]);
     }
+    return this.objects[name].clone();
   };
 
   return Library;
@@ -623,7 +625,335 @@ Library = (function() {
 module.exports = Library;
 
 
-},{"./snippet":9}],8:[function(require,module,exports){
+},{"./snippet":10}],8:[function(require,module,exports){
+var compile, replaced, tick, walk;
+
+walk = require('./walk');
+
+
+/*
+  compile AST back into GLSL, but with certain symbols replaced by placeholders
+ */
+
+tick = function() {
+  var now;
+  now = +(new Date);
+  return function(label) {
+    var delta;
+    delta = +new Date() - now;
+    console.log(label, delta + " ms");
+    return delta;
+  };
+};
+
+replaced = function(signatures) {
+  var out, s, sig, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
+  out = {};
+  s = function(sig) {
+    return out[sig.name] = true;
+  };
+  s(signatures.main);
+  _ref = signatures.external;
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    sig = _ref[_i];
+    s(sig);
+  }
+  _ref1 = signatures.internal;
+  for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+    sig = _ref1[_j];
+    s(sig);
+  }
+  _ref2 = signatures.varying;
+  for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+    sig = _ref2[_k];
+    s(sig);
+  }
+  _ref3 = signatures.uniform;
+  for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+    sig = _ref3[_l];
+    s(sig);
+  }
+  return out;
+};
+
+compile = function(program) {
+  var args, ast, block, buffer, call, combine, decllist, group, ident, ifstmt, indent, last, literal, map, maybePlaceholder, operator, placeholder, placeholders, quantifier, recurse, regex, remap, signatures, stmt, stmtlist, string, tock, tokens;
+  ast = program.ast, signatures = program.signatures;
+  placeholders = replaced(signatures);
+  console.log("placeholders", placeholders);
+  tokens = [];
+  buffer = "";
+  last = "";
+  regex = /[0-9A-Za-z_{}]/;
+  indent = '';
+  block = '';
+  string = function(value) {
+    var first;
+    last = buffer[buffer.length - 1];
+    first = value[0];
+    if (value === ';\n' && last === '\n') {
+      return;
+    }
+    if (buffer.length && regex.test(last) && regex.test(first)) {
+      buffer += ' ';
+    }
+    return buffer += value;
+  };
+  maybePlaceholder = function(name) {
+    if (placeholders[name]) {
+      return placeholder(name);
+    } else {
+      return string(name);
+    }
+  };
+  placeholder = function(name) {
+    string(' ');
+    combine();
+    tokens.push(function(names) {
+      return names[name];
+    });
+    return string(' ');
+  };
+  combine = function() {
+    if (buffer.length) {
+      tokens.push(buffer);
+      buffer = "";
+    }
+    return tokens;
+  };
+  recurse = function(node) {
+    var child, i, _i, _len, _ref;
+    indent += '..';
+    _ref = node.children;
+    for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+      child = _ref[i];
+      walk(map, null, child, indent);
+    }
+    return indent = indent.substring(2);
+  };
+  remap = function(node, i) {
+    indent += '..';
+    walk(map, null, node, indent);
+    return indent = indent.substring(2);
+  };
+  stmtlist = function(node) {
+    if (node.parent) {
+      block += '  ';
+      string('{\n');
+    }
+    recurse(node);
+    if (node.parent) {
+      block = block.substring(2);
+      string(block + '}');
+    }
+    return false;
+  };
+  stmt = function(node, data) {
+    if (data === 'else') {
+      string(data);
+    } else {
+      string(block);
+    }
+    recurse(node);
+    string(';\n');
+    return false;
+  };
+  decllist = function(node, data) {
+    var child, i, _i, _len, _ref;
+    if (data === '=') {
+      _ref = node.children;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        child = _ref[i];
+        remap(child);
+        if (i === 0) {
+          string(' = ');
+        }
+      }
+      return false;
+    } else {
+      return true;
+    }
+  };
+  args = function(node, data) {
+    var c, child, i, l, _i, _len;
+    c = node.children;
+    l = c.length - 1;
+    for (i = _i = 0, _len = c.length; _i < _len; i = ++_i) {
+      child = c[i];
+      remap(child);
+      if (i < l) {
+        string(', ');
+      }
+    }
+    return false;
+  };
+  ifstmt = function(node, data) {
+    var c;
+    c = node.children;
+    string(data);
+    string('(');
+    remap(c[0]);
+    string(') ');
+    remap(c[1]);
+    if (c[2]) {
+      remap(c[2]);
+    }
+    return false;
+  };
+  call = function(node, data) {
+    var body, c, child, i, l, _i, _len;
+    c = node.children;
+    l = c.length - 1;
+    body = false;
+    for (i = _i = 0, _len = c.length; _i < _len; i = ++_i) {
+      child = c[i];
+      if (child.type === 'stmtlist') {
+        body = true;
+        string(') ');
+        remap(child);
+      } else {
+        if (i > 1) {
+          string(', ');
+        }
+        remap(child);
+        if (i === 0) {
+          string('(');
+        }
+      }
+    }
+    if (!body) {
+      string(')');
+    }
+    return false;
+  };
+  operator = function(node, data) {
+    var c, child, i, l, _i, _len;
+    c = node.children;
+    l = c.length;
+    if (l === 1) {
+      string(data);
+      remap(c[0]);
+    } else {
+      if (data !== '.') {
+        data = ' ' + data + ' ';
+      }
+      for (i = _i = 0, _len = c.length; _i < _len; i = ++_i) {
+        child = c[i];
+        remap(child);
+        if (i === 0) {
+          string(data);
+        }
+      }
+    }
+    return false;
+  };
+  ident = function(node, data) {
+    maybePlaceholder(data);
+    return true;
+  };
+  literal = function(node, data) {
+    string(data);
+    return true;
+  };
+  group = function(node, data) {
+    string('(');
+    recurse(node);
+    string(')');
+    return false;
+  };
+  quantifier = function(node, data) {
+    string('[');
+    recurse(node);
+    string(']');
+    return false;
+  };
+  map = function(node) {
+    var d, n;
+    n = node;
+    d = node.token.data;
+    switch (node.type) {
+      case 'placeholder':
+        return false;
+      case 'expr':
+        return true;
+      case 'decl':
+        return true;
+      case 'stmt':
+        return stmt(n, d);
+      case 'literal':
+        return literal(n, d);
+      case 'keyword':
+        return literal(n, d);
+      case 'ident':
+        return ident(n, d);
+      case 'decllist':
+        return decllist(n, d);
+      case 'builtin':
+        return literal(n, d);
+      case 'binary':
+        return operator(n, d);
+      case 'return':
+        return literal(n, d);
+      case 'call':
+        return call(n, d);
+      case 'function':
+        return call(n, d);
+      case 'functionargs':
+        return args(n, d);
+      case 'if':
+        return ifstmt(n, d);
+      case 'else':
+        return elsestmt(n, d);
+      case 'group':
+        return group(n, d);
+      case 'stmtlist':
+        return stmtlist(n, d);
+      case 'quantifier':
+        return quantifier(n, d);
+      case 'preprocessor':
+        return false;
+      default:
+        switch (node.token.type) {
+          case 'operator':
+            return operator(n, d);
+          default:
+            return false;
+        }
+    }
+  };
+  tock = tick();
+  walk(map, null, ast, '');
+  tokens = combine();
+  tock("GLSL Compile");
+  return function(prefix, replaced) {
+    var key, names, out, token, _i, _len, _ref;
+    if (prefix == null) {
+      prefix = '';
+    }
+    if (replaced == null) {
+      replaced = {};
+    }
+    names = {};
+    for (key in placeholders) {
+      names[key] = prefix + ((_ref = replaced[key]) != null ? _ref : key);
+    }
+    out = "";
+    for (_i = 0, _len = tokens.length; _i < _len; _i++) {
+      token = tokens[_i];
+      if (token.call) {
+        out += token(names);
+      } else {
+        out += token;
+      }
+    }
+    return out;
+  };
+};
+
+module.exports = compile;
+
+
+},{"./walk":13}],9:[function(require,module,exports){
 var decl, get;
 
 module.exports = decl = {};
@@ -689,7 +1019,7 @@ decl.type = function(name, spec, quant, inout) {
   };
 };
 
-decl.decl = function(node) {
+decl.node = function(node) {
   var _ref, _ref1, _ref2, _ref3;
   if (((_ref = node.token) != null ? _ref.type : void 0) === 'keyword' && ((_ref1 = (_ref2 = node.token) != null ? _ref2.data : void 0) === 'attribute' || _ref1 === 'uniform' || _ref1 === 'varying')) {
     return decl.external(node);
@@ -710,7 +1040,6 @@ decl.external = function(node) {
   quant = list.children[1];
   return {
     decl: 'external',
-    node: node,
     storage: storage,
     type: type,
     ident: ident,
@@ -740,7 +1069,6 @@ decl["function"] = function(node) {
   })();
   return {
     decl: 'function',
-    node: node,
     storage: storage,
     type: type,
     ident: ident,
@@ -760,7 +1088,6 @@ decl.argument = function(node) {
   quant = list.children[1];
   return {
     decl: 'argument',
-    node: node,
     storage: storage,
     inout: inout,
     type: type,
@@ -770,20 +1097,22 @@ decl.argument = function(node) {
 };
 
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 exports.Snippet = require('./snippet');
 
-exports.parse = require('./parse');
+exports.load = exports.Snippet.load;
 
 
-},{"./parse":10,"./snippet":11}],10:[function(require,module,exports){
-var decl, extractSignatures, extractSymbols, mapSymbols, parse, parseGLSL, parser, processAST, tick, tokenizer, walk;
+},{"./snippet":12}],11:[function(require,module,exports){
+var collect, decl, extractSignatures, extractSymbols, mapSymbols, parse, parseGLSL, parser, processAST, tick, tokenizer, walk;
 
 tokenizer = require('../../vendor/glsl-tokenizer');
 
 parser = require('../../vendor/glsl-parser');
 
 decl = require('./decl');
+
+walk = require('./walk');
 
 tick = function() {
   var now;
@@ -797,10 +1126,9 @@ tick = function() {
 };
 
 parse = function(name, code) {
-  var ast, symbols;
+  var ast, program;
   ast = parseGLSL(name, code);
-  symbols = processAST(ast);
-  throw "lol error";
+  return program = processAST(ast);
 };
 
 parseGLSL = function(name, code) {
@@ -815,75 +1143,81 @@ parseGLSL = function(name, code) {
     }
     throw "GLSL parse error";
   }
-  window.ast = ast;
   return ast;
 };
 
 processAST = function(ast) {
   var externals, internals, main, signatures, symbols, tock, _ref;
   tock = tick();
-  symbols = walk(mapSymbols, ast);
+  symbols = [];
+  walk(mapSymbols, collect(symbols), ast, '');
   _ref = extractSymbols(symbols), main = _ref[0], internals = _ref[1], externals = _ref[2];
-  signatures = extractSignatures(main, externals);
+  signatures = extractSignatures(main, internals, externals);
   tock('GLSL AST');
-  window.main = main;
-  window.externals = externals;
-  window.signatures = signatures;
   return {
-    main: main,
-    externals: externals,
+    ast: ast,
     signatures: signatures
   };
 };
 
-mapSymbols = function(node) {
-  switch (node.type) {
-    case 'decl':
-      return [decl.decl(node), false];
-  }
-  return [null, true];
+collect = function(out) {
+  return function(value) {
+    if (value) {
+      return out.push(value);
+    }
+  };
 };
 
-extractSymbols = function(functions) {
-  var e, externals, f, internals, main, _i, _j, _len, _len1;
+mapSymbols = function(node, collect) {
+  switch (node.type) {
+    case 'decl':
+      collect(decl.node(node));
+      return false;
+  }
+  return true;
+};
+
+extractSymbols = function(symbols) {
+  var e, externals, internals, main, maybe, s, _i, _len;
   main = null;
   internals = [];
   externals = [];
-  for (_i = 0, _len = functions.length; _i < _len; _i++) {
-    f = functions[_i];
-    if (!f.body) {
-      externals.push(f);
+  maybe = {};
+  for (_i = 0, _len = symbols.length; _i < _len; _i++) {
+    s = symbols[_i];
+    if (!s.body) {
+      externals.push(s);
+      maybe[s.ident] = true;
     } else {
-      for (_j = 0, _len1 = externals.length; _j < _len1; _j++) {
-        e = externals[_j];
-        if (e.ident === f.ident) {
-          internals.push(e);
-        }
-      }
-      externals = (function() {
-        var _k, _len2, _results;
-        _results = [];
-        for (_k = 0, _len2 = externals.length; _k < _len2; _k++) {
-          e = externals[_k];
-          if (e.ident !== f.ident) {
-            _results.push(e);
+      if (maybe[s.ident]) {
+        externals = (function() {
+          var _j, _len1, _results;
+          _results = [];
+          for (_j = 0, _len1 = externals.length; _j < _len1; _j++) {
+            e = externals[_j];
+            if (e.ident !== s.ident) {
+              _results.push(e);
+            }
           }
-        }
-        return _results;
-      })();
-      main = f;
+          return _results;
+        })();
+        delete maybe[s.ident];
+      }
+      internals.push(s);
+      main = s;
     }
   }
   return [main, internals, externals];
 };
 
-extractSignatures = function(main, externals) {
-  var def, defn, func, sigs, symbol, _i, _len;
+extractSignatures = function(main, internals, externals) {
+  var def, defn, func, sigs, symbol, _i, _j, _len, _len1;
   sigs = {
-    uniform: {},
-    attribute: {},
-    varying: {},
+    uniform: [],
+    attribute: [],
+    varying: [],
     external: [],
+    internal: [],
     main: null
   };
   defn = function(symbol) {
@@ -903,14 +1237,15 @@ extractSignatures = function(main, externals) {
     })();
     for (_i = 0, _len = signature.length; _i < _len; _i++) {
       d = signature[_i];
-      if (d.inout === decl.inout) {
-        a = d;
-        b = decl.copy(d);
-        a.inout = decl["in"];
-        b.inout = decl.out;
-        b.name += '__inout';
-        signature.push(b);
+      if (!(d.inout === decl.inout)) {
+        continue;
       }
+      a = d;
+      b = decl.copy(d);
+      a.inout = decl["in"];
+      b.inout = decl.out;
+      b.name += '__inout';
+      signature.push(b);
     }
     if (symbol.type !== 'void') {
       signature.push(decl.type('_return__', symbol.type, false, 'out'));
@@ -946,12 +1281,18 @@ extractSignatures = function(main, externals) {
     };
   };
   sigs.main = func(main, decl.out);
-  for (_i = 0, _len = externals.length; _i < _len; _i++) {
-    symbol = externals[_i];
+  for (_i = 0, _len = internals.length; _i < _len; _i++) {
+    symbol = internals[_i];
+    sigs.internal.push({
+      name: symbol.ident
+    });
+  }
+  for (_j = 0, _len1 = externals.length; _j < _len1; _j++) {
+    symbol = externals[_j];
     switch (symbol.decl) {
       case 'external':
         def = defn(symbol);
-        sigs[symbol.storage][def.name] = def;
+        sigs[symbol.storage].push(def);
         break;
       case 'function':
         def = func(symbol, decl["in"]);
@@ -961,80 +1302,130 @@ extractSignatures = function(main, externals) {
   return sigs;
 };
 
-walk = function(map, node, i, d, out) {
-  var child, recurse, value, _i, _len, _ref, _ref1;
-  if (i == null) {
-    i = 0;
-  }
-  if (d == null) {
-    d = 0;
-  }
-  if (out == null) {
-    out = [];
-  }
-  _ref = map(node), value = _ref[0], recurse = _ref[1];
-  if (value != null) {
-    out.push(value);
-  }
-  if (recurse) {
-    _ref1 = node.children;
-    for (i = _i = 0, _len = _ref1.length; _i < _len; i = ++_i) {
-      child = _ref1[i];
-      walk(map, child, i, d + 1, out);
-    }
-  }
-  return out;
-};
-
-
-/*
-compile = (ast) ->
-
-   * Walk AST
-
-  map = (node) ->
-    switch node.type
-      when 'preprocessor' then preprocessor(node)
-      when 'stmt'         then stmt(node)
-    [null, true]
-
-  stmt = (node) ->
-
-  preprocessor = (node) ->
-    pragma = node.token.data.split(' ')[1]
- */
-
 module.exports = parse;
 
 
-},{"../../vendor/glsl-parser":12,"../../vendor/glsl-tokenizer":16,"./decl":8}],11:[function(require,module,exports){
-var Snippet, apply, make, parse;
+},{"../../vendor/glsl-parser":14,"../../vendor/glsl-tokenizer":18,"./decl":9,"./walk":13}],12:[function(require,module,exports){
+var Snippet, compile, parse;
 
 parse = require('./parse');
 
+compile = require('./compile');
+
 Snippet = (function() {
-  function Snippet() {}
+  Snippet.id = 0;
+
+  Snippet.namespace = function() {
+    return "_sg_" + (++Snippet.id) + "_";
+  };
+
+  Snippet.load = function(name, code) {
+    var assembler, program;
+    program = parse(name, code);
+    assembler = compile(program);
+    return new Snippet(program.signatures, assembler, program);
+  };
+
+  function Snippet(signatures, assembler, _program) {
+    this.signatures = signatures;
+    this.assembler = assembler;
+    this._program = _program;
+    this.namespace = null;
+    this.program = null;
+    this.uniforms = null;
+    this.entry = null;
+    this.main = null;
+    this.externals = null;
+  }
+
+  Snippet.prototype.clone = function() {
+    return new Snippet(this.signatures, this.assembler, this._program);
+  };
+
+  Snippet.prototype.apply = function(uniforms, namespace) {
+    var a, def, e, m, u, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+    this.namespace = namespace;
+    if (this.namespace == null) {
+      this.namespace = Snippet.namespace();
+    }
+    this.program = this.assembler(this.namespace);
+    this.uniforms = {};
+    this.attributes = {};
+    this.externals = {};
+    u = (function(_this) {
+      return function(def) {
+        return _this.uniforms[_this.namespace + def.name] = def;
+      };
+    })(this);
+    a = (function(_this) {
+      return function(def) {
+        return _this.attributes[_this.namespace + def.name] = def;
+      };
+    })(this);
+    e = (function(_this) {
+      return function(def) {
+        return _this.externals[_this.namespace + def.name] = def;
+      };
+    })(this);
+    m = (function(_this) {
+      return function(def) {
+        _this.main = def;
+        return _this.entry = _this.namespace + def.name;
+      };
+    })(this);
+    _ref = this.signatures.uniform;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      def = _ref[_i];
+      u(def);
+    }
+    _ref1 = this.signatures.attribute;
+    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+      def = _ref1[_j];
+      a(def);
+    }
+    m(this.signatures.main);
+    _ref2 = this.signatures.external;
+    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+      def = _ref2[_k];
+      e(def);
+    }
+    throw "lol error";
+  };
 
   return Snippet;
 
 })();
 
-make = function(name, code) {
-  var snippet;
-  return snippet = new Snippet(parse(name, code));
-};
-
-apply = function(snippet, uniforms) {
-  return block;
-};
-
 module.exports = Snippet;
 
 
-},{"./parse":10}],12:[function(require,module,exports){
+},{"./compile":8,"./parse":11}],13:[function(require,module,exports){
+var debug, walk;
+
+debug = false;
+
+walk = function(map, collect, node, indent) {
+  var child, i, recurse, _i, _len, _ref, _ref1, _ref2, _results;
+  debug && console.log(indent, node.type, (_ref = node.token) != null ? _ref.data : void 0, (_ref1 = node.token) != null ? _ref1.type : void 0);
+  recurse = map(node, collect);
+  if (recurse) {
+    _ref2 = node.children;
+    _results = [];
+    for (i = _i = 0, _len = _ref2.length; _i < _len; i = ++_i) {
+      child = _ref2[i];
+      _results.push(walk(map, collect, child, indent + '  ', debug));
+    }
+    return _results;
+  }
+};
+
+module.exports = walk;
+
+
+},{}],14:[function(require,module,exports){
 module.exports = require('./lib/index')
 
-},{"./lib/index":14}],13:[function(require,module,exports){
+},{"./lib/index":16}],15:[function(require,module,exports){
 var state
   , token
   , tokens
@@ -1301,7 +1692,7 @@ function fail(message) {
   return function() { return state.unexpected(message) }
 }
 
-},{}],14:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports = parser
 
 var through = require('../../through')
@@ -2238,7 +2629,7 @@ function mknode(mode, sourcetoken) {
     , token: sourcetoken
     , children: []
     , type: stmt_type[mode]
-    , id: (Math.random() * 0xFFFFFFFF).toString(16)
+//    , id: (Math.random() * 0xFFFFFFFF).toString(16)
   }
 }
 
@@ -2261,7 +2652,7 @@ function is_precision(token) {
          token.data === 'lowp'
 }
 
-},{"../../through":20,"./expr":13,"./scope":15}],15:[function(require,module,exports){
+},{"../../through":22,"./expr":15,"./scope":17}],17:[function(require,module,exports){
 module.exports = scope
 
 function scope(state) {
@@ -2301,7 +2692,7 @@ proto.find = function(name, fail) {
   return null
 }
 
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 module.exports = tokenize
 
 var through = require('../through')
@@ -2638,7 +3029,7 @@ function tokenize() {
   }
 }
 
-},{"../through":20,"./lib/builtins":17,"./lib/literals":18,"./lib/operators":19}],17:[function(require,module,exports){
+},{"../through":22,"./lib/builtins":19,"./lib/literals":20,"./lib/operators":21}],19:[function(require,module,exports){
 module.exports = [
     'gl_Position'
   , 'gl_PointSize'
@@ -2784,7 +3175,7 @@ module.exports = [
   , 'textureCubeLod'
 ]
 
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = [
   // current
     'precision'
@@ -2879,7 +3270,7 @@ module.exports = [
   , 'using'
 ]
 
-},{}],19:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = [
     '<<='
   , '>>='
@@ -2927,7 +3318,7 @@ module.exports = [
   , '}'
 ]
 
-},{}],20:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 var through;
 
 through = function(write, end) {

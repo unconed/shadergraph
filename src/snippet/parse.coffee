@@ -1,6 +1,7 @@
 tokenizer = require '../../vendor/glsl-tokenizer'
 parser    = require '../../vendor/glsl-parser'
 decl      = require './decl'
+walk      = require './walk'
 
 tick = () ->
   now = +new Date
@@ -12,9 +13,7 @@ tick = () ->
 # Parse a GLSL snippet
 parse = (name, code) ->
   ast        = parseGLSL name, code
-  symbols    = processAST ast
-
-  throw "lol error"
+  program    = processAST ast
 
 # Parse GLSL language into AST
 parseGLSL = (name, code) ->
@@ -30,61 +29,68 @@ parseGLSL = (name, code) ->
     console.error "[ShaderGraph] #{name} -", error.message for error in errors
     throw "GLSL parse error"
 
-  window.ast = ast
-
   ast
 
 # Process AST for compilation
 processAST = (ast) ->
   tock = tick()
 
-  symbols = walk mapSymbols, ast
+  symbols = []
+  walk mapSymbols, collect(symbols), ast, ''
   [main, internals, externals] = extractSymbols symbols
 
-  signatures = extractSignatures main, externals
+  signatures = extractSignatures main, internals, externals
 
   tock 'GLSL AST'
 
-  window.main = main
-  window.externals = externals
-  window.signatures = signatures
-
-  {main, externals, signatures}
+  {ast, signatures}
 
 # Extract functions and external symbols from AST
-mapSymbols = (node) ->
+collect = (out) ->
+  (value) ->
+    out.push value if value
+
+mapSymbols = (node, collect) ->
   switch node.type
     when 'decl'
-      return [decl.node(node), false]
-  return [null, true]
+      collect decl.node(node)
+      return false
+  return true
 
 # Identify externals and main function
-extractSymbols = (functions) ->
+extractSymbols = (symbols) ->
   main = null
   internals = []
   externals = []
+  maybe = {}
 
-  for f in functions
-    if !f.body
+  for s in symbols
+    if !s.body
       # Possible external
-      externals.push f
+      externals.push s
+      maybe[s.ident] = true
     else
       # Remove earlier forward declaration
-      internals.push(e) for e in externals when e.ident == f.ident
-      externals    = (e for e in externals when e.ident != f.ident)
+      if maybe[s.ident]
+        externals = (e for e in externals when e.ident != s.ident)
+        delete maybe[s.ident]
+
+      # Internal function
+      internals.push s
 
       # Last function is main
-      main = f
+      main = s
 
   [main, internals, externals]
 
 # Generate type signatures and appropriate ins/outs
-extractSignatures = (main, externals) ->
+extractSignatures = (main, internals, externals) ->
   sigs =
-    uniform: {}
-    attribute: {}
-    varying: {}
+    uniform: []
+    attribute: []
+    varying: []
     external: []
+    internal: []
     main: null
 
   defn = (symbol) ->
@@ -122,13 +128,17 @@ extractSignatures = (main, externals) ->
   # parse main
   sigs.main = func main, decl.out
 
+  for symbol in internals
+    sigs.internal.push
+      name: symbol.ident
+
   for symbol in externals
     switch symbol.decl
 
       # parse uniforms/attributes/varyings
       when 'external'
         def = defn symbol
-        sigs[symbol.storage][def.name] = def
+        sigs[symbol.storage].push def
 
       # parse callbacks
       when 'function'
@@ -136,38 +146,5 @@ extractSignatures = (main, externals) ->
         sigs.external.push def
 
   sigs
-
-# Walk AST, apply map and collect values
-walk = (map, node, i = 0, d = 0, out = []) ->
-  #console.log "                ".substring(16 - d), node.type, node.token?.data, node.token?.type
-
-  [value, recurse] = map node
-  out.push value if value?
-
-  if recurse
-    walk map, child, i, d + 1, out for child, i in node.children
-
-  out
-
-
-# Main compilation run
-###
-compile = (ast) ->
-
-  # Walk AST
-
-  map = (node) ->
-    switch node.type
-      when 'preprocessor' then preprocessor(node)
-      when 'stmt'         then stmt(node)
-    [null, true]
-
-  stmt = (node) ->
-
-  preprocessor = (node) ->
-    pragma = node.token.data.split(' ')[1]
-
-
-###
 
 module.exports = parse

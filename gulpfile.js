@@ -5,6 +5,8 @@ var rename = require("gulp-rename");
 var karma = require('gulp-karma');
 var runSequence = require('run-sequence');
 var browserify = require('gulp-browserify');
+var watch = require('gulp-watch');
+var plumber = require('gulp-plumber');
 
 var builds = {
   core: 'build/shadergraph-core.js',
@@ -23,6 +25,10 @@ var vendor = [
 var core = [
   '.tmp/index.js'
 ];
+
+var coffees = [
+  'src/**/*.coffee',
+]
 
 var bundle = vendor.concat(core);
 
@@ -82,6 +88,15 @@ gulp.task('build', function (callback) {
 
 gulp.task('default', function (callback) {
   runSequence('build', 'uglify', callback);
+});
+
+gulp.task('watch', function () {
+  gulp.src(coffees)
+    .pipe(
+      watch(function(files) {
+        return gulp.start('build');
+      })
+    );
 });
 
 gulp.task('test', function (callback) {

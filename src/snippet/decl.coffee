@@ -64,7 +64,6 @@ decl.external = (node) ->
   quant   = list.children[1]
 
   decl: 'external'
-  node: node
   storage: storage
   type: type
   ident: ident
@@ -86,7 +85,6 @@ decl.function = (node) ->
   decls = (decl.argument(child) for child in args.children)
 
   decl: 'function'
-  node: node
   storage: storage
   type: type
   ident: ident
@@ -106,7 +104,6 @@ decl.argument = (node) ->
   quant   = list.children[1]
 
   decl: 'argument'
-  node: node
   storage: storage
   inout: inout
   type: type

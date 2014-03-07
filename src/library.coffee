@@ -7,9 +7,9 @@ class Library
   fetch: (name) ->
     throw "Unknown snippet `#{name}`" if !@snippets[name]?
 
-    if @objects[name]?
-      @objects[name].clone()
-    else
-      @objects[name] = Snippet.parse name, @snippets[name]
+    if !@objects[name]?
+      @objects[name] = Snippet.load name, @snippets[name]
+
+    @objects[name].clone()
 
 module.exports = Library

@@ -934,7 +934,7 @@ function mknode(mode, sourcetoken) {
     , token: sourcetoken
     , children: []
     , type: stmt_type[mode]
-    , id: (Math.random() * 0xFFFFFFFF).toString(16)
+//    , id: (Math.random() * 0xFFFFFFFF).toString(16)
   }
 }
 

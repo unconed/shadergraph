@@ -10,6 +10,7 @@ class ShaderGraph
     new Factory @library
 
   @Graph: require('./graph')
+  @Snippet: require('./snippet')
 
 module.exports = ShaderGraph
 window.ShaderGraph = ShaderGraph
@@ -19,7 +20,7 @@ window.ShaderGraph = ShaderGraph
 
 
 
-
+###
 
 
 
@@ -273,17 +274,28 @@ void main() {
 
 
 
-coode = """
+code = """
 uniform vec2 sampleStep;
 
+uniform float uf1[2], uf2[3];
 uniform float fadeOut;
-uniform float field;
-uniform float time;
+uniform float field[3];
+uniform float time, space;
+uniform float aa[2], bb[3], cc, dd, ee[4];
 
 uniform sampler2D texture;
 varying vec2 vUV;
+// woo
+const float cf1, cf2;
+vec4 gv4;
+
+#pragma woo
+#if
 
 float randf(vec2 xy) {
+  vec2 a[2], b, c;
+  float x = cf1 + cf2;
+  float d, e, f;
   return fract(sin(dot(xy, vec2(3.1380, 7.41)) * 1.0 * 2.0 / 3.0 / 4.0 * 5.0) * 1414.32);
 }
 
@@ -297,3 +309,4 @@ snippets = {
 shadergraph = new ShaderGraph snippets
 shader = shadergraph.shader().snippet('test')
 
+###

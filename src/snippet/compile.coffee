@@ -1,7 +1,7 @@
 walk      = require './walk'
 
 ###
-  compile AST back into GLSL, but with certain symbols replaced by placeholders
+  compile snippet back into GLSL, but with certain symbols replaced by placeholders
 ###
 
 tick = () ->
@@ -20,16 +20,51 @@ replaced = (signatures) ->
   s(sig) for sig in signatures.internal
   s(sig) for sig in signatures.varying
   s(sig) for sig in signatures.uniform
+  s(sig) for sig in signatures.const
 
   out
 
 compile = (program) ->
-  {ast, signatures} = program
+  {ast, code, signatures} = program
 
   # prepare list of placeholders
-
   placeholders = replaced signatures
-  console.log "placeholders", placeholders
+
+  # compile
+  string_compiler code, placeholders
+  #ast_compiler program, placeholders
+
+###
+String-replacement based compiler
+###
+string_compiler = (code, placeholders) ->
+
+  # make placeholder regexp
+  re = new RegExp '\\b(' + (key for key of placeholders).join('|') + ')\\b', 'g'
+
+  # strip comments
+  code = code.replace /\/\/[^\n]*/g, ''
+  code = code.replace /\/\*([^*]|\*[^\/])*\*\//g, ''
+
+  # strip all preprocessor commands (lazy)
+  code = code.replace /^#[^\n]*/mg, ''
+
+  # assembler function that takes map of symbol names
+  # and returns GLSL source code
+  (prefix = '', replaced = {}) ->
+    names = {}
+    for key of placeholders
+      names[key] = prefix + (replaced[key] ? key)
+
+    code.replace re, (key) ->
+      names[key]
+
+###
+AST-based compiler
+(not used)
+
+todo: do, while, for, struct, precision
+ast_compiler = (ast, placeholders) ->
 
   # stream out tokens, either strings or string callbacks
 
@@ -42,13 +77,14 @@ compile = (program) ->
 
   string = (value) ->
 
-    last = buffer[buffer.length - 1]
     first = value[0]
 
     return if value == ';\n' and last == '\n'
 
     buffer += ' ' if buffer.length and regex.test(last) and regex.test(first)
     buffer += value
+
+    last = buffer[buffer.length - 1]
 
   maybePlaceholder = (name) ->
     if placeholders[name]
@@ -57,10 +93,13 @@ compile = (program) ->
       string name
 
   placeholder = (name) ->
-    string ' '
+    last = buffer[buffer.length - 1]
+    buffer += ' ' if buffer.length and regex.test(last)
+
     combine()
     tokens.push (names) -> names[name]
-    string ' '
+
+    last = 'x'
 
   combine = () ->
     if buffer.length
@@ -109,15 +148,20 @@ compile = (program) ->
         if i == 0
           string ' = '
       false
-    else true
+    else
+      for child, i in node.children
+        if i > 0 && child.type != 'quantifier'
+          string ', '
+        remap child
+      false
+  #  else true
 
   args = (node, data) ->
     c = node.children
-    l = c.length - 1
     for child, i in c
-      remap child
-      if i < l
+      if i > 0
         string ', '
+      remap child
     false
 
   ifstmt = (node, data) ->
@@ -136,7 +180,6 @@ compile = (program) ->
 
   call = (node, data) ->
     c = node.children
-    l = c.length - 1
 
     body = false
     for child, i in c
@@ -246,7 +289,6 @@ compile = (program) ->
 
     out
 
+###
+
 module.exports = compile
-
-
-

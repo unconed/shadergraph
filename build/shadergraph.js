@@ -550,7 +550,7 @@ module.exports = Outlet;
 
 
 },{"./graph":2}],6:[function(require,module,exports){
-var Factory, Library, ShaderGraph, code, coode, shader, shadergraph, snippets;
+var Factory, Library, ShaderGraph;
 
 Factory = require('./factory');
 
@@ -570,6 +570,8 @@ ShaderGraph = (function() {
 
   ShaderGraph.Graph = require('./graph');
 
+  ShaderGraph.Snippet = require('./snippet');
+
   return ShaderGraph;
 
 })();
@@ -578,26 +580,299 @@ module.exports = ShaderGraph;
 
 window.ShaderGraph = ShaderGraph;
 
-code = "// Comment\nuniform float uf;\nuniform float ufv1[3];\nuniform vec2 uv2;\n// Comment\nuniform vec2 uv2v[3];\nuniform vec3 uv3;\nuniform vec3 uv3v[3];\nuniform vec4 uv4;\nuniform vec4 uv4v[3];\nuniform sampler2D ut;\nuniform sampler2D utv[3];\nvarying float vf;\nvarying float vfv1[3];\nvarying mat3 vm3;\nvarying mat3 vm3v[3];\nvarying mat4 vm4;\nvarying mat4 vm4v[3];\nattribute float af;\nattribute float afv1[3];\nattribute vec3 av3;\nattribute vec3 av3v[3];\nattribute mat4 am4;\nattribute mat4 am4v[3];\n\nvoid callback1(in vec4 v4in);\n\nvoid callback2(in vec3 v3in, out vec4 v4out);\n\nvoid callback3(in vec3 v3in, in vec4 v4in, out vec4 v4out);\n\nvoid snippetTest(\n  in vec3 v3in, in vec4 v4in, mat3 m3vin[3],\n  out vec4 v4out, out vec4 v4vout[3], out mat4 m4out, out mat4 m4vout[3],\n  inout vec3 v3inout) {\n    callback1(v4in);\n    callback2(v3in, v4out);\n    callback3(v3in, v4in, v4out);\n    gl_FragColor = vec4(v4in.xyz, 1.0);\n}";
 
-code = "uniform vec3 color;\n\n#pragma external\nconst void callback(const in vec4 rgba);\n\n#pragma export\nvoid main() { gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); };\n";
+/*
 
-code = "uniform vec2 sampleStep;\n\nuniform float fadeOut;\nuniform float field;\nuniform float time;\n\nuniform sampler2D texture;\nvarying vec2 vUV;\n\nfloat randf(vec2 xy) {\n  return fract(sin(dot(xy, vec2(3.1380, 7.41)) * 13.414) * 1414.32);\n}\n\nconst float c = .9999875;\nconst float s = .005;\nconst mat2 roto1 = mat2(c, s, -s, c);\nconst mat2 roto2 = mat2(c, -s, s, c);\n\nconst float c2 = .9998;\nconst float s2 = .02;\nconst mat2 roto3 = mat2(c2, -s2, s2, c2);\n\nvec2 rotozoom(vec2 xy) {\n  float r = sqrt(dot(xy, xy));\n  xy *= (7.0 * r + sin(r)) * .125 / r;\n  xy *= roto1;\n\n  return xy;\n}\n\nvec2 planeproject(vec2 xy) {\n  float f = .0625 * (15.0 + 1.0 / (-xy.y + 1.5));\n  xy *= f;\n  xy *= roto2;\n\n  return xy;\n}\n\nvec2 ball(vec2 xy) {\n  float r = sqrt(dot(xy, xy));\n  xy *= (3.0 + 1.75 * tan(r * .5) / r) * .25;\n  xy *= roto3;\n\n  return xy;\n}\n\nvec2 swirl(vec2 xy) {\n  vec2 a = xy * 2.25 * 6.28;\n  xy += vec2(sin(a.y), sin(a.x)) * .01;\n\n  vec2 b = xy * 4.5 * 6.28;\n  xy += vec2(-sin(b.y), sin(b.x)) * .01;\n\n  vec2 c = xy * 9.0 * 6.28;\n  xy += vec2(-sin(c.y), -sin(c.x)) * .01;\n  return xy;\n}\n\nvec2 warp(vec2 xy, float q) {\n\n  float r = sqrt(dot(xy, xy));\n  float th = atan(xy.y, xy.x) * 6.0;\n  float f = .99 * (r + sin(r * r * q * .5 + time + sin(th) * 2.0) * .02) / r;\n\n  return xy * f;\n}\n\nvec2 tiles(vec2 xy) {\n\n  vec2 grid = floor(xy * 9.0);\n  float index = mod(grid.x + grid.y + (1.0 + grid.x) * grid.x * grid.y * 3.0, 4.0);\n\n  float d = .01;\n  if (index < .5) {\n    xy.x += d;\n  }\n  else if (index < 1.5) {\n    xy.x -= d;\n  }\n  else if (index < 2.5) {\n    xy.y += d;\n  }\n  else {\n    xy.y -= d;\n  }\n\n  return xy;\n}\n\nvec2 flower(vec2 xy) {\n  vec2 orig = xy;\n  float r = sqrt(dot(xy, xy));\n  float th = atan(xy.y, xy.x);\n\n  float th2 = th + sin(r * 64.0);\n  float r2 = r + sin(th * 64.0);\n\n  return mix(orig, vec2(cos(th2) * r2, sin(th2) * r2), .01);\n}\n\nvec2 rotate(vec2 xy, vec2 ref, float a) {\n  vec2 diff = xy - ref;\n  float c = cos(a);\n  float s = sin(a);\n  return ref + diff * mat2(c, -s, s, c);\n}\n\nvoid callback();\n\nvoid main() {\n  vec2 xy = (vUV * 2.0 - 1.0) * vec2(16.0/9.0, 1.0);\n  vec2 pos = xy;\n\n  callback();\n\n  if (field > 0.0) {\n\n    if (field < 1.0) {\n      xy = mix(xy, rotozoom(pos), clamp(field, 0.0, 1.0));\n    }\n    else if (field < 2.0) {\n      xy = rotozoom(pos);\n      xy = mix(xy, planeproject(pos), clamp(field - 1.0, 0.0, 1.0));\n    }\n    else if (field < 3.0) {\n      xy = planeproject(pos);\n      xy = mix(xy, ball(pos), clamp(field - 2.0, 0.0, 1.0));\n    }\n    else if (field < 4.0) {\n      xy = ball(pos);\n      xy = mix(xy, rotate(xy, pos, time), clamp(field - 3.0, 0.0, 1.0));\n    }\n    else if (field < 5.0) {\n      xy = ball(pos);\n      xy = rotate(xy, pos, time);\n      xy = mix(xy, rotate(swirl(pos), pos, time), clamp(field - 4.0, 0.0, 1.0) * .5);\n    }\n    else if (field < 6.0) {\n      xy = ball(pos);\n      xy = rotate(xy, pos, time);\n      xy = mix(xy, rotate(swirl(pos), pos, time), .5);\n      xy = mix(xy, mix(rotate(warp(pos * 1.131, 32.0) / 1.131, pos, -time * 1.711), rotate(warp(pos, 27.0), pos, time), .5), clamp(field - 5.0, 0.0, 1.0));\n    }\n    else if (field < 7.0) {\n      xy = mix(rotate(warp(pos * 1.131, 32.0) / 1.131, pos, -time * 1.711), rotate(warp(pos, 27.0), pos, time), .5);\n      xy = mix(xy, rotate(tiles(pos), pos, -time), clamp(field - 6.0, 0.0, 1.0));\n    }\n    else { //if (field < 8.0) {\n      xy = rotate(tiles(pos), pos, -time) * .995;\n      xy = mix(xy, flower(pos), clamp(field - 7.0, 0.0, 1.0));\n    }\n\n    xy += sampleStep * .2;\n  }\n\n  xy *= vec2(9.0/16.0, 1.0);\n\n  vec2 uv = fract(xy * .5 + .5);\n  vec4 sample = texture2D(texture, uv);\n\n  gl_FragColor = vec4(sample.xyz - vec3(fadeOut), 1.0);\n\n}\n";
 
-coode = "uniform vec2 sampleStep;\n\nuniform float fadeOut;\nuniform float field;\nuniform float time;\n\nuniform sampler2D texture;\nvarying vec2 vUV;\n\nfloat randf(vec2 xy) {\n  return fract(sin(dot(xy, vec2(3.1380, 7.41)) * 1.0 * 2.0 / 3.0 / 4.0 * 5.0) * 1414.32);\n}\n";
 
-window.code = code;
+code = """
+// Comment
+uniform float uf;
+uniform float ufv1[3];
+uniform vec2 uv2;
+// Comment
+uniform vec2 uv2v[3];
+uniform vec3 uv3;
+uniform vec3 uv3v[3];
+uniform vec4 uv4;
+uniform vec4 uv4v[3];
+uniform sampler2D ut;
+uniform sampler2D utv[3];
+varying float vf;
+varying float vfv1[3];
+varying mat3 vm3;
+varying mat3 vm3v[3];
+varying mat4 vm4;
+varying mat4 vm4v[3];
+attribute float af;
+attribute float afv1[3];
+attribute vec3 av3;
+attribute vec3 av3v[3];
+attribute mat4 am4;
+attribute mat4 am4v[3];
 
+void callback1(in vec4 v4in);
+
+void callback2(in vec3 v3in, out vec4 v4out);
+
+void callback3(in vec3 v3in, in vec4 v4in, out vec4 v4out);
+
+void snippetTest(
+  in vec3 v3in, in vec4 v4in, mat3 m3vin[3],
+  out vec4 v4out, out vec4 v4vout[3], out mat4 m4out, out mat4 m4vout[3],
+  inout vec3 v3inout) {
+    callback1(v4in);
+    callback2(v3in, v4out);
+    callback3(v3in, v4in, v4out);
+    gl_FragColor = vec4(v4in.xyz, 1.0);
+}
+"""
+
+
+
+
+
+
+
+
+
+
+
+code = """
+uniform vec3 color;
+
+ *pragma external
+const void callback(const in vec4 rgba);
+
+ *pragma export
+void main() { gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); };
+
+"""
+
+
+
+
+
+
+
+code = """
+uniform vec2 sampleStep;
+
+uniform float fadeOut;
+uniform float field;
+uniform float time;
+
+uniform sampler2D texture;
+varying vec2 vUV;
+
+float randf(vec2 xy) {
+  return fract(sin(dot(xy, vec2(3.1380, 7.41)) * 13.414) * 1414.32);
+}
+
+const float c = .9999875;
+const float s = .005;
+const mat2 roto1 = mat2(c, s, -s, c);
+const mat2 roto2 = mat2(c, -s, s, c);
+
+const float c2 = .9998;
+const float s2 = .02;
+const mat2 roto3 = mat2(c2, -s2, s2, c2);
+
+vec2 rotozoom(vec2 xy) {
+  float r = sqrt(dot(xy, xy));
+  xy *= (7.0 * r + sin(r)) * .125 / r;
+  xy *= roto1;
+
+  return xy;
+}
+
+vec2 planeproject(vec2 xy) {
+  float f = .0625 * (15.0 + 1.0 / (-xy.y + 1.5));
+  xy *= f;
+  xy *= roto2;
+
+  return xy;
+}
+
+vec2 ball(vec2 xy) {
+  float r = sqrt(dot(xy, xy));
+  xy *= (3.0 + 1.75 * tan(r * .5) / r) * .25;
+  xy *= roto3;
+
+  return xy;
+}
+
+vec2 swirl(vec2 xy) {
+  vec2 a = xy * 2.25 * 6.28;
+  xy += vec2(sin(a.y), sin(a.x)) * .01;
+
+  vec2 b = xy * 4.5 * 6.28;
+  xy += vec2(-sin(b.y), sin(b.x)) * .01;
+
+  vec2 c = xy * 9.0 * 6.28;
+  xy += vec2(-sin(c.y), -sin(c.x)) * .01;
+  return xy;
+}
+
+vec2 warp(vec2 xy, float q) {
+
+  float r = sqrt(dot(xy, xy));
+  float th = atan(xy.y, xy.x) * 6.0;
+  float f = .99 * (r + sin(r * r * q * .5 + time + sin(th) * 2.0) * .02) / r;
+
+  return xy * f;
+}
+
+vec2 tiles(vec2 xy) {
+
+  vec2 grid = floor(xy * 9.0);
+  float index = mod(grid.x + grid.y + (1.0 + grid.x) * grid.x * grid.y * 3.0, 4.0);
+
+  float d = .01;
+  if (index < .5) {
+    xy.x += d;
+  }
+  else if (index < 1.5) {
+    xy.x -= d;
+  }
+  else if (index < 2.5) {
+    xy.y += d;
+  }
+  else {
+    xy.y -= d;
+  }
+
+  return xy;
+}
+
+vec2 flower(vec2 xy) {
+  vec2 orig = xy;
+  float r = sqrt(dot(xy, xy));
+  float th = atan(xy.y, xy.x);
+
+  float th2 = th + sin(r * 64.0);
+  float r2 = r + sin(th * 64.0);
+
+  return mix(orig, vec2(cos(th2) * r2, sin(th2) * r2), .01);
+}
+
+vec2 rotate(vec2 xy, vec2 ref, float a) {
+  vec2 diff = xy - ref;
+  float c = cos(a);
+  float s = sin(a);
+  return ref + diff * mat2(c, -s, s, c);
+}
+
+void callback();
+
+void main() {
+  vec2 xy = (vUV * 2.0 - 1.0) * vec2(16.0/9.0, 1.0);
+  vec2 pos = xy;
+
+  callback();
+
+  if (field > 0.0) {
+
+    if (field < 1.0) {
+      xy = mix(xy, rotozoom(pos), clamp(field, 0.0, 1.0));
+    }
+    else if (field < 2.0) {
+      xy = rotozoom(pos);
+      xy = mix(xy, planeproject(pos), clamp(field - 1.0, 0.0, 1.0));
+    }
+    else if (field < 3.0) {
+      xy = planeproject(pos);
+      xy = mix(xy, ball(pos), clamp(field - 2.0, 0.0, 1.0));
+    }
+    else if (field < 4.0) {
+      xy = ball(pos);
+      xy = mix(xy, rotate(xy, pos, time), clamp(field - 3.0, 0.0, 1.0));
+    }
+    else if (field < 5.0) {
+      xy = ball(pos);
+      xy = rotate(xy, pos, time);
+      xy = mix(xy, rotate(swirl(pos), pos, time), clamp(field - 4.0, 0.0, 1.0) * .5);
+    }
+    else if (field < 6.0) {
+      xy = ball(pos);
+      xy = rotate(xy, pos, time);
+      xy = mix(xy, rotate(swirl(pos), pos, time), .5);
+      xy = mix(xy, mix(rotate(warp(pos * 1.131, 32.0) / 1.131, pos, -time * 1.711), rotate(warp(pos, 27.0), pos, time), .5), clamp(field - 5.0, 0.0, 1.0));
+    }
+    else if (field < 7.0) {
+      xy = mix(rotate(warp(pos * 1.131, 32.0) / 1.131, pos, -time * 1.711), rotate(warp(pos, 27.0), pos, time), .5);
+      xy = mix(xy, rotate(tiles(pos), pos, -time), clamp(field - 6.0, 0.0, 1.0));
+    }
+    else { //if (field < 8.0) {
+      xy = rotate(tiles(pos), pos, -time) * .995;
+      xy = mix(xy, flower(pos), clamp(field - 7.0, 0.0, 1.0));
+    }
+
+    xy += sampleStep * .2;
+  }
+
+  xy *= vec2(9.0/16.0, 1.0);
+
+  vec2 uv = fract(xy * .5 + .5);
+  vec4 sample = texture2D(texture, uv);
+
+  gl_FragColor = vec4(sample.xyz - vec3(fadeOut), 1.0);
+
+}
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+code = """
+uniform vec2 sampleStep;
+
+uniform float uf1[2], uf2[3];
+uniform float fadeOut;
+uniform float field[3];
+uniform float time, space;
+uniform float aa[2], bb[3], cc, dd, ee[4];
+
+uniform sampler2D texture;
+varying vec2 vUV;
+// woo
+const float cf1, cf2;
+vec4 gv4;
+
+ *pragma woo
+ *if
+
+float randf(vec2 xy) {
+  vec2 a[2], b, c;
+  float x = cf1 + cf2;
+  float d, e, f;
+  return fract(sin(dot(xy, vec2(3.1380, 7.41)) * 1.0 * 2.0 / 3.0 / 4.0 * 5.0) * 1414.32);
+}
+
+"""
+
+window.code = code
 snippets = {
   'test': code
-};
+}
 
-shadergraph = new ShaderGraph(snippets);
+shadergraph = new ShaderGraph snippets
+shader = shadergraph.shader().snippet('test')
+ */
 
-shader = shadergraph.shader().snippet('test');
 
-
-},{"./factory":1,"./graph":3,"./library":7}],7:[function(require,module,exports){
+},{"./factory":1,"./graph":3,"./library":7,"./snippet":10}],7:[function(require,module,exports){
 var Library, Snippet;
 
 Snippet = require('./snippet');
@@ -626,13 +901,13 @@ module.exports = Library;
 
 
 },{"./snippet":10}],8:[function(require,module,exports){
-var compile, replaced, tick, walk;
+var compile, replaced, string_compiler, tick, walk;
 
 walk = require('./walk');
 
 
 /*
-  compile AST back into GLSL, but with certain symbols replaced by placeholders
+  compile snippet back into GLSL, but with certain symbols replaced by placeholders
  */
 
 tick = function() {
@@ -647,7 +922,7 @@ tick = function() {
 };
 
 replaced = function(signatures) {
-  var out, s, sig, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
+  var out, s, sig, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3, _ref4;
   out = {};
   s = function(sig) {
     return out[sig.name] = true;
@@ -673,260 +948,41 @@ replaced = function(signatures) {
     sig = _ref3[_l];
     s(sig);
   }
+  _ref4 = signatures["const"];
+  for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
+    sig = _ref4[_m];
+    s(sig);
+  }
   return out;
 };
 
 compile = function(program) {
-  var args, ast, block, buffer, call, combine, decllist, group, ident, ifstmt, indent, last, literal, map, maybePlaceholder, operator, placeholder, placeholders, quantifier, recurse, regex, remap, signatures, stmt, stmtlist, string, tock, tokens;
-  ast = program.ast, signatures = program.signatures;
+  var ast, code, placeholders, signatures;
+  ast = program.ast, code = program.code, signatures = program.signatures;
   placeholders = replaced(signatures);
-  console.log("placeholders", placeholders);
-  tokens = [];
-  buffer = "";
-  last = "";
-  regex = /[0-9A-Za-z_{}]/;
-  indent = '';
-  block = '';
-  string = function(value) {
-    var first;
-    last = buffer[buffer.length - 1];
-    first = value[0];
-    if (value === ';\n' && last === '\n') {
-      return;
+  return string_compiler(code, placeholders);
+};
+
+
+/*
+String-replacement based compiler
+ */
+
+string_compiler = function(code, placeholders) {
+  var key, re;
+  re = new RegExp('\\b(' + ((function() {
+    var _results;
+    _results = [];
+    for (key in placeholders) {
+      _results.push(key);
     }
-    if (buffer.length && regex.test(last) && regex.test(first)) {
-      buffer += ' ';
-    }
-    return buffer += value;
-  };
-  maybePlaceholder = function(name) {
-    if (placeholders[name]) {
-      return placeholder(name);
-    } else {
-      return string(name);
-    }
-  };
-  placeholder = function(name) {
-    string(' ');
-    combine();
-    tokens.push(function(names) {
-      return names[name];
-    });
-    return string(' ');
-  };
-  combine = function() {
-    if (buffer.length) {
-      tokens.push(buffer);
-      buffer = "";
-    }
-    return tokens;
-  };
-  recurse = function(node) {
-    var child, i, _i, _len, _ref;
-    indent += '..';
-    _ref = node.children;
-    for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-      child = _ref[i];
-      walk(map, null, child, indent);
-    }
-    return indent = indent.substring(2);
-  };
-  remap = function(node, i) {
-    indent += '..';
-    walk(map, null, node, indent);
-    return indent = indent.substring(2);
-  };
-  stmtlist = function(node) {
-    if (node.parent) {
-      block += '  ';
-      string('{\n');
-    }
-    recurse(node);
-    if (node.parent) {
-      block = block.substring(2);
-      string(block + '}');
-    }
-    return false;
-  };
-  stmt = function(node, data) {
-    if (data === 'else') {
-      string(data);
-    } else {
-      string(block);
-    }
-    recurse(node);
-    string(';\n');
-    return false;
-  };
-  decllist = function(node, data) {
-    var child, i, _i, _len, _ref;
-    if (data === '=') {
-      _ref = node.children;
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        child = _ref[i];
-        remap(child);
-        if (i === 0) {
-          string(' = ');
-        }
-      }
-      return false;
-    } else {
-      return true;
-    }
-  };
-  args = function(node, data) {
-    var c, child, i, l, _i, _len;
-    c = node.children;
-    l = c.length - 1;
-    for (i = _i = 0, _len = c.length; _i < _len; i = ++_i) {
-      child = c[i];
-      remap(child);
-      if (i < l) {
-        string(', ');
-      }
-    }
-    return false;
-  };
-  ifstmt = function(node, data) {
-    var c;
-    c = node.children;
-    string(data);
-    string('(');
-    remap(c[0]);
-    string(') ');
-    remap(c[1]);
-    if (c[2]) {
-      remap(c[2]);
-    }
-    return false;
-  };
-  call = function(node, data) {
-    var body, c, child, i, l, _i, _len;
-    c = node.children;
-    l = c.length - 1;
-    body = false;
-    for (i = _i = 0, _len = c.length; _i < _len; i = ++_i) {
-      child = c[i];
-      if (child.type === 'stmtlist') {
-        body = true;
-        string(') ');
-        remap(child);
-      } else {
-        if (i > 1) {
-          string(', ');
-        }
-        remap(child);
-        if (i === 0) {
-          string('(');
-        }
-      }
-    }
-    if (!body) {
-      string(')');
-    }
-    return false;
-  };
-  operator = function(node, data) {
-    var c, child, i, l, _i, _len;
-    c = node.children;
-    l = c.length;
-    if (l === 1) {
-      string(data);
-      remap(c[0]);
-    } else {
-      if (data !== '.') {
-        data = ' ' + data + ' ';
-      }
-      for (i = _i = 0, _len = c.length; _i < _len; i = ++_i) {
-        child = c[i];
-        remap(child);
-        if (i === 0) {
-          string(data);
-        }
-      }
-    }
-    return false;
-  };
-  ident = function(node, data) {
-    maybePlaceholder(data);
-    return true;
-  };
-  literal = function(node, data) {
-    string(data);
-    return true;
-  };
-  group = function(node, data) {
-    string('(');
-    recurse(node);
-    string(')');
-    return false;
-  };
-  quantifier = function(node, data) {
-    string('[');
-    recurse(node);
-    string(']');
-    return false;
-  };
-  map = function(node) {
-    var d, n;
-    n = node;
-    d = node.token.data;
-    switch (node.type) {
-      case 'placeholder':
-        return false;
-      case 'expr':
-        return true;
-      case 'decl':
-        return true;
-      case 'stmt':
-        return stmt(n, d);
-      case 'literal':
-        return literal(n, d);
-      case 'keyword':
-        return literal(n, d);
-      case 'ident':
-        return ident(n, d);
-      case 'decllist':
-        return decllist(n, d);
-      case 'builtin':
-        return literal(n, d);
-      case 'binary':
-        return operator(n, d);
-      case 'return':
-        return literal(n, d);
-      case 'call':
-        return call(n, d);
-      case 'function':
-        return call(n, d);
-      case 'functionargs':
-        return args(n, d);
-      case 'if':
-        return ifstmt(n, d);
-      case 'else':
-        return elsestmt(n, d);
-      case 'group':
-        return group(n, d);
-      case 'stmtlist':
-        return stmtlist(n, d);
-      case 'quantifier':
-        return quantifier(n, d);
-      case 'preprocessor':
-        return false;
-      default:
-        switch (node.token.type) {
-          case 'operator':
-            return operator(n, d);
-          default:
-            return false;
-        }
-    }
-  };
-  tock = tick();
-  walk(map, null, ast, '');
-  tokens = combine();
-  tock("GLSL Compile");
+    return _results;
+  })()).join('|') + ')\\b', 'g');
+  code = code.replace(/\/\/[^\n]*/g, '');
+  code = code.replace(/\/\*([^*]|\*[^\/])*\*\//g, '');
+  code = code.replace(/^#[^\n]*/mg, '');
   return function(prefix, replaced) {
-    var key, names, out, token, _i, _len, _ref;
+    var names, _ref;
     if (prefix == null) {
       prefix = '';
     }
@@ -937,18 +993,243 @@ compile = function(program) {
     for (key in placeholders) {
       names[key] = prefix + ((_ref = replaced[key]) != null ? _ref : key);
     }
-    out = "";
-    for (_i = 0, _len = tokens.length; _i < _len; _i++) {
-      token = tokens[_i];
-      if (token.call) {
-        out += token(names);
-      } else {
-        out += token;
-      }
-    }
-    return out;
+    return code.replace(re, function(key) {
+      return names[key];
+    });
   };
 };
+
+
+/*
+AST-based compiler
+(not used)
+
+todo: do, while, for, struct, precision
+ast_compiler = (ast, placeholders) ->
+
+   * stream out tokens, either strings or string callbacks
+
+  tokens = []
+  buffer = ""
+  last   = ""
+  regex  = /[0-9A-Za-z_{}]/
+  indent = ''
+  block  = ''
+
+  string = (value) ->
+
+    first = value[0]
+
+    return if value == ';\n' and last == '\n'
+
+    buffer += ' ' if buffer.length and regex.test(last) and regex.test(first)
+    buffer += value
+
+    last = buffer[buffer.length - 1]
+
+  maybePlaceholder = (name) ->
+    if placeholders[name]
+      placeholder name
+    else
+      string name
+
+  placeholder = (name) ->
+    last = buffer[buffer.length - 1]
+    buffer += ' ' if buffer.length and regex.test(last)
+
+    combine()
+    tokens.push (names) -> names[name]
+
+    last = 'x'
+
+  combine = () ->
+    if buffer.length
+      tokens.push buffer
+      buffer = ""
+    tokens
+
+   * process AST nodes
+  recurse = (node) ->
+    indent += '..'
+    walk map, null, child, indent for child, i in node.children
+    indent = indent.substring 2
+
+  remap = (node, i) ->
+    indent += '..'
+    walk map, null, node, indent
+    indent = indent.substring 2
+
+  stmtlist = (node) ->
+    if node.parent
+      block += '  '
+      string '{\n'
+
+    recurse node
+
+    if node.parent
+      block = block.substring(2)
+      string block + '}'
+
+    false
+
+  stmt = (node, data) ->
+    if data in ['else']
+      string data
+    else
+      string block
+
+    recurse node
+    string ';\n'
+    false
+
+  decllist = (node, data) ->
+    if data == '='
+      for child, i in node.children
+        remap child
+        if i == 0
+          string ' = '
+      false
+    else
+      for child, i in node.children
+        if i > 0 && child.type != 'quantifier'
+          string ', '
+        remap child
+      false
+   *  else true
+
+  args = (node, data) ->
+    c = node.children
+    for child, i in c
+      if i > 0
+        string ', '
+      remap child
+    false
+
+  ifstmt = (node, data) ->
+    c = node.children
+
+    string data
+    string '('
+    remap c[0]
+    string ') '
+
+    remap c[1]
+    remap c[2] if c[2]
+
+ *    string block + '\n'
+    false
+
+  call = (node, data) ->
+    c = node.children
+
+    body = false
+    for child, i in c
+      if child.type == 'stmtlist'
+        body = true
+        string ') '
+        remap child
+      else
+        if i > 1
+          string ', '
+        remap child
+        if i == 0
+          string '('
+    string ')' if !body
+    false
+
+  operator = (node, data) ->
+    c = node.children
+
+    l = c.length
+    if l == 1
+       * unary
+      string data
+      remap c[0]
+    else
+      data = ' ' + data + ' ' if data != '.'
+
+       * binary
+      for child, i in c
+        remap child
+        string data if i == 0
+    false
+
+  ident = (node, data) ->
+    maybePlaceholder data
+    true
+
+  literal = (node, data) ->
+    string data
+    true
+
+  group = (node, data) ->
+    string '('
+    recurse node
+    string ')'
+    false
+
+  quantifier = (node, data) ->
+    string '['
+    recurse node
+    string ']'
+    false
+
+   * map node in tree
+  map = (node) ->
+    n = node
+    d = node.token.data
+
+    switch node.type
+      when 'placeholder'  then false
+      when 'expr'         then true
+      when 'decl'         then true
+      when 'stmt'         then stmt         n, d
+      when 'literal'      then literal      n, d
+      when 'keyword'      then literal      n, d
+      when 'ident'        then ident        n, d
+      when 'decllist'     then decllist     n, d
+      when 'builtin'      then literal      n, d
+      when 'binary'       then operator     n, d
+      when 'return'       then literal      n, d
+      when 'call'         then call         n, d
+      when 'function'     then call         n, d
+      when 'functionargs' then args         n, d
+      when 'if'           then ifstmt       n, d
+      when 'else'         then elsestmt     n, d
+      when 'group'        then group        n, d
+      when 'stmtlist'     then stmtlist     n, d
+      when 'quantifier'   then quantifier   n, d
+      when 'preprocessor' then false
+
+      else switch node.token.type
+        when 'operator'   then operator     n, d
+        else false
+
+
+   * walk tree
+  tock = tick()
+
+  walk map, null, ast, ''
+  tokens = combine()
+
+  tock "GLSL Compile"
+
+   * assembler function that takes map of symbol names
+   * and returns GLSL source code
+  (prefix = '', replaced = {}) ->
+    names = {}
+    for key of placeholders
+      names[key] = prefix + (replaced[key] ? key)
+
+    out = ""
+    for token in tokens
+      if token.call
+        out += token(names)
+      else
+        out += token
+
+    out
+ */
 
 module.exports = compile;
 
@@ -1020,31 +1301,42 @@ decl.type = function(name, spec, quant, inout) {
 };
 
 decl.node = function(node) {
-  var _ref, _ref1, _ref2, _ref3;
-  if (((_ref = node.token) != null ? _ref.type : void 0) === 'keyword' && ((_ref1 = (_ref2 = node.token) != null ? _ref2.data : void 0) === 'attribute' || _ref1 === 'uniform' || _ref1 === 'varying')) {
-    return decl.external(node);
-  }
-  if (((_ref3 = node.children[5]) != null ? _ref3.type : void 0) === 'function') {
+  var _ref, _ref1;
+  if (((_ref = node.children[5]) != null ? _ref.type : void 0) === 'function') {
     return decl["function"](node);
+  } else if (((_ref1 = node.token) != null ? _ref1.type : void 0) === 'keyword') {
+    return decl.external(node);
   }
 };
 
 decl.external = function(node) {
-  var c, ident, list, quant, storage, struct, type;
+  var c, i, ident, list, next, out, quant, storage, struct, type, _i, _len, _ref;
   c = node.children;
   storage = get(c[1]);
   struct = get(c[3]);
   type = get(c[4]);
   list = c[5];
-  ident = get(list.children[0]);
-  quant = list.children[1];
-  return {
-    decl: 'external',
-    storage: storage,
-    type: type,
-    ident: ident,
-    quant: !!quant
-  };
+  if (storage !== 'attribute' && storage !== 'uniform' && storage !== 'varying' && storage !== 'const') {
+    storage = 'global';
+  }
+  out = [];
+  _ref = list.children;
+  for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+    c = _ref[i];
+    if (c.type === 'ident') {
+      ident = get(c);
+      next = list.children[i + 1];
+      quant = (next != null ? next.type : void 0) === 'quantifier';
+      out.push({
+        decl: 'external',
+        storage: storage,
+        type: type,
+        ident: ident,
+        quant: !!quant
+      });
+    }
+  }
+  return out;
 };
 
 decl["function"] = function(node) {
@@ -1100,11 +1392,15 @@ decl.argument = function(node) {
 },{}],10:[function(require,module,exports){
 exports.Snippet = require('./snippet');
 
+exports.parse = require('./parse');
+
+exports.compile = require('./compile');
+
 exports.load = exports.Snippet.load;
 
 
-},{"./snippet":12}],11:[function(require,module,exports){
-var collect, decl, extractSignatures, extractSymbols, mapSymbols, parse, parseGLSL, parser, processAST, tick, tokenizer, walk;
+},{"./compile":8,"./parse":11,"./snippet":12}],11:[function(require,module,exports){
+var collect, debug, decl, extractSignatures, extractSymbols, mapSymbols, parse, parseGLSL, parser, processAST, tick, tokenizer, walk;
 
 tokenizer = require('../../vendor/glsl-tokenizer');
 
@@ -1113,6 +1409,8 @@ parser = require('../../vendor/glsl-parser');
 decl = require('./decl');
 
 walk = require('./walk');
+
+debug = false;
 
 tick = function() {
   var now;
@@ -1128,14 +1426,18 @@ tick = function() {
 parse = function(name, code) {
   var ast, program;
   ast = parseGLSL(name, code);
-  return program = processAST(ast);
+  return program = processAST(ast, code);
 };
 
 parseGLSL = function(name, code) {
   var ast, error, errors, tock, _i, _len, _ref, _ref1;
-  tock = tick();
+  if (debug) {
+    tock = tick();
+  }
   _ref = tokenizer().process(parser(), code), (_ref1 = _ref[0], ast = _ref1[0]), errors = _ref[1];
-  tock('GLSL Tokenize & Parse');
+  if (debug) {
+    tock('GLSL Tokenize & Parse');
+  }
   if (!ast || errors.length) {
     for (_i = 0, _len = errors.length; _i < _len; _i++) {
       error = errors[_i];
@@ -1146,24 +1448,39 @@ parseGLSL = function(name, code) {
   return ast;
 };
 
-processAST = function(ast) {
+processAST = function(ast, code) {
   var externals, internals, main, signatures, symbols, tock, _ref;
-  tock = tick();
+  if (debug) {
+    tock = tick();
+  }
   symbols = [];
   walk(mapSymbols, collect(symbols), ast, '');
   _ref = extractSymbols(symbols), main = _ref[0], internals = _ref[1], externals = _ref[2];
   signatures = extractSignatures(main, internals, externals);
-  tock('GLSL AST');
+  if (debug) {
+    tock('GLSL AST');
+  }
   return {
     ast: ast,
+    code: code,
     signatures: signatures
   };
 };
 
 collect = function(out) {
   return function(value) {
-    if (value) {
-      return out.push(value);
+    var obj, _i, _len, _results;
+    if (value != null) {
+      if (value.length) {
+        _results = [];
+        for (_i = 0, _len = value.length; _i < _len; _i++) {
+          obj = value[_i];
+          _results.push(out.push(obj));
+        }
+        return _results;
+      } else {
+        return out.push(value);
+      }
     }
   };
 };
@@ -1178,7 +1495,7 @@ mapSymbols = function(node, collect) {
 };
 
 extractSymbols = function(symbols) {
-  var e, externals, internals, main, maybe, s, _i, _len;
+  var e, externals, internals, main, maybe, s, _i, _len, _ref;
   main = null;
   internals = [];
   externals = [];
@@ -1186,8 +1503,12 @@ extractSymbols = function(symbols) {
   for (_i = 0, _len = symbols.length; _i < _len; _i++) {
     s = symbols[_i];
     if (!s.body) {
-      externals.push(s);
-      maybe[s.ident] = true;
+      if ((_ref = s.storage) === 'global' || _ref === 'const') {
+        internals.push(s);
+      } else {
+        externals.push(s);
+        maybe[s.ident] = true;
+      }
     } else {
       if (maybe[s.ident]) {
         externals = (function() {
@@ -1218,6 +1539,8 @@ extractSignatures = function(main, internals, externals) {
     varying: [],
     external: [],
     internal: [],
+    "const": [],
+    global: [],
     main: null
   };
   defn = function(symbol) {
@@ -1343,7 +1666,7 @@ Snippet = (function() {
   };
 
   Snippet.prototype.apply = function(uniforms, namespace) {
-    var a, def, e, m, u, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+    var a, def, e, m, name, u, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
     this.namespace = namespace;
     if (this.namespace == null) {
       this.namespace = Snippet.namespace();
@@ -1353,13 +1676,13 @@ Snippet = (function() {
     this.attributes = {};
     this.externals = {};
     u = (function(_this) {
-      return function(def) {
-        return _this.uniforms[_this.namespace + def.name] = def;
+      return function(def, name) {
+        return _this.uniforms[_this.namespace + (name != null ? name : def.name)] = def;
       };
     })(this);
     a = (function(_this) {
       return function(def) {
-        return _this.attributes[_this.namespace + def.name] = def;
+        return _this.attributes[def.name] = def;
       };
     })(this);
     e = (function(_this) {
@@ -1373,15 +1696,19 @@ Snippet = (function() {
         return _this.entry = _this.namespace + def.name;
       };
     })(this);
-    _ref = this.signatures.uniform;
+    _ref = this.signatures.attribute;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       def = _ref[_i];
-      u(def);
+      a(def);
     }
-    _ref1 = this.signatures.attribute;
+    _ref1 = this.signatures.uniform;
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
       def = _ref1[_j];
-      a(def);
+      u(def);
+    }
+    for (name in uniforms) {
+      def = uniforms[name];
+      u(def, name);
     }
     m(this.signatures.main);
     _ref2 = this.signatures.external;
@@ -1389,7 +1716,7 @@ Snippet = (function() {
       def = _ref2[_k];
       e(def);
     }
-    throw "lol error";
+    return window.snippet = this;
   };
 
   return Snippet;

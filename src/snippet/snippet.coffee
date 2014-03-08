@@ -30,20 +30,22 @@ class Snippet
     @attributes = {}
     @externals  = {}
 
-    u = (def) =>   @uniforms[@namespace + def.name] = def
-    a = (def) => @attributes[@namespace + def.name] = def
-    e = (def) =>  @externals[@namespace + def.name] = def
+    u = (def, name) => @uniforms[@namespace + (name ? def.name)] = def
+    a = (def)       => @attributes[def.name] = def
+    e = (def)       => @externals[@namespace + def.name] = def
     m = (def) =>
       @main = def
       @entry = @namespace + def.name
 
-    u(def) for def in @signatures.uniform
     a(def) for def in @signatures.attribute
+    u(def) for def in @signatures.uniform
+    u(def, name) for name, def of uniforms
 
     m(@signatures.main)
     e(def) for def in @signatures.external
 
-    throw "lol error"
+    #throw "lol error"
+    window.snippet = @
 
 
 module.exports = Snippet

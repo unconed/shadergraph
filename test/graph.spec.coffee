@@ -1,5 +1,7 @@
 Graph = ShaderGraph.Graph
 
+# Legacy shadergraph.js tests
+
 describe "graph", () ->
 
   graph = node1 = node2 = node3 = null

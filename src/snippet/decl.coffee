@@ -46,11 +46,11 @@ decl.type = (name, spec, quant, inout) ->
 
 decl.node = (node) ->
 
-  if node.token?.type == 'keyword' and node.token?.data in ['attribute', 'uniform', 'varying']
-    return decl.external(node)
-
   if node.children[5]?.type == 'function'
-    return decl.function(node)
+    decl.function(node)
+
+  else if node.token?.type == 'keyword'
+    decl.external(node)
 
 decl.external = (node) ->
   #    console.log 'external', node
@@ -60,14 +60,26 @@ decl.external = (node) ->
   struct  = get c[3]
   type    = get c[4]
   list    = c[5]
-  ident   = get list.children[0]
-  quant   = list.children[1]
 
-  decl: 'external'
-  storage: storage
-  type: type
-  ident: ident
-  quant: !!quant
+  storage = 'global' if storage !in ['attribute', 'uniform', 'varying', 'const']
+
+  out = []
+
+  for c, i in list.children
+    if c.type == 'ident'
+      ident   = get c
+      next    = list.children[i + 1]
+      quant   = (next?.type == 'quantifier')
+
+      out.push
+        decl: 'external'
+        storage: storage
+        type: type
+        ident: ident
+        quant: !!quant
+
+  out
+
 
 decl.function = (node) ->
   c = node.children

@@ -3,6 +3,8 @@ parser    = require '../../vendor/glsl-parser'
 decl      = require './decl'
 walk      = require './walk'
 
+debug = false
+
 tick = () ->
   now = +new Date
   return (label) ->
@@ -13,17 +15,17 @@ tick = () ->
 # Parse a GLSL snippet
 parse = (name, code) ->
   ast        = parseGLSL name, code
-  program    = processAST ast
+  program    = processAST ast, code
 
 # Parse GLSL language into AST
 parseGLSL = (name, code) ->
 
-  tock = tick()
+  tock = tick() if debug
 
   # Sync stream hack (see /vendor/through)
   [[ast], errors] = tokenizer().process parser(), code
 
-  tock 'GLSL Tokenize & Parse'
+  tock 'GLSL Tokenize & Parse' if debug
 
   if !ast || errors.length
     console.error "[ShaderGraph] #{name} -", error.message for error in errors
@@ -32,23 +34,31 @@ parseGLSL = (name, code) ->
   ast
 
 # Process AST for compilation
-processAST = (ast) ->
-  tock = tick()
+processAST = (ast, code) ->
+  tock = tick() if debug
 
+  # walk AST tree and collect global declarations
   symbols = []
   walk mapSymbols, collect(symbols), ast, ''
+
+  # divide symbols into bins
   [main, internals, externals] = extractSymbols symbols
 
+  # extract storage/type signatures of symbols
   signatures = extractSignatures main, internals, externals
 
-  tock 'GLSL AST'
+  tock 'GLSL AST' if debug
 
-  {ast, signatures}
+  {ast, code, signatures}
 
 # Extract functions and external symbols from AST
 collect = (out) ->
   (value) ->
-    out.push value if value
+    if value?
+      if value.length
+        out.push obj for obj in value
+      else
+        out.push value
 
 mapSymbols = (node, collect) ->
   switch node.type
@@ -66,9 +76,14 @@ extractSymbols = (symbols) ->
 
   for s in symbols
     if !s.body
+      # Definitely internal
+      if s.storage in ['global', 'const']
+        internals.push s
+
       # Possible external
-      externals.push s
-      maybe[s.ident] = true
+      else
+        externals.push s
+        maybe[s.ident] = true
     else
       # Remove earlier forward declaration
       if maybe[s.ident]
@@ -91,6 +106,8 @@ extractSignatures = (main, internals, externals) ->
     varying: []
     external: []
     internal: []
+    const: []
+    global: []
     main: null
 
   defn = (symbol) ->

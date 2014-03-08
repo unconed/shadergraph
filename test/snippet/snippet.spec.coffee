@@ -12,7 +12,7 @@ describe "snippet", () ->
     attribute vec4 att2;
     void callback1(in vec3 color);
     void callback2(out vec3 color);
-    void testSnippet() { };
+    void testSnippet(float param) { };
     """
 
     snippet = Snippet.load 'test', code
@@ -27,13 +27,15 @@ describe "snippet", () ->
     expect(snippet.entry).toBe('_sgtest_testSnippet')
     expect(snippet.main).toBeTruthy()
 
-    # rename uniforms
+    expect(snippet.main.signature.length).toBe(1)
+    expect(snippet.main.signature[0].name).toBe('param')
+    expect(snippet.main.signature[0].type).toBe('f')
+
     expect(snippet.uniforms['_sgtest_uni1'].name).toBe('uni1')
     expect(snippet.uniforms['_sgtest_uni1'].type).toBe('f')
     expect(snippet.uniforms['_sgtest_uni2'].name).toBe('uni2')
     expect(snippet.uniforms['_sgtest_uni2'].type).toBe('v3')
 
-    # rename externals
     expect(snippet.externals['_sgtest_callback1'].name).toBe('callback1')
     expect(snippet.externals['_sgtest_callback1'].type).toBe('(v3)()')
     expect(snippet.externals['_sgtest_callback2'].name).toBe('callback2')
@@ -52,4 +54,4 @@ describe "snippet", () ->
         value: 1.0
     snippet.apply uniforms, '_bind_'
 
-    expect(snippet.uniforms['_bind_uni']).toEqual(uniforms.uni)
+    expect(snippet.uniforms['_bind_uni']).toBe(uniforms.uni)

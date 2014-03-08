@@ -95,12 +95,14 @@ decl.function = (node) ->
 
   decls = (decl.argument(child) for child in args.children)
 
-  decl: 'function'
-  storage: storage
-  type: type
-  ident: ident
-  body: !!body
-  args: decls
+  [
+    decl: 'function'
+    storage: storage
+    type: type
+    ident: ident
+    body: !!body
+    args: decls
+  ]
 
 decl.argument = (node) ->
   c = node.children

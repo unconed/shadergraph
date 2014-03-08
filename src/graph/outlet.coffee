@@ -3,11 +3,10 @@ Graph = require './graph'
 class Outlet
   @ID = 0
 
-  constructor: (@inout, @name, @hint, @type, @meta = {}) ->
+  constructor: (@inout, @name, @hint, @type, @meta) ->
     @node     = null
     @hint    ?= name
     @index    = ++Outlet.ID
-    @key      = null
 
     @input = null
     @output = []
@@ -18,10 +17,11 @@ class Outlet
 
   # Change into given outlet without touching connections
   morph: (outlet) ->
-    @inout    = outlet.inout
-    @name     = outlet.name
-    @type     = outlet.type
-    @meta     = outlet.meta || {}
+    @inout = outlet.inout
+    @name  = outlet.name
+    @hint  = outlet.hint
+    @type  = outlet.type
+    @meta  = outlet.meta
 
   # Connect to given outlet
   connect: (outlet) ->

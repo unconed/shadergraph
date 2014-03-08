@@ -1,7 +1,70 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Factory, Graph, State;
+var Block, Graph;
+
+Graph = require('../graph');
+
+Block = (function() {
+  function Block() {
+    this.node = new Graph.Node(this, this.makeOutlets());
+  }
+
+  Block.prototype.compile = function() {
+    throw "Block cannot be compiled";
+  };
+
+  return Block;
+
+})();
+
+module.exports = Block;
+
+
+},{"../graph":6}],2:[function(require,module,exports){
+exports.Block = require('./block');
+
+exports.Shader = require('./shader');
+
+
+},{"./block":1,"./shader":3}],3:[function(require,module,exports){
+var Block, Shader,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Block = require('./block');
+
+Shader = (function(_super) {
+  __extends(Shader, _super);
+
+  function Shader(snippet) {
+    this.snippet = snippet;
+    Shader.__super__.constructor.apply(this, arguments);
+  }
+
+  Shader.prototype.makeOutlets = function() {
+    var external, key, outlets, _ref;
+    outlets = [];
+    outlets = outlets.concat(this.snippet.main.signature);
+    _ref = this.snippet.externals;
+    for (key in _ref) {
+      external = _ref[key];
+      outlets.push(external);
+    }
+    return outlets;
+  };
+
+  return Shader;
+
+})(Block);
+
+module.exports = Shader;
+
+
+},{"./block":1}],4:[function(require,module,exports){
+var Block, Factory, Graph, State;
 
 Graph = require('./graph');
+
+Block = require('./block');
 
 State = (function() {
   function State(start, end) {
@@ -22,8 +85,9 @@ Factory = (function() {
   Factory.prototype.snippet = function(name, uniforms) {
     var block, snippet;
     snippet = this.library.fetch(name);
-    block = snippet.apply(uniforms);
-    return this;
+    snippet.apply(uniforms);
+    block = new Block.Shader(snippet);
+    return this.append(block.node);
   };
 
   Factory.prototype.append = function(node) {
@@ -111,10 +175,14 @@ Factory = (function() {
     this.group();
     if (graph) {
       graph.compile = function() {
-        return graph.tail().owner().compile();
+        return graph.tail().owner.compile();
       };
     }
     return graph;
+  };
+
+  Factory.prototype.compile = function() {
+    return this.end().compile();
   };
 
   Factory.prototype._push = function() {
@@ -136,7 +204,7 @@ Factory = (function() {
 module.exports = Factory;
 
 
-},{"./graph":3}],2:[function(require,module,exports){
+},{"./block":2,"./graph":6}],5:[function(require,module,exports){
 
 /*
   Graph of shader nodes.
@@ -232,7 +300,7 @@ Graph = (function() {
 module.exports = Graph;
 
 
-},{}],3:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 exports.Graph = require('./graph');
 
 exports.Node = require('./node');
@@ -240,7 +308,7 @@ exports.Node = require('./node');
 exports.Outlet = require('./outlet');
 
 
-},{"./graph":2,"./node":4,"./outlet":5}],4:[function(require,module,exports){
+},{"./graph":5,"./node":7,"./outlet":8}],7:[function(require,module,exports){
 var Graph, Node, Outlet;
 
 Graph = require('./graph');
@@ -318,7 +386,7 @@ Node = (function() {
           outlet = outlets[_i];
           this._add(make(outlet));
         }
-        return this.first = false;
+        return;
       }
       hash = function(outlet) {
         return [outlet.name, outlet.inout, outlet.type].join('-');
@@ -465,7 +533,7 @@ Node = (function() {
 module.exports = Node;
 
 
-},{"./graph":2,"./outlet":5}],5:[function(require,module,exports){
+},{"./graph":5,"./outlet":8}],8:[function(require,module,exports){
 var Graph, Outlet;
 
 Graph = require('./graph');
@@ -478,13 +546,12 @@ Outlet = (function() {
     this.name = name;
     this.hint = hint;
     this.type = type;
-    this.meta = meta != null ? meta : {};
+    this.meta = meta;
     this.node = null;
     if (this.hint == null) {
       this.hint = name;
     }
     this.index = ++Outlet.ID;
-    this.key = null;
     this.input = null;
     this.output = [];
   }
@@ -496,8 +563,9 @@ Outlet = (function() {
   Outlet.prototype.morph = function(outlet) {
     this.inout = outlet.inout;
     this.name = outlet.name;
+    this.hint = outlet.hint;
     this.type = outlet.type;
-    return this.meta = outlet.meta || {};
+    return this.meta = outlet.meta;
   };
 
   Outlet.prototype.connect = function(outlet) {
@@ -549,8 +617,8 @@ Outlet = (function() {
 module.exports = Outlet;
 
 
-},{"./graph":2}],6:[function(require,module,exports){
-var Factory, Library, ShaderGraph;
+},{"./graph":5}],9:[function(require,module,exports){
+var Factory, Library, ShaderGraph, code1, code2, graph, program, shader, shadergraph, snippets;
 
 Factory = require('./factory');
 
@@ -560,6 +628,9 @@ ShaderGraph = (function() {
   function ShaderGraph(library) {
     if (library == null) {
       library = {};
+    }
+    if (!(this instanceof ShaderGraph)) {
+      return new ShaderGraph(library);
     }
     this.library = new Library(library);
   }
@@ -572,6 +643,12 @@ ShaderGraph = (function() {
 
   ShaderGraph.Snippet = require('./snippet');
 
+  ShaderGraph.Block = require('./block');
+
+  ShaderGraph.Factory = require('./factory');
+
+  ShaderGraph.Library = require('./library');
+
   return ShaderGraph;
 
 })();
@@ -580,10 +657,31 @@ module.exports = ShaderGraph;
 
 window.ShaderGraph = ShaderGraph;
 
+code1 = "void main(out vec3 color) {\n  color = vec3(1.0, 1.0, 1.0);\n}";
+
+code2 = "void main(in vec3 color) {\n  gl_FragColor = vec4(color, 1.0);\n}";
+
+snippets = {
+  'code1': code1,
+  'code2': code2
+};
+
+shadergraph = ShaderGraph(snippets);
+
+shader = shadergraph.shader();
+
+window.shader = shader;
+
+graph = shader.snippet('code1').snippet('code2').end();
+
+window.graph = graph;
+
+program = graph.compile();
+
+window.program = program;
+
 
 /*
-
-
 
 code = """
 // Comment
@@ -828,13 +926,6 @@ void main() {
 
 
 
-
-
-
-
-
-
-
 code = """
 uniform vec2 sampleStep;
 
@@ -861,18 +952,10 @@ float randf(vec2 xy) {
 }
 
 """
-
-window.code = code
-snippets = {
-  'test': code
-}
-
-shadergraph = new ShaderGraph snippets
-shader = shadergraph.shader().snippet('test')
  */
 
 
-},{"./factory":1,"./graph":3,"./library":7,"./snippet":10}],7:[function(require,module,exports){
+},{"./block":2,"./factory":4,"./graph":6,"./library":10,"./snippet":13}],10:[function(require,module,exports){
 var Library, Snippet;
 
 Snippet = require('./snippet');
@@ -900,7 +983,7 @@ Library = (function() {
 module.exports = Library;
 
 
-},{"./snippet":10}],8:[function(require,module,exports){
+},{"./snippet":13}],11:[function(require,module,exports){
 var compile, replaced, string_compiler, tick, walk;
 
 walk = require('./walk');
@@ -1229,7 +1312,7 @@ ast_compiler = (ast, placeholders) ->
 module.exports = compile;
 
 
-},{"./walk":13}],9:[function(require,module,exports){
+},{"./walk":16}],12:[function(require,module,exports){
 var decl, get;
 
 module.exports = decl = {};
@@ -1354,14 +1437,16 @@ decl["function"] = function(node) {
     }
     return _results;
   })();
-  return {
-    decl: 'function',
-    storage: storage,
-    type: type,
-    ident: ident,
-    body: !!body,
-    args: decls
-  };
+  return [
+    {
+      decl: 'function',
+      storage: storage,
+      type: type,
+      ident: ident,
+      body: !!body,
+      args: decls
+    }
+  ];
 };
 
 decl.argument = function(node) {
@@ -1384,7 +1469,7 @@ decl.argument = function(node) {
 };
 
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 exports.Snippet = require('./snippet');
 
 exports.parse = require('./parse');
@@ -1394,7 +1479,7 @@ exports.compile = require('./compile');
 exports.load = exports.Snippet.load;
 
 
-},{"./compile":8,"./parse":11,"./snippet":12}],11:[function(require,module,exports){
+},{"./compile":11,"./parse":14,"./snippet":15}],14:[function(require,module,exports){
 var collect, debug, decl, extractSignatures, mapSymbols, parse, parseGLSL, parser, processAST, sortSymbols, tick, tokenizer, walk;
 
 tokenizer = require('../../vendor/glsl-tokenizer');
@@ -1462,24 +1547,6 @@ processAST = function(ast, code) {
   };
 };
 
-collect = function(out) {
-  return function(value) {
-    var obj, _i, _len, _results;
-    if (value != null) {
-      if (value.length) {
-        _results = [];
-        for (_i = 0, _len = value.length; _i < _len; _i++) {
-          obj = value[_i];
-          _results.push(out.push(obj));
-        }
-        return _results;
-      } else {
-        return out.push(value);
-      }
-    }
-  };
-};
-
 mapSymbols = function(node, collect) {
   switch (node.type) {
     case 'decl':
@@ -1487,6 +1554,20 @@ mapSymbols = function(node, collect) {
       return false;
   }
   return true;
+};
+
+collect = function(out) {
+  return function(value) {
+    var obj, _i, _len, _results;
+    if (value != null) {
+      _results = [];
+      for (_i = 0, _len = value.length; _i < _len; _i++) {
+        obj = value[_i];
+        _results.push(out.push(obj));
+      }
+      return _results;
+    }
+  };
 };
 
 sortSymbols = function(symbols) {
@@ -1622,7 +1703,7 @@ extractSignatures = function(main, internals, externals) {
 module.exports = parse;
 
 
-},{"../../vendor/glsl-parser":14,"../../vendor/glsl-tokenizer":18,"./decl":9,"./walk":13}],12:[function(require,module,exports){
+},{"../../vendor/glsl-parser":17,"../../vendor/glsl-tokenizer":21,"./decl":12,"./walk":16}],15:[function(require,module,exports){
 var Snippet, compile, parse;
 
 parse = require('./parse');
@@ -1640,43 +1721,40 @@ Snippet = (function() {
     var assembler, program;
     program = parse(name, code);
     assembler = compile(program);
-    return new Snippet(program.signatures, assembler, program);
+    return new Snippet(program.signatures, assembler);
   };
 
-  function Snippet(signatures, assembler, _program) {
+  function Snippet(signatures, assembler) {
     this.signatures = signatures;
     this.assembler = assembler;
-    this._program = _program;
     this.namespace = null;
     this.program = null;
-    this.uniforms = null;
-    this.entry = null;
     this.main = null;
+    this.entry = null;
+    this.uniforms = null;
     this.externals = null;
+    this.attributes = null;
   }
 
   Snippet.prototype.clone = function() {
-    return new Snippet(this.signatures, this.assembler, this._program);
+    return new Snippet(this.signatures, this.assembler);
   };
 
   Snippet.prototype.apply = function(uniforms, namespace) {
-    var a, def, e, m, name, u, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+    var a, def, e, name, u, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _results;
     this.namespace = namespace;
     if (this.namespace == null) {
       this.namespace = Snippet.namespace();
     }
     this.program = this.assembler(this.namespace);
+    this.main = this.signatures.main;
+    this.entry = this.namespace + this.main.name;
     this.uniforms = {};
-    this.attributes = {};
     this.externals = {};
+    this.attributes = {};
     u = (function(_this) {
       return function(def, name) {
         return _this.uniforms[_this.namespace + (name != null ? name : def.name)] = def;
-      };
-    })(this);
-    a = (function(_this) {
-      return function(def) {
-        return _this.attributes[def.name] = def;
       };
     })(this);
     e = (function(_this) {
@@ -1684,33 +1762,32 @@ Snippet = (function() {
         return _this.externals[_this.namespace + def.name] = def;
       };
     })(this);
-    m = (function(_this) {
+    a = (function(_this) {
       return function(def) {
-        _this.main = def;
-        return _this.entry = _this.namespace + def.name;
+        return _this.attributes[def.name] = def;
       };
     })(this);
-    _ref = this.signatures.attribute;
+    _ref = this.signatures.uniform;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       def = _ref[_i];
-      a(def);
-    }
-    _ref1 = this.signatures.uniform;
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      def = _ref1[_j];
       u(def);
     }
-    for (name in uniforms) {
-      def = uniforms[name];
-      u(def, name);
-    }
-    m(this.signatures.main);
-    _ref2 = this.signatures.external;
-    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-      def = _ref2[_k];
+    _ref1 = this.signatures.external;
+    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+      def = _ref1[_j];
       e(def);
     }
-    return window.snippet = this;
+    _ref2 = this.signatures.attribute;
+    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+      def = _ref2[_k];
+      a(def);
+    }
+    _results = [];
+    for (name in uniforms) {
+      def = uniforms[name];
+      _results.push(u(def, name));
+    }
+    return _results;
   };
 
   return Snippet;
@@ -1720,7 +1797,7 @@ Snippet = (function() {
 module.exports = Snippet;
 
 
-},{"./compile":8,"./parse":11}],13:[function(require,module,exports){
+},{"./compile":11,"./parse":14}],16:[function(require,module,exports){
 var debug, walk;
 
 debug = false;
@@ -1743,10 +1820,10 @@ walk = function(map, collect, node, indent) {
 module.exports = walk;
 
 
-},{}],14:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports = require('./lib/index')
 
-},{"./lib/index":16}],15:[function(require,module,exports){
+},{"./lib/index":19}],18:[function(require,module,exports){
 var state
   , token
   , tokens
@@ -2013,7 +2090,7 @@ function fail(message) {
   return function() { return state.unexpected(message) }
 }
 
-},{}],16:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 module.exports = parser
 
 var through = require('../../through')
@@ -2973,7 +3050,7 @@ function is_precision(token) {
          token.data === 'lowp'
 }
 
-},{"../../through":22,"./expr":15,"./scope":17}],17:[function(require,module,exports){
+},{"../../through":25,"./expr":18,"./scope":20}],20:[function(require,module,exports){
 module.exports = scope
 
 function scope(state) {
@@ -3013,7 +3090,7 @@ proto.find = function(name, fail) {
   return null
 }
 
-},{}],18:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = tokenize
 
 var through = require('../through')
@@ -3350,7 +3427,7 @@ function tokenize() {
   }
 }
 
-},{"../through":22,"./lib/builtins":19,"./lib/literals":20,"./lib/operators":21}],19:[function(require,module,exports){
+},{"../through":25,"./lib/builtins":22,"./lib/literals":23,"./lib/operators":24}],22:[function(require,module,exports){
 module.exports = [
     'gl_Position'
   , 'gl_PointSize'
@@ -3496,7 +3573,7 @@ module.exports = [
   , 'textureCubeLod'
 ]
 
-},{}],20:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports = [
   // current
     'precision'
@@ -3591,7 +3668,7 @@ module.exports = [
   , 'using'
 ]
 
-},{}],21:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = [
     '<<='
   , '>>='
@@ -3639,7 +3716,7 @@ module.exports = [
   , '}'
 ]
 
-},{}],22:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 var through;
 
 through = function(write, end) {
@@ -3683,4 +3760,4 @@ through = function(write, end) {
 module.exports = through;
 
 
-},{}]},{},[6])
+},{}]},{},[9])

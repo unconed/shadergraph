@@ -1,16 +1,20 @@
-#Blocks = require './blocks'
 Factory = require './factory'
 Library = require './library'
 
 class ShaderGraph
   constructor: (library = {}) ->
+    return new ShaderGraph library if @ !instanceof ShaderGraph
     @library = new Library library
 
   shader: () ->
     new Factory @library
 
-  @Graph: require('./graph')
-  @Snippet: require('./snippet')
+  # Expose class hierarchy
+  @Graph:   require './graph'
+  @Snippet: require './snippet'
+  @Block:   require './block'
+  @Factory: require './factory'
+  @Library: require './library'
 
 module.exports = ShaderGraph
 window.ShaderGraph = ShaderGraph
@@ -20,9 +24,51 @@ window.ShaderGraph = ShaderGraph
 
 
 
+##
+
+
+
+code1 = """
+void main(out vec3 color) {
+  color = vec3(1.0, 1.0, 1.0);
+}
+"""
+
+code2 = """
+void main(in vec3 color) {
+  gl_FragColor = vec4(color, 1.0);
+}
+"""
+
+
+snippets = {
+  'code1': code1
+  'code2': code2
+}
+
+shadergraph = ShaderGraph snippets
+
+shader  = shadergraph.shader()
+window.shader  = shader
+
+graph   = shader.snippet('code1').snippet('code2').end()
+window.graph   = graph
+
+program = graph.compile()
+window.program = program
+
+
+##
+
+
+
+
+
+
+
+
+
 ###
-
-
 
 code = """
 // Comment
@@ -267,13 +313,6 @@ void main() {
 
 
 
-
-
-
-
-
-
-
 code = """
 uniform vec2 sampleStep;
 
@@ -300,13 +339,4 @@ float randf(vec2 xy) {
 }
 
 """
-
-window.code = code
-snippets = {
-  'test': code
-}
-
-shadergraph = new ShaderGraph snippets
-shader = shadergraph.shader().snippet('test')
-
 ###

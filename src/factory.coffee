@@ -1,4 +1,5 @@
 Graph = require './graph'
+Block = require './block'
 
 class State
   constructor: (@start = [], @end = []) ->
@@ -9,9 +10,11 @@ class Factory
 
   snippet: (name, uniforms) ->
     snippet = @library.fetch name
-    block = snippet.apply uniforms
+    snippet.apply uniforms
 
-    @
+    block = new Block.Shader snippet
+
+    @append block.node
 
   append: (node) ->
     @graph.add node
@@ -67,8 +70,7 @@ class Factory
 
         # Normal destination
         else
-          for from in main.end
-            from.connect to, true
+          from.connect to, true for from in main.end
 
     main.end = sub.end
     @
@@ -84,9 +86,12 @@ class Factory
     # Add compile shortcut.
     if graph
       graph.compile = () ->
-        graph.tail().owner().compile()
+        graph.tail().owner.compile()
 
     graph
+
+  compile: () ->
+    @end().compile()
 
   _push: () ->
     @_stack.unshift new State

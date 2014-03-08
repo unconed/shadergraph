@@ -1,4 +1,4 @@
-Graph = require './graph'
+Graph  = require './graph'
 Outlet = require './outlet'
 
 ###
@@ -45,7 +45,7 @@ class Node
         @outlets = {}
         for outlet in outlets
           @_add make outlet
-        return @first = false
+        return
 
       # Return new/old outlet matching hash key
       hash = (outlet) ->

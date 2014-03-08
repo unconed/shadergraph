@@ -24,6 +24,8 @@ describe "compiler", () ->
   void callback3(in vec3 v3in, in vec4 v4in, out vec4 v4out);
   void main() {
     vec4 ov4;
+    vec4 gv4_dummy;
+    vec4 dummy_gv4;
     mat4 m1, m2;
     internal(m1, m2);
     callback1(av4);
@@ -51,6 +53,8 @@ describe "compiler", () ->
   void _t_callback3(in vec3 v3in, in vec4 v4in, out vec4 v4out);
   void _t_main() {
     vec4 ov4;
+    vec4 gv4_dummy;
+    vec4 dummy_gv4;
     mat4 m1, m2;
     _t_internal(m1, m2);
     _t_callback1(av4);

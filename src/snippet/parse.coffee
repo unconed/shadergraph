@@ -52,20 +52,15 @@ processAST = (ast, code) ->
   {ast, code, signatures}
 
 # Extract functions and external symbols from AST
-collect = (out) ->
-  (value) ->
-    if value?
-      if value.length
-        out.push obj for obj in value
-      else
-        out.push value
-
 mapSymbols = (node, collect) ->
   switch node.type
     when 'decl'
       collect decl.node(node)
       return false
   return true
+
+collect = (out) ->
+  (value) -> out.push obj for obj in value if value?
 
 # Identify internals, externals and main function
 sortSymbols = (symbols) ->

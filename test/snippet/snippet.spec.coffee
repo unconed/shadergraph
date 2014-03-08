@@ -6,10 +6,13 @@ describe "snippet", () ->
 
   beforeEach () ->
     code = """
-    uniform float uni;
-    attribute vec3 att;
-    varying vec4 var;
-    void testSnippet() { }
+    uniform float uni1;
+    uniform vec3 uni2;
+    attribute vec3 att1;
+    attribute vec4 att2;
+    void callback1(in vec3 color);
+    void callback2(out vec3 color);
+    void testSnippet() { };
     """
 
     snippet = Snippet.load 'test', code
@@ -25,12 +28,22 @@ describe "snippet", () ->
     expect(snippet.main).toBeTruthy()
 
     # rename uniforms
-    expect(snippet.uniforms['_sgtest_uni'].name).toBe('uni')
-    expect(snippet.uniforms['_sgtest_uni'].type).toBe('f')
+    expect(snippet.uniforms['_sgtest_uni1'].name).toBe('uni1')
+    expect(snippet.uniforms['_sgtest_uni1'].type).toBe('f')
+    expect(snippet.uniforms['_sgtest_uni2'].name).toBe('uni2')
+    expect(snippet.uniforms['_sgtest_uni2'].type).toBe('v3')
+
+    # rename externals
+    expect(snippet.externals['_sgtest_callback1'].name).toBe('callback1')
+    expect(snippet.externals['_sgtest_callback1'].type).toBe('(v3)()')
+    expect(snippet.externals['_sgtest_callback2'].name).toBe('callback2')
+    expect(snippet.externals['_sgtest_callback2'].type).toBe('()(v3)')
 
     # don't rename attributes
-    expect(snippet.attributes['att'].name).toBe('att')
-    expect(snippet.attributes['att'].type).toBe('v3')
+    expect(snippet.attributes['att1'].name).toBe('att1')
+    expect(snippet.attributes['att1'].type).toBe('v3')
+    expect(snippet.attributes['att2'].name).toBe('att2')
+    expect(snippet.attributes['att2'].type).toBe('v4')
 
   it 'binds uniforms', () ->
     uniforms =

@@ -20,17 +20,16 @@ replaced = (signatures) ->
   s(sig) for sig in signatures.internal
   s(sig) for sig in signatures.varying
   s(sig) for sig in signatures.uniform
-  s(sig) for sig in signatures.const
 
   out
 
 compile = (program) ->
   {ast, code, signatures} = program
 
-  # prepare list of placeholders
+  # Prepare list of placeholders
   placeholders = replaced signatures
 
-  # compile
+  # Compile
   string_compiler code, placeholders
   #ast_compiler program, placeholders
 
@@ -39,17 +38,18 @@ String-replacement based compiler
 ###
 string_compiler = (code, placeholders) ->
 
-  # make placeholder regexp
+  # Make regexp for finding placeholders
+  # replace on word boundaries
   re = new RegExp '\\b(' + (key for key of placeholders).join('|') + ')\\b', 'g'
 
-  # strip comments
+  # Strip comments
   code = code.replace /\/\/[^\n]*/g, ''
   code = code.replace /\/\*([^*]|\*[^\/])*\*\//g, ''
 
-  # strip all preprocessor commands (lazy)
+  # Strip all preprocessor commands (lazy)
   code = code.replace /^#[^\n]*/mg, ''
 
-  # assembler function that takes map of symbol names
+  # Assembler function that takes map of symbol names
   # and returns GLSL source code
   (prefix = '', replaced = {}) ->
     names = {}

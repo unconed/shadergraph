@@ -72,7 +72,7 @@ describe "compiler", () ->
     expect(assembler.call).toBeTruthy()
     expect(assembler.apply).toBeTruthy()
 
-  it 'assembles with prefix', () ->
+  it 'assembles with prefix on all global symbols', () ->
 
     namespace = '_t_'
     compiled = assembler namespace

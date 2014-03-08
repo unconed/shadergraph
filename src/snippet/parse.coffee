@@ -37,14 +37,14 @@ parseGLSL = (name, code) ->
 processAST = (ast, code) ->
   tock = tick() if debug
 
-  # walk AST tree and collect global declarations
+  # Walk AST tree and collect global declarations
   symbols = []
   walk mapSymbols, collect(symbols), ast, ''
 
-  # divide symbols into bins
-  [main, internals, externals] = extractSymbols symbols
+  # Sort symbols into bins
+  [main, internals, externals] = sortSymbols symbols
 
-  # extract storage/type signatures of symbols
+  # Extract storage/type signatures of symbols
   signatures = extractSignatures main, internals, externals
 
   tock 'GLSL AST' if debug
@@ -67,8 +67,8 @@ mapSymbols = (node, collect) ->
       return false
   return true
 
-# Identify externals and main function
-extractSymbols = (symbols) ->
+# Identify internals, externals and main function
+sortSymbols = (symbols) ->
   main = null
   internals = []
   externals = []
@@ -76,8 +76,8 @@ extractSymbols = (symbols) ->
 
   for s in symbols
     if !s.body
-      # Definitely internal
-      if s.storage in ['global', 'const']
+      # Unmarked globals are definitely internal
+      if s.storage == 'global'
         internals.push s
 
       # Possible external
@@ -106,7 +106,6 @@ extractSignatures = (main, internals, externals) ->
     varying: []
     external: []
     internal: []
-    const: []
     global: []
     main: null
 
@@ -116,7 +115,7 @@ extractSignatures = (main, internals, externals) ->
   func = (symbol, inout) ->
     signature = (defn arg for arg in symbol.args)
 
-    # split inouts into in and out
+    # Split inouts into in and out
     for d in signature when d.inout == decl.inout
       a = d
       b = decl.copy d
@@ -127,11 +126,11 @@ extractSignatures = (main, internals, externals) ->
 
       signature.push b
 
-    # add out for return type
+    # Add output for return type
     if symbol.type != 'void'
       signature.push decl.type '_return__', symbol.type, false, 'out'
 
-    # make type string
+    # Make type string
     ins = (d.type for d in signature when d.inout == decl.in).join ','
     outs = (d.type for d in signature when d.inout == decl.out).join ','
     type = "(#{ins})(#{outs})"
@@ -142,22 +141,24 @@ extractSignatures = (main, internals, externals) ->
       signature: signature
       inout: inout
 
-  # parse main
+  # Main
   sigs.main = func main, decl.out
 
+  # Internals (for name replacement only)
   for symbol in internals
     sigs.internal.push
       name: symbol.ident
 
+  # Externals
   for symbol in externals
     switch symbol.decl
 
-      # parse uniforms/attributes/varyings
+      # Uniforms/attributes/varyings
       when 'external'
         def = defn symbol
         sigs[symbol.storage].push def
 
-      # parse callbacks
+      # Callbacks
       when 'function'
         def = func symbol, decl.in
         sigs.external.push def

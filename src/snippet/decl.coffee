@@ -61,7 +61,7 @@ decl.external = (node) ->
   type    = get c[4]
   list    = c[5]
 
-  storage = 'global' if storage !in ['attribute', 'uniform', 'varying', 'const']
+  storage = 'global' if storage !in ['attribute', 'uniform', 'varying']
 
   out = []
 
@@ -79,7 +79,6 @@ decl.external = (node) ->
         quant: !!quant
 
   out
-
 
 decl.function = (node) ->
   c = node.children

@@ -922,7 +922,7 @@ tick = function() {
 };
 
 replaced = function(signatures) {
-  var out, s, sig, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3, _ref4;
+  var out, s, sig, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
   out = {};
   s = function(sig) {
     return out[sig.name] = true;
@@ -946,11 +946,6 @@ replaced = function(signatures) {
   _ref3 = signatures.uniform;
   for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
     sig = _ref3[_l];
-    s(sig);
-  }
-  _ref4 = signatures["const"];
-  for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
-    sig = _ref4[_m];
     s(sig);
   }
   return out;
@@ -1316,7 +1311,7 @@ decl.external = function(node) {
   struct = get(c[3]);
   type = get(c[4]);
   list = c[5];
-  if (storage !== 'attribute' && storage !== 'uniform' && storage !== 'varying' && storage !== 'const') {
+  if (storage !== 'attribute' && storage !== 'uniform' && storage !== 'varying') {
     storage = 'global';
   }
   out = [];
@@ -1400,7 +1395,7 @@ exports.load = exports.Snippet.load;
 
 
 },{"./compile":8,"./parse":11,"./snippet":12}],11:[function(require,module,exports){
-var collect, debug, decl, extractSignatures, extractSymbols, mapSymbols, parse, parseGLSL, parser, processAST, tick, tokenizer, walk;
+var collect, debug, decl, extractSignatures, mapSymbols, parse, parseGLSL, parser, processAST, sortSymbols, tick, tokenizer, walk;
 
 tokenizer = require('../../vendor/glsl-tokenizer');
 
@@ -1455,7 +1450,7 @@ processAST = function(ast, code) {
   }
   symbols = [];
   walk(mapSymbols, collect(symbols), ast, '');
-  _ref = extractSymbols(symbols), main = _ref[0], internals = _ref[1], externals = _ref[2];
+  _ref = sortSymbols(symbols), main = _ref[0], internals = _ref[1], externals = _ref[2];
   signatures = extractSignatures(main, internals, externals);
   if (debug) {
     tock('GLSL AST');
@@ -1494,8 +1489,8 @@ mapSymbols = function(node, collect) {
   return true;
 };
 
-extractSymbols = function(symbols) {
-  var e, externals, internals, main, maybe, s, _i, _len, _ref;
+sortSymbols = function(symbols) {
+  var e, externals, internals, main, maybe, s, _i, _len;
   main = null;
   internals = [];
   externals = [];
@@ -1503,7 +1498,7 @@ extractSymbols = function(symbols) {
   for (_i = 0, _len = symbols.length; _i < _len; _i++) {
     s = symbols[_i];
     if (!s.body) {
-      if ((_ref = s.storage) === 'global' || _ref === 'const') {
+      if (s.storage === 'global') {
         internals.push(s);
       } else {
         externals.push(s);
@@ -1539,7 +1534,6 @@ extractSignatures = function(main, internals, externals) {
     varying: [],
     external: [],
     internal: [],
-    "const": [],
     global: [],
     main: null
   };

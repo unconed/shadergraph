@@ -32,6 +32,9 @@ describe "parser", () ->
 
     void callback2(in vec3 v3in, out vec4 v4out);
 
+    const float fc;
+    float fg;
+
     void internal(in mat4 m4in, out mat4 m4out) {
       m4out = m4in;
     }
@@ -62,10 +65,9 @@ describe "parser", () ->
     expect(program.ast.children[0].type).toBe('stmt')
     expect(program.ast.children[0].children[0].type).toBe('decl')
 
-  it 'parses uniforms/varying/attributes', () ->
+  it 'parses uniforms', () ->
 
     expect(program.signatures).toBeTruthy()
-
     s = program.signatures
 
     expect(s.uniform.length).toBe(10)
@@ -81,6 +83,11 @@ describe "parser", () ->
 
     # ...
 
+  it 'parses varyings', () ->
+
+    expect(program.signatures).toBeTruthy()
+    s = program.signatures
+
     expect(s.varying.length).toBe(6)
 
     expect(s.varying[0].name).toBe('vf')
@@ -94,6 +101,11 @@ describe "parser", () ->
 
     # ...
 
+  it 'parses attributes', () ->
+
+    expect(program.signatures).toBeTruthy()
+    s = program.signatures
+
     expect(s.attribute.length).toBe(6)
 
     expect(s.attribute[0].name).toBe('af')
@@ -105,17 +117,25 @@ describe "parser", () ->
     expect(s.attribute[2].name).toBe('av3')
     expect(s.attribute[2].type).toBe('v3')
 
-  it 'parses main and callbacks', () ->
+    # ...
+
+  it 'parses internals', () ->
+
+    expect(program.signatures).toBeTruthy()
+    s = program.signatures
+
+    expect(s.internal.length).toBe(4)
+
+    expect(s.internal[0].name).toBe('fc')
+    expect(s.internal[1].name).toBe('fg')
+    expect(s.internal[2].name).toBe('internal')
+    expect(s.internal[3].name).toBe('snippetTest')
+
+  it 'parses externals', () ->
 
     expect(program.signatures).toBeTruthy()
 
     s = program.signatures
-
-    expect(s.main).toBeTruthy()
-    expect(s.main.name).toBe('snippetTest')
-    expect(s.main.type).toBe('(v4,m3v,v3)(v4,v4v,m4,m4v,v3)')
-
-    expect(s.external.length).toBe(3)
 
     expect(s.external[0].name).toBe('callback1')
     expect(s.external[0].type).toBe('(v4)()')
@@ -125,3 +145,14 @@ describe "parser", () ->
 
     expect(s.external[2].name).toBe('callback3')
     expect(s.external[2].type).toBe('(v3,v4)(v4)')
+
+  it 'parses main', () ->
+
+    expect(program.signatures).toBeTruthy()
+
+    s = program.signatures
+
+    expect(s.main).toBeTruthy()
+    expect(s.main.name).toBe('snippetTest')
+    expect(s.main.type).toBe('(v4,m3v,v3)(v4,v4v,m4,m4v,v3)')
+

@@ -12,40 +12,13 @@ class Factory
     @end()
 
   snippet: (name, uniforms) ->
+    @append name, uniforms
+
+  append: (name, uniforms) ->
     @_append  @_shader name, uniforms
 
-  before: (name, uniforms) ->
+  prepend: (name, uniforms) ->
     @_prepend @_shader name, uniforms
-
-  callback: () ->
-    [sub, main] = @_combine()
-
-    if sub.nodes.length
-      subgraph = @_subgraph sub
-      block = new Block.Callback subgraph
-      @_append block.node
-
-    @
-
-  isolate: () ->
-    [sub, main] = @_combine()
-
-    if sub.nodes.length
-      subgraph = @_subgraph sub
-      block = new Block.Isolate subgraph
-      @_append block.node
-
-    @
-
-  combine: () ->
-    [sub, main] = @_combine()
-
-    for to in sub.start
-      from.connect to, true for from in main.end
-
-    main.end = sub.end
-
-    @
 
   group: () ->
     @_push()
@@ -71,6 +44,36 @@ class Factory
 
     @combine()
 
+  combine: () ->
+    [sub, main] = @_combine()
+
+    for to in sub.start
+      from.connect to, true for from in main.end
+
+    main.end = sub.end
+
+    @
+
+  isolate: () ->
+    [sub, main] = @_combine()
+
+    if sub.nodes.length
+      subgraph = @_subgraph sub
+      block = new Block.Isolate subgraph
+      @_append block.node
+
+    @
+
+  callback: () ->
+    [sub, main] = @_combine()
+
+    if sub.nodes.length
+      subgraph = @_subgraph sub
+      block = new Block.Callback subgraph
+      @_append block.node
+
+    @
+
   end: () ->
 
     graph = @graph;
@@ -79,7 +82,7 @@ class Factory
     @_state = new State
     @_stack = [@_state]
 
-    # Add compile method.
+    # Add compile method
     if graph
       graph.compile = () -> Program.compile graph.tail().owner
 

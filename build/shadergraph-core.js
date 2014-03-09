@@ -1051,49 +1051,15 @@ Factory = (function() {
   }
 
   Factory.prototype.snippet = function(name, uniforms) {
+    return this.append(name, uniforms);
+  };
+
+  Factory.prototype.append = function(name, uniforms) {
     return this._append(this._shader(name, uniforms));
   };
 
-  Factory.prototype.before = function(name, uniforms) {
+  Factory.prototype.prepend = function(name, uniforms) {
     return this._prepend(this._shader(name, uniforms));
-  };
-
-  Factory.prototype.callback = function() {
-    var block, main, sub, subgraph, _ref;
-    _ref = this._combine(), sub = _ref[0], main = _ref[1];
-    if (sub.nodes.length) {
-      subgraph = this._subgraph(sub);
-      block = new Block.Callback(subgraph);
-      this._append(block.node);
-    }
-    return this;
-  };
-
-  Factory.prototype.isolate = function() {
-    var block, main, sub, subgraph, _ref;
-    _ref = this._combine(), sub = _ref[0], main = _ref[1];
-    if (sub.nodes.length) {
-      subgraph = this._subgraph(sub);
-      block = new Block.Isolate(subgraph);
-      this._append(block.node);
-    }
-    return this;
-  };
-
-  Factory.prototype.combine = function() {
-    var from, main, sub, to, _i, _j, _len, _len1, _ref, _ref1, _ref2;
-    _ref = this._combine(), sub = _ref[0], main = _ref[1];
-    _ref1 = sub.start;
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      to = _ref1[_i];
-      _ref2 = main.end;
-      for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-        from = _ref2[_j];
-        from.connect(to, true);
-      }
-    }
-    main.end = sub.end;
-    return this;
   };
 
   Factory.prototype.group = function() {
@@ -1116,6 +1082,44 @@ Factory = (function() {
     this.next();
     this._state.end = this._stack[2].end;
     return this.combine();
+  };
+
+  Factory.prototype.combine = function() {
+    var from, main, sub, to, _i, _j, _len, _len1, _ref, _ref1, _ref2;
+    _ref = this._combine(), sub = _ref[0], main = _ref[1];
+    _ref1 = sub.start;
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      to = _ref1[_i];
+      _ref2 = main.end;
+      for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
+        from = _ref2[_j];
+        from.connect(to, true);
+      }
+    }
+    main.end = sub.end;
+    return this;
+  };
+
+  Factory.prototype.isolate = function() {
+    var block, main, sub, subgraph, _ref;
+    _ref = this._combine(), sub = _ref[0], main = _ref[1];
+    if (sub.nodes.length) {
+      subgraph = this._subgraph(sub);
+      block = new Block.Isolate(subgraph);
+      this._append(block.node);
+    }
+    return this;
+  };
+
+  Factory.prototype.callback = function() {
+    var block, main, sub, subgraph, _ref;
+    _ref = this._combine(), sub = _ref[0], main = _ref[1];
+    if (sub.nodes.length) {
+      subgraph = this._subgraph(sub);
+      block = new Block.Callback(subgraph);
+      this._append(block.node);
+    }
+    return this;
   };
 
   Factory.prototype.end = function() {

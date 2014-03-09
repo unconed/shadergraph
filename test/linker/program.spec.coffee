@@ -3,7 +3,10 @@ Graph  = ShaderGraph.Graph
 
 describe "program", () ->
 
-  normalize = (code) ->
+  ns = (name) ->
+    (name.match /_sn_([0-9]+)_/)[0]
+
+  normalize = (code, ignore) ->
     # renumber generated outputs
     map = {}
     o = s = p = 0
@@ -13,6 +16,8 @@ describe "program", () ->
       map[match] ? map[match] = "_sn_#{++s}#{name}"
     code = code.replace /\b_pg_[0-9]+\b/g, (match) ->
       map[match] ? map[match] = "_pg_#{++p}"
+
+
 
   it 'links snippets out/inout/in', () ->
 
@@ -39,18 +44,6 @@ describe "program", () ->
       'code3': code3
     }
 
-    shadergraph = ShaderGraph snippets
-
-    shader  = shadergraph.shader()
-    graph   = shader
-              .snippet('code1')
-              .snippet('code2')
-              .snippet('code3')
-              .end()
-
-    program = graph.compile()
-    code = normalize(program.code)
-
     result = """
     void _sn_1_first(out vec3 color) {
       color = vec3(1.0, 1.0, 1.0);
@@ -69,7 +62,22 @@ describe "program", () ->
     }
     """
 
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .snippet('code1')
+              .snippet('code2')
+              .snippet('code3')
+              .end()
+
+    program = graph.compile()
+    code = normalize(program.code)
+
     expect(code).toBe(result)
+
+
+
 
   it 'links diamond split/join graph', () ->
 
@@ -96,22 +104,6 @@ describe "program", () ->
       'code3': code3
     }
 
-    shadergraph = ShaderGraph snippets
-
-    shader  = shadergraph.shader()
-    graph   = shader
-              .snippet('code1')
-              .group()
-                .snippet('code2')
-              .next()
-                .snippet('code2')
-              .combine()
-              .snippet('code3')
-              .end()
-
-    program = graph.compile()
-    code = normalize(program.code)
-
     result = """
     void _sn_1_split(out vec3 color1, out vec3 color2) {
       color = vec3(1.0, 1.0, 1.0);
@@ -134,7 +126,26 @@ describe "program", () ->
     }
     """
 
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .snippet('code1')
+              .group()
+                .snippet('code2')
+              .next()
+                .snippet('code2')
+              .combine()
+              .snippet('code3')
+              .end()
+
+    program = graph.compile()
+    code = normalize(program.code)
+
     expect(code).toBe(result)
+
+
+
 
   it 'links diamond split/join graph with pass', () ->
 
@@ -161,22 +172,6 @@ describe "program", () ->
       'code3': code3
     }
 
-    shadergraph = ShaderGraph snippets
-
-    shader  = shadergraph.shader()
-    graph   = shader
-              .snippet('code1')
-              .group()
-                .snippet('code2')
-              .next()
-                .snippet('code2')
-              .pass()
-              .snippet('code3')
-              .end()
-
-    program = graph.compile()
-    code = normalize(program.code)
-
     result = """
     void _sn_1_split(out vec3 color1, out vec3 color2, out mat4 passthrough) {
       color = vec3(1.0, 1.0, 1.0);
@@ -200,5 +195,123 @@ describe "program", () ->
     }
     """
 
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .snippet('code1')
+              .group()
+                .snippet('code2')
+              .next()
+                .snippet('code2')
+              .pass()
+              .snippet('code3')
+              .end()
+
+    program = graph.compile()
+    code = normalize(program.code)
+
     expect(code).toBe(result)
 
+
+
+
+  it 'exports dangling inputs/outputs', () ->
+
+    code1 = """
+    attribute vec2 att1;
+    void split(out vec3 color1, out vec3 color2, in vec4 colorIn) {
+      color = vec3(1.0, 1.0, 1.0);
+    }
+    """
+
+    code2 = """
+    uniform float uni;
+    void map(inout vec3 color) {
+    }
+    """
+
+    code3 = """
+    attribute vec3 att2;
+    void join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+      'code3': code3
+    }
+
+    result = """
+    attribute vec2 att1;
+    void _sn_1_split(out vec3 color1, out vec3 color2, in vec4 colorIn) {
+      color = vec3(1.0, 1.0, 1.0);
+    }
+    uniform float _sn_2_uni;
+    void _sn_3_map(inout vec3 color) {
+    }
+    uniform float _sn_4_uni;
+    void _sn_5_map(inout vec3 color) {
+    }
+    attribute vec3 att2;
+    void _sn_6_join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    void _pg_1(in vec4 _ot_1_colorIn, out vec4 _ot_2_colorOut) {
+      vec3 _ot_3_color1;
+      vec3 _ot_4_color2;
+
+      _sn_1_split(_ot_3_color1, _ot_4_color2, _ot_1_colorIn);
+      _sn_3_map(_ot_3_color1);
+      _sn_5_map(_ot_4_color2);
+      _sn_6_join(_ot_3_color1, _ot_4_color2, _ot_2_colorOut);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .snippet('code1')
+              .group()
+                .snippet('code2')
+              .next()
+                .snippet('code2')
+              .combine()
+              .snippet('code3')
+              .end()
+
+    program = graph.compile()
+    code = normalize(program.code, /uni/)
+
+    # verify basic form
+    expect(code).toBe(result)
+
+    # verify if uniforms were duped correctly
+    n = 0
+    for name, uni of program.uniforms
+      namespace = ns(name)
+      expect(program.code.indexOf('void '+ namespace + 'map(')).not.toBe -1
+      expect(uni.name).toBe('uni')
+      expect(uni.type).toBe('f')
+      n++
+    expect(n).toBe(2)
+
+    # verify attribute
+    expect(program.attributes.att1).toBeTruthy()
+    expect(program.attributes.att1.name).toBe 'att1'
+    expect(program.attributes.att1.type).toBe 'v2'
+
+    expect(program.attributes.att2).toBeTruthy()
+    expect(program.attributes.att2.name).toBe 'att2'
+    expect(program.attributes.att2.type).toBe 'v3'
+
+    # verify signature
+    expect(program.main.signature.length).toBe 2
+    expect(program.main.signature[0].type).toBe 'v4'
+    expect(program.main.signature[0].inout).toBe 0
+    expect(program.main.signature[1].type).toBe 'v4'
+    expect(program.main.signature[1].inout).toBe 1
+    console.log(program)

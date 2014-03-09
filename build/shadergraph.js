@@ -525,11 +525,11 @@ module.exports = ShaderGraph;
 
 window.ShaderGraph = ShaderGraph;
 
-code1 = "void split(out vec3 color1, out vec3 color2) {\n  color = vec3(1.0, 1.0, 1.0);\n}";
+code1 = "void split(out vec3 color1, out vec3 color2, in vec4 colorIn) {\n  color = vec3(1.0, 1.0, 1.0);\n}";
 
 code2 = "void map(inout vec3 color) {\n}";
 
-code3 = "void join(in vec3 color1, in vec3 color2) {\n  gl_FragColor = vec4(color, 1.0);\n}";
+code3 = "void join(in vec3 color1, in vec3 color2, out vec4 colorOut) {\n  gl_FragColor = vec4(color, 1.0);\n}";
 
 snippets = {
   'code1': code1,
@@ -564,6 +564,8 @@ normalize = function(code) {
     return (_ref = map[match]) != null ? _ref : map[match] = "_pg_" + (++p);
   });
 };
+
+window.program = program;
 
 window.code = normalize(program.code);
 
@@ -1025,7 +1027,9 @@ module.exports = Library;
 
 
 },{"../snippet":15}],12:[function(require,module,exports){
-var Program;
+var Graph, Program;
+
+Graph = require('../graph').Graph;
 
 Program = (function() {
   Program.index = 0;
@@ -1067,7 +1071,7 @@ Program = (function() {
   };
 
   Program.prototype.assemble = function() {
-    var INOUT_ARG, RETURN_ARG, attributes, calls, getShadow, include, includes, isShadow, link, lookup, main, module, modules, ns, uniforms, vars, _i, _len;
+    var INOUT_ARG, RETURN_ARG, attributes, build, calls, code, getShadow, include, includes, isDangling, isShadow, link, lookup, main, module, modules, ns, params, signature, uniforms, vars, _i, _len;
     modules = (function() {
       var _ref, _results;
       _ref = this.modules;
@@ -1085,9 +1089,11 @@ Program = (function() {
     RETURN_ARG = '_r_e_t_u_r_n';
     uniforms = {};
     attributes = {};
-    includes = [];
     vars = {};
+    includes = [];
     calls = [];
+    params = [];
+    signature = [];
     getShadow = function(name) {
       return name.replace(INOUT_ARG, '');
     };
@@ -1095,6 +1101,15 @@ Program = (function() {
       var collapsed;
       collapsed = getShadow(name);
       return collapsed !== name;
+    };
+    isDangling = function(node, name) {
+      var outlet;
+      outlet = node.get(name);
+      if (outlet.inout === Graph.IN) {
+        return outlet.input === null;
+      } else if (outlet.inout === Graph.OUT) {
+        return outlet.output.length === 0;
+      }
     };
     lookup = function(node, name) {
       var outlet;
@@ -1113,28 +1128,45 @@ Program = (function() {
       return includes.push(snippet.code);
     };
     link = function(snippet, node) {
-      var arg, args, entry, id, main, name, spec, _i, _len, _ref;
+      var arg, args, entry, id, key, main, name, param, value, _i, _len, _ref, _ref1, _ref2, _results;
       main = snippet.main;
       entry = snippet.entry;
       args = [];
       _ref = main.signature;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         arg = _ref[_i];
-        spec = arg.spec;
+        param = arg.param;
         name = arg.name;
         if (isShadow(name)) {
           continue;
         }
         id = lookup(node, name);
-        vars[id] = "  " + spec + " " + id;
         args.push(id);
+        if (isDangling(node, name)) {
+          params.push(param(id, true));
+          signature.push(arg.copy(id));
+        } else {
+          vars[id] = "  " + param(id);
+        }
       }
       args = args.join(', ');
-      return calls.push("  " + entry + "(" + args + ")");
+      calls.push("  " + entry + "(" + args + ")");
+      _ref1 = snippet.uniforms;
+      for (key in _ref1) {
+        value = _ref1[key];
+        uniforms[key] = value;
+      }
+      _ref2 = snippet.attributes;
+      _results = [];
+      for (key in _ref2) {
+        value = _ref2[key];
+        _results.push(attributes[key] = value);
+      }
+      return _results;
     };
-    main = function() {
-      var decl, v;
-      this.entry = Program.entry();
+    build = function() {
+      var args, code, decl, entry, v;
+      entry = Program.entry();
       vars = (function() {
         var _results;
         _results = [];
@@ -1148,15 +1180,30 @@ Program = (function() {
       calls.push('');
       vars = vars.join(';\n');
       calls = calls.join(';\n');
-      return "void " + this.entry + "() {\n" + vars + "\n" + calls + "}";
+      args = params.join(', ');
+      code = "void " + entry + "(" + args + ") {\n" + vars + "\n" + calls + "}";
+      return {
+        signature: signature,
+        code: code,
+        name: entry
+      };
     };
     for (_i = 0, _len = modules.length; _i < _len; _i++) {
       module = modules[_i];
       include(module.snippet);
       link(module.snippet, module.node);
     }
-    includes.push(main());
-    return this.code = includes.join('\n');
+    main = build();
+    includes.push(main.code);
+    code = includes.join('\n');
+    this.namespace = main.name;
+    this.code = code;
+    this.main = main;
+    this.entry = main.name;
+    this.uniforms = uniforms;
+    this.attributes = attributes;
+    this.externals = {};
+    return this;
   };
 
   return Program;
@@ -1166,7 +1213,7 @@ Program = (function() {
 module.exports = Program;
 
 
-},{}],13:[function(require,module,exports){
+},{"../graph":5}],13:[function(require,module,exports){
 var compile, replaced, string_compiler, tick, walk;
 
 walk = require('./walk');
@@ -1591,19 +1638,26 @@ decl.argument = function(node) {
   };
 };
 
-decl.copy = function(type) {
-  var inout, name, value, _ref;
-  _ref = type, name = _ref.name, type = _ref.type, value = _ref.value, inout = _ref.inout;
-  return {
-    name: name,
-    type: type,
-    value: value,
-    inout: inout
+decl.param = function(dir, storage, spec, quant) {
+  var prefix, suffix;
+  prefix = [];
+  if (storage) {
+    prefix.push(storage);
+  }
+  if (spec) {
+    prefix.push(spec);
+  }
+  prefix.push('');
+  prefix = prefix.join(' ');
+  suffix = quant ? '[' + quant + ']' : '';
+  dir += ' ';
+  return function(name, long) {
+    return (long ? dir : '') + ("" + prefix + name + suffix);
   };
 };
 
-decl.type = function(name, spec, quant, inout) {
-  var defaults, dirs, three, type, value, _ref;
+decl.type = function(name, spec, quant, dir, storage) {
+  var defaults, dirs, inout, param, storages, three, type, value, _ref;
   three = {
     float: 'f',
     vec2: 'v2',
@@ -1628,18 +1682,42 @@ decl.type = function(name, spec, quant, inout) {
     out: decl.out,
     inout: decl.inout
   };
+  storages = {
+    "const": 'const'
+  };
   type = three[spec];
   if (quant) {
     type += 'v';
   }
   value = defaults[type];
-  inout = (_ref = dirs[inout]) != null ? _ref : dirs["in"];
+  inout = (_ref = dirs[dir]) != null ? _ref : dirs["in"];
+  storage = storages[storage];
+  param = decl.param(dir, storage, spec, quant);
   return {
     name: name,
     type: type,
-    spec: spec,
+    param: param,
     value: value,
-    inout: inout
+    inout: inout,
+    copy: function(name) {
+      return decl.copy(this, name);
+    }
+  };
+};
+
+decl.copy = function(type, _name) {
+  var copy, inout, name, param, value, _ref;
+  _ref = type, name = _ref.name, type = _ref.type, param = _ref.param, value = _ref.value, inout = _ref.inout, copy = _ref.copy;
+  if (_name != null) {
+    name = _name;
+  }
+  return {
+    name: name,
+    type: type,
+    param: param,
+    value: value,
+    inout: inout,
+    copy: copy
   };
 };
 
@@ -1651,10 +1729,12 @@ exports.parse = require('./parse');
 
 exports.compile = require('./compile');
 
+exports.decl = require('./decl');
+
 exports.load = exports.Snippet.load;
 
 
-},{"./compile":13,"./parse":16,"./snippet":17}],16:[function(require,module,exports){
+},{"./compile":13,"./decl":14,"./parse":16,"./snippet":17}],16:[function(require,module,exports){
 var INOUT_ARG, RETURN_ARG, collect, debug, decl, extractSignatures, mapSymbols, parse, parseGLSL, parser, processAST, sortSymbols, tick, tokenizer, walk;
 
 tokenizer = require('../../vendor/glsl-tokenizer');
@@ -1824,7 +1904,7 @@ extractSignatures = function(main, internals, externals) {
         continue;
       }
       a = d;
-      b = decl.copy(d);
+      b = d.copy();
       a.inout = decl["in"];
       b.inout = decl.out;
       b.name += INOUT_ARG;

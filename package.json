@@ -7,6 +7,9 @@
     "url": "https://github.com/unconed/shadergraph.git"
   },
   "main": "build/shadergraph.js",
+  "scripts": {
+    "test": "gulp test"
+  },
   "dependencies": {
     "three": ">=0.58.10"
   },

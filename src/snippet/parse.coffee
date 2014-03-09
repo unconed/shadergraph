@@ -119,7 +119,7 @@ extractSignatures = (main, internals, externals) ->
     # Split inouts into in and out
     for d in signature when d.inout == decl.inout
       a = d
-      b = decl.copy d
+      b = d.copy()
 
       a.inout = decl.in
       b.inout = decl.out

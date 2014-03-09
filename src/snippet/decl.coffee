@@ -87,11 +87,21 @@ decl.argument = (node) ->
   ident: ident
   quant: !!quant
 
-decl.copy = (type) ->
-  {name, type, value, inout} = type
-  {name, type, value, inout}
+decl.param = (dir, storage, spec, quant) ->
+  prefix = []
+  prefix.push storage if storage
+  prefix.push spec if spec
+  prefix.push ''
+  prefix = prefix.join ' '
 
-decl.type = (name, spec, quant, inout) ->
+  suffix = if quant then '[' + quant + ']' else ''
+
+  dir += ' '
+
+  (name, long) ->
+    (if long then dir else '') + "#{prefix}#{name}#{suffix}"
+
+decl.type = (name, spec, quant, dir, storage) ->
   three =
     float:       'f'
     vec2:        'v2'
@@ -116,9 +126,23 @@ decl.type = (name, spec, quant, inout) ->
     out:   decl.out
     inout: decl.inout
 
-  type = three[spec]
-  type += 'v' if quant
-  value = defaults[type]
-  inout = dirs[inout] ? dirs.in
+  storages =
+    const: 'const'
 
-  {name, type, spec, value, inout}
+  type    = three[spec]
+  type   += 'v' if quant
+  value   = defaults[type]
+  inout   = dirs[dir] ? dirs.in
+  storage = storages[storage]
+
+  param   = decl.param dir, storage, spec, quant
+
+  {name, type, param, value, inout, copy: (name) -> decl.copy @, name}
+
+decl.copy = (type, _name) ->
+  {name, type, param, value, inout, copy} = type
+
+  name = _name if _name?
+
+  {name, type, param, value, inout, copy}
+

@@ -27,7 +27,7 @@ window.ShaderGraph = ShaderGraph
 
 
 code1 = """
-void split(out vec3 color1, out vec3 color2) {
+void split(out vec3 color1, out vec3 color2, in vec4 colorIn) {
   color = vec3(1.0, 1.0, 1.0);
 }
 """
@@ -38,7 +38,7 @@ void map(inout vec3 color) {
 """
 
 code3 = """
-void join(in vec3 color1, in vec3 color2) {
+void join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
   gl_FragColor = vec4(color, 1.0);
 }
 """
@@ -76,6 +76,7 @@ normalize = (code) ->
   code = code.replace /\b_pg_[0-9]+\b/g, (match) ->
     map[match] ? map[match] = "_pg_#{++p}"
 
+window.program = program
 window.code = normalize(program.code)
 
 ##

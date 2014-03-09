@@ -1,3 +1,5 @@
+Graph = require('../graph').Graph
+
 class Program
   @index: 0
   @entry: () -> "_pg_#{++Program.index}"
@@ -29,6 +31,8 @@ class Program
     @
 
   assemble: () ->
+    # Build composite program that acts as new snippet
+
     modules = (module for ns, module of @modules)
     modules.sort (a, b) -> b.priority - a.priority
 
@@ -37,9 +41,11 @@ class Program
 
     uniforms   = {}
     attributes = {}
-    includes   = []
     vars       = {}
+    includes   = []
     calls      = []
+    params     = []
+    signature  = []
 
     # Collapse split inouts
     getShadow = (name) ->
@@ -48,6 +54,16 @@ class Program
     isShadow = (name) ->
       collapsed  = getShadow name
       collapsed != name
+
+    # Look for dangling inputs/outputs
+    isDangling = (node, name) ->
+      outlet = node.get name
+
+      if outlet.inout == Graph.IN
+        outlet.input == null
+
+      else if outlet.inout == Graph.OUT
+        outlet.output.length == 0
 
     # Look up id for outlet on node
     lookup = (node, name) ->
@@ -68,20 +84,29 @@ class Program
       args  = []
 
       for arg in main.signature
-        spec = arg.spec
-        name = arg.name
+        param = arg.param
+        name  = arg.name
 
         continue if isShadow name
 
-        id       = lookup node, name
-        vars[id] = "  #{spec} #{id}"
+        id = lookup node, name
         args.push id
+
+        if isDangling node, name
+          params.push param(id, true)
+          signature.push arg.copy id
+        else
+          vars[id] = "  " + param(id)
 
       args = args.join ', '
       calls.push "  #{entry}(#{args})"
 
-    main = () ->
-      @entry = Program.entry()
+      (uniforms[key]   = value) for key, value of snippet.uniforms
+      (attributes[key] = value) for key, value of snippet.attributes
+#      (externals[key]  = value) for key, value of snippet.externals
+
+    build = () ->
+      entry = Program.entry()
 
       vars = (decl for v, decl of vars)
       vars .push ''
@@ -89,15 +114,34 @@ class Program
 
       vars  = vars.join  ';\n'
       calls = calls.join ';\n'
+      args  = params.join ', '
 
-      "void #{@entry}() {\n#{vars}\n#{calls}}"
+      code  = "void #{entry}(#{args}) {\n#{vars}\n#{calls}}"
+
+      signature: signature
+      code:      code
+      name:      entry
 
     for module in modules
       include module.snippet
       link    module.snippet, module.node
 
-    includes.push main()
-    @code = includes.join '\n'
+    main = build()
+
+    includes.push main.code
+    code = includes.join '\n'
+
+    @namespace  = main.name
+    @code       = code
+
+    @main       = main
+    @entry      = main.name
+
+    @uniforms   = uniforms
+    @attributes = attributes
+    @externals  = {}
+
+    @
 
     #throw "lol error"
 

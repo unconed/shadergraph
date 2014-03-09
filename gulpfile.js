@@ -6,7 +6,6 @@ var karma = require('gulp-karma');
 var runSequence = require('run-sequence');
 var browserify = require('gulp-browserify');
 var watch = require('gulp-watch');
-var plumber = require('gulp-plumber');
 
 var builds = {
   core: 'build/shadergraph-core.js',
@@ -78,9 +77,28 @@ gulp.task('karma', function() {
   return gulp.src(test)
     .pipe(karma({
       configFile: 'karma.conf.js',
+      action: 'single',
+    }));
+});
+
+gulp.task('watch-karma', function() {
+  return gulp.src(test)
+    .pipe(karma({
+      configFile: 'karma.conf.js',
       action: 'watch',
     }));
 });
+
+gulp.task('watch-build', function () {
+  gulp.src(coffees)
+    .pipe(
+      watch(function(files) {
+        return gulp.start('build');
+      })
+    );
+});
+
+// Main tasks
 
 gulp.task('build', function (callback) {
   runSequence('browserify', ['core', 'bundle'], callback);
@@ -90,15 +108,10 @@ gulp.task('default', function (callback) {
   runSequence('build', 'uglify', callback);
 });
 
-gulp.task('watch', function () {
-  gulp.src(coffees)
-    .pipe(
-      watch(function(files) {
-        return gulp.start('build');
-      })
-    );
-});
-
 gulp.task('test', function (callback) {
   runSequence('build', 'karma', callback);
+});
+
+gulp.task('watch', function (callback) {
+  runSequence('watch-build', 'watch-karma', callback);
 });

@@ -16,10 +16,10 @@ replaced = (signatures) ->
   s = (sig) -> out[sig.name] = true
 
   s signatures.main
-  s(sig) for sig in signatures.external
-  s(sig) for sig in signatures.internal
-  s(sig) for sig in signatures.varying
-  s(sig) for sig in signatures.uniform
+
+  # Prefix all global symbols except attributes
+  for key in ['external', 'internal', 'varying', 'uniform']
+    s(sig) for sig in signatures[key]
 
   out
 
@@ -58,6 +58,12 @@ string_compiler = (code, placeholders) ->
 
     code.replace re, (key) ->
       names[key]
+
+
+
+
+
+
 
 ###
 AST-based compiler

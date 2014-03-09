@@ -46,7 +46,7 @@ class Program
       name.replace INOUT_ARG, ''
 
     isShadow = (name) ->
-      collapsed = getShadow name
+      collapsed  = getShadow name
       collapsed != name
 
     # Look up id for outlet on node
@@ -87,7 +87,7 @@ class Program
       vars .push ''
       calls.push ''
 
-      vars  = vars.join ';\n'
+      vars  = vars.join  ';\n'
       calls = calls.join ';\n'
 
       "void #{@entry}() {\n#{vars}\n#{calls}}"

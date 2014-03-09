@@ -136,3 +136,69 @@ describe "program", () ->
 
     expect(code).toBe(result)
 
+  it 'links diamond split/join graph with pass', () ->
+
+    code1 = """
+    void split(out vec3 color1, out vec3 color2, out mat4 passthrough) {
+      color = vec3(1.0, 1.0, 1.0);
+    }
+    """
+
+    code2 = """
+    void map(inout vec3 color) {
+    }
+    """
+
+    code3 = """
+    void join(in vec3 color1, in vec3 color2, in mat4 passthrough) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+      'code3': code3
+    }
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .snippet('code1')
+              .group()
+                .snippet('code2')
+              .next()
+                .snippet('code2')
+              .pass()
+              .snippet('code3')
+              .end()
+
+    program = graph.compile()
+    code = normalize(program.code)
+
+    result = """
+    void _sn_1_split(out vec3 color1, out vec3 color2, out mat4 passthrough) {
+      color = vec3(1.0, 1.0, 1.0);
+    }
+    void _sn_2_map(inout vec3 color) {
+    }
+    void _sn_3_map(inout vec3 color) {
+    }
+    void _sn_4_join(in vec3 color1, in vec3 color2, in mat4 passthrough) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    void _pg_1() {
+      vec3 _ot_1_color1;
+      vec3 _ot_2_color2;
+      mat4 _ot_3_passthrough;
+
+      _sn_1_split(_ot_1_color1, _ot_2_color2, _ot_3_passthrough);
+      _sn_2_map(_ot_1_color1);
+      _sn_3_map(_ot_2_color2);
+      _sn_4_join(_ot_1_color1, _ot_2_color2, _ot_3_passthrough);
+    }
+    """
+
+    expect(code).toBe(result)
+

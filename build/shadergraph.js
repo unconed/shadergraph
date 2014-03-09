@@ -1188,31 +1188,20 @@ tick = function() {
 };
 
 replaced = function(signatures) {
-  var out, s, sig, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
+  var key, out, s, sig, _i, _j, _len, _len1, _ref, _ref1;
   out = {};
   s = function(sig) {
     return out[sig.name] = true;
   };
   s(signatures.main);
-  _ref = signatures.external;
+  _ref = ['external', 'internal', 'varying', 'uniform'];
   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    sig = _ref[_i];
-    s(sig);
-  }
-  _ref1 = signatures.internal;
-  for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-    sig = _ref1[_j];
-    s(sig);
-  }
-  _ref2 = signatures.varying;
-  for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-    sig = _ref2[_k];
-    s(sig);
-  }
-  _ref3 = signatures.uniform;
-  for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-    sig = _ref3[_l];
-    s(sig);
+    key = _ref[_i];
+    _ref1 = signatures[key];
+    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+      sig = _ref1[_j];
+      s(sig);
+    }
   }
   return out;
 };

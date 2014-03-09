@@ -18,43 +18,32 @@ class Factory
     @_prepend @_shader name, uniforms
 
   callback: () ->
-    throw "Popping factory stack too far" if @_stack.length <= 2
-
-    @next()._pop()
-
-    sub = @_pop()
-    main = @_state
+    [sub, main] = @_combine()
 
     if sub.nodes.length
-      subgraph = new Graph.Graph();
-
-      for node in sub.nodes
-        @graph.remove node, true
-        subgraph.add node, true
-
+      subgraph = @_subgraph sub
       block = new Block.Callback subgraph
       @_append block.node
 
     @
 
   isolate: () ->
-    throw "Popping factory stack too far" if @_stack.length <= 2
-
-    @next()._pop()
-
-    sub = @_pop()
-    main = @_state
+    [sub, main] = @_combine()
 
     if sub.nodes.length
-      subgraph = new Graph.Graph();
-
-      for node in sub.nodes
-        @graph.remove node, true
-        subgraph.add node, true
-
+      subgraph = @_subgraph sub
       block = new Block.Isolate subgraph
-
       @_append block.node
+
+    @
+
+  combine: () ->
+    [sub, main] = @_combine()
+
+    for to in sub.start
+      from.connect to, true for from in main.end
+
+    main.end = sub.end
 
     @
 
@@ -82,21 +71,6 @@ class Factory
 
     @combine()
 
-  combine: () ->
-    throw "Popping factory stack too far" if @_stack.length <= 2
-
-    @next()._pop()
-
-    sub  = @_pop()
-    main = @_state
-
-    for to in sub.start
-      from.connect to, true for from in main.end
-
-    main.end = sub.end
-
-    @
-
   end: () ->
 
     graph = @graph;
@@ -119,6 +93,22 @@ class Factory
     snippet.apply uniforms
     block = new Block.Shader snippet
     block.node
+
+  _subgraph: (sub) ->
+    subgraph = new Graph.Graph();
+
+    for node in sub.nodes
+      @graph.remove node, true
+      subgraph.add node, true
+
+    subgraph
+
+  _combine: () ->
+    throw "Popping factory stack too far" if @_stack.length <= 2
+
+    @next()._pop()
+
+    [@_pop(), @_state]
 
   _push: () ->
     @_stack.unshift new State

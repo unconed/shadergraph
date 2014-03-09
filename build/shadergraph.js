@@ -1059,21 +1059,10 @@ Factory = (function() {
   };
 
   Factory.prototype.callback = function() {
-    var block, main, node, sub, subgraph, _i, _len, _ref;
-    if (this._stack.length <= 2) {
-      throw "Popping factory stack too far";
-    }
-    this.next()._pop();
-    sub = this._pop();
-    main = this._state;
+    var block, main, sub, subgraph, _ref;
+    _ref = this._combine(), sub = _ref[0], main = _ref[1];
     if (sub.nodes.length) {
-      subgraph = new Graph.Graph();
-      _ref = sub.nodes;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        node = _ref[_i];
-        this.graph.remove(node, true);
-        subgraph.add(node, true);
-      }
+      subgraph = this._subgraph(sub);
       block = new Block.Callback(subgraph);
       this._append(block.node);
     }
@@ -1081,24 +1070,29 @@ Factory = (function() {
   };
 
   Factory.prototype.isolate = function() {
-    var block, main, node, sub, subgraph, _i, _len, _ref;
-    if (this._stack.length <= 2) {
-      throw "Popping factory stack too far";
-    }
-    this.next()._pop();
-    sub = this._pop();
-    main = this._state;
+    var block, main, sub, subgraph, _ref;
+    _ref = this._combine(), sub = _ref[0], main = _ref[1];
     if (sub.nodes.length) {
-      subgraph = new Graph.Graph();
-      _ref = sub.nodes;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        node = _ref[_i];
-        this.graph.remove(node, true);
-        subgraph.add(node, true);
-      }
+      subgraph = this._subgraph(sub);
       block = new Block.Isolate(subgraph);
       this._append(block.node);
     }
+    return this;
+  };
+
+  Factory.prototype.combine = function() {
+    var from, main, sub, to, _i, _j, _len, _len1, _ref, _ref1, _ref2;
+    _ref = this._combine(), sub = _ref[0], main = _ref[1];
+    _ref1 = sub.start;
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      to = _ref1[_i];
+      _ref2 = main.end;
+      for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
+        from = _ref2[_j];
+        from.connect(to, true);
+      }
+    }
+    main.end = sub.end;
     return this;
   };
 
@@ -1122,27 +1116,6 @@ Factory = (function() {
     this.next();
     this._state.end = this._stack[2].end;
     return this.combine();
-  };
-
-  Factory.prototype.combine = function() {
-    var from, main, sub, to, _i, _j, _len, _len1, _ref, _ref1;
-    if (this._stack.length <= 2) {
-      throw "Popping factory stack too far";
-    }
-    this.next()._pop();
-    sub = this._pop();
-    main = this._state;
-    _ref = sub.start;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      to = _ref[_i];
-      _ref1 = main.end;
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        from = _ref1[_j];
-        from.connect(to, true);
-      }
-    }
-    main.end = sub.end;
-    return this;
   };
 
   Factory.prototype.end = function() {
@@ -1169,6 +1142,26 @@ Factory = (function() {
     snippet.apply(uniforms);
     block = new Block.Shader(snippet);
     return block.node;
+  };
+
+  Factory.prototype._subgraph = function(sub) {
+    var node, subgraph, _i, _len, _ref;
+    subgraph = new Graph.Graph();
+    _ref = sub.nodes;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      node = _ref[_i];
+      this.graph.remove(node, true);
+      subgraph.add(node, true);
+    }
+    return subgraph;
+  };
+
+  Factory.prototype._combine = function() {
+    if (this._stack.length <= 2) {
+      throw "Popping factory stack too far";
+    }
+    this.next()._pop();
+    return [this._pop(), this._state];
   };
 
   Factory.prototype._push = function() {

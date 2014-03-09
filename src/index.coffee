@@ -1,20 +1,18 @@
-Factory = require './factory'
-Library = require './library'
+Linker  = require './linker'
 
 class ShaderGraph
   constructor: (library = {}) ->
     return new ShaderGraph library if @ !instanceof ShaderGraph
-    @library = new Library library
+    @library = new Linker.Library library
 
   shader: () ->
-    new Factory @library
+    new Linker.Factory @library
 
   # Expose class hierarchy
   @Graph:   require './graph'
   @Snippet: require './snippet'
   @Block:   require './block'
-  @Factory: require './factory'
-  @Library: require './library'
+  @Linker:  require './linker'
 
 module.exports = ShaderGraph
 window.ShaderGraph = ShaderGraph
@@ -29,34 +27,56 @@ window.ShaderGraph = ShaderGraph
 
 
 code1 = """
-void main(out vec3 color) {
+void split(out vec3 color1, out vec3 color2) {
   color = vec3(1.0, 1.0, 1.0);
 }
 """
 
 code2 = """
-void main(in vec3 color) {
+void map(inout vec3 color) {
+}
+"""
+
+code3 = """
+void join(in vec3 color1, in vec3 color2) {
   gl_FragColor = vec4(color, 1.0);
 }
 """
 
-
 snippets = {
   'code1': code1
   'code2': code2
+  'code3': code3
 }
 
 shadergraph = ShaderGraph snippets
 
 shader  = shadergraph.shader()
-window.shader  = shader
-
-graph   = shader.snippet('code1').snippet('code2').end()
-window.graph   = graph
+graph   = shader
+          .snippet('code1')
+          .group()
+            .snippet('code2')
+          .next()
+            .snippet('code2')
+          .combine()
+          .snippet('code3')
+          .end()
 
 program = graph.compile()
 window.program = program
 
+normalize = (code) ->
+  # renumber generated outputs
+  map = {}
+  o = s = p = 0
+  code = code.replace /\b_ot_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
+    map[match] ? map[match] = "_ot_#{++o}#{name}"
+  code = code.replace /\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
+    map[match] ? map[match] = "_sn_#{++s}#{name}"
+  code = code.replace /\b_pg_[0-9]+\b/g, (match) ->
+    map[match] ? map[match] = "_pg_#{++p}"
+
+window.code = normalize(program.code)
 
 ##
 

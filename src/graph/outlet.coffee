@@ -1,19 +1,17 @@
 Graph = require './graph'
 
 class Outlet
-  @ID = 0
+  @index: 0
+  @id: (name) ->
+    "_ot_#{++Outlet.index}_#{name}"
 
   constructor: (@inout, @name, @hint, @type, @meta) ->
-    @node     = null
-    @hint    ?= name
-    @index    = ++Outlet.ID
+    @hint  ?= name
 
-    @input = null
+    @node   = null
+    @input  = null
     @output = []
-
-  # Unique ID for this outlet
-  id: () ->
-    ['', 'sg', @name, @index].join('_')
+    @id     = Outlet.id @hint
 
   # Change into given outlet without touching connections
   morph: (outlet) ->

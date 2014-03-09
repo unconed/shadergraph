@@ -1,4 +1,4 @@
-Snippet = require './snippet'
+Snippet = require '../snippet'
 
 class Library
   constructor: (@snippets = {}) ->

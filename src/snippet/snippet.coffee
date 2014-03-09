@@ -2,18 +2,17 @@ parse = require './parse'
 compile = require './compile'
 
 class Snippet
-  @id: 0
-
-  @namespace: () -> "_sg_#{++Snippet.id}_"
+  @index: 0
+  @namespace: () -> "_sn_#{++Snippet.index}_"
 
   @load: (name, code) ->
-    program = parse name, code
+    program   = parse name, code
     assembler = compile program
     new Snippet program.signatures, assembler
 
   constructor: (@signatures, @assembler) ->
     @namespace  = null
-    @program    = null
+    @code       = null
 
     @main       = null
     @entry      = null
@@ -27,7 +26,7 @@ class Snippet
 
   apply: (uniforms, @namespace) ->
     @namespace ?= Snippet.namespace()
-    @program    = @assembler @namespace
+    @code       = @assembler @namespace
 
     @main       = @signatures.main
     @entry      = @namespace + @main.name
@@ -44,5 +43,7 @@ class Snippet
     e(def)       for def in @signatures.external
     a(def)       for def in @signatures.attribute
     u(def, name) for name, def of uniforms
+
+    null
 
 module.exports = Snippet

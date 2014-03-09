@@ -49,7 +49,7 @@ string_compiler = (code, placeholders) ->
   # Strip all preprocessor commands (lazy)
   code = code.replace /^#[^\n]*/mg, ''
 
-  # Assembler function that takes map of symbol names
+  # Assembler function that takes map of symbol names + namespace prefix
   # and returns GLSL source code
   (prefix = '', replaced = {}) ->
     names = {}
@@ -62,6 +62,8 @@ string_compiler = (code, placeholders) ->
 ###
 AST-based compiler
 (not used)
+
+glsl-parser's AST is a bit awkward to serialize back into source code
 
 todo: do, while, for, struct, precision
 ast_compiler = (ast, placeholders) ->

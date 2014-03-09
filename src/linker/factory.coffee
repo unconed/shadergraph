@@ -1,5 +1,6 @@
-Graph = require './graph'
-Block = require './block'
+Graph   = require '../graph'
+Block   = require '../block'
+Program = require './program'
 
 class State
   constructor: (@start = [], @end = []) ->
@@ -40,6 +41,8 @@ class Factory
     @_push()
     @_push()
 
+    @
+
   pass: () ->
     @next()
 
@@ -53,6 +56,8 @@ class Factory
     @_state.end   = @_state.end.concat sub.end
 
     @_push()
+
+    @
 
   combine: () ->
     throw "Popping factory stack too far" if @_stack.length <= 2
@@ -73,6 +78,7 @@ class Factory
           from.connect to, true for from in main.end
 
     main.end = sub.end
+
     @
 
   end: () ->
@@ -81,12 +87,10 @@ class Factory
     @graph = new Graph.Graph();
     @_state = new State
     @_stack = [@_state]
-    @group()
 
-    # Add compile shortcut.
+    # Add compile method.
     if graph
-      graph.compile = () ->
-        graph.tail().owner.compile()
+      graph.compile = () -> Program.compile graph.tail().owner
 
     graph
 
@@ -96,12 +100,10 @@ class Factory
   _push: () ->
     @_stack.unshift new State
     @_state = @_stack[0]
-    @
 
   _pop: () ->
     @_state = @_stack[1]
-    @_stack.shift
-    @
+    @_stack.shift()
 
 
 module.exports = Factory

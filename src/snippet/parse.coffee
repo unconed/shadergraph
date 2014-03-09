@@ -4,7 +4,13 @@ decl      = require './decl'
 walk      = require './walk'
 
 debug = false
+INOUT_ARG  = '_i_n_o_u_t'
+RETURN_ARG = '_r_e_t_u_r_n'
 
+###
+parse GLSL into AST
+extract all global symbols and make type signatures
+###
 tick = () ->
   now = +new Date
   return (label) ->
@@ -117,13 +123,13 @@ extractSignatures = (main, internals, externals) ->
 
       a.inout = decl.in
       b.inout = decl.out
-      b.name += '__inout'
+      b.name += INOUT_ARG
 
       signature.push b
 
     # Add output for return type
     if symbol.type != 'void'
-      signature.push decl.type '_return__', symbol.type, false, 'out'
+      signature.push decl.type RETURN_ARG, symbol.type, false, 'out'
 
     # Make type string
     ins = (d.type for d in signature when d.inout == decl.in).join ','

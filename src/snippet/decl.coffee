@@ -8,42 +8,6 @@ decl.inout = 2
 
 get = (n) -> n.token.data
 
-decl.copy = (type) ->
-  {name, type, value, inout} = type
-  {name, type, value, inout}
-
-decl.type = (name, spec, quant, inout) ->
-  three =
-    float:       'f'
-    vec2:        'v2'
-    vec3:        'v3'
-    vec4:        'v4'
-    mat3:        'm3'
-    mat4:        'm4'
-    sampler2D:   't'
-    samplerCube: 't'
-
-  defaults =
-    float:       0
-    vec2:        if window.THREE then new THREE.Vector3() else null
-    vec3:        if window.THREE then new THREE.Vector3() else null
-    vec4:        if window.THREE then new THREE.Vector4() else null
-    mat4:        if window.THREE then new THREE.Matrix4() else null
-    sampler2D:   0
-    samplerCube: 0
-
-  dirs =
-    in:    decl.in
-    out:   decl.out
-    inout: decl.inout
-
-  type = three[spec]
-  type += 'v' if quant
-  value = defaults[type]
-  inout = dirs[inout] ? dirs.in
-
-  {name, type, value, inout}
-
 decl.node = (node) ->
 
   if node.children[5]?.type == 'function'
@@ -123,3 +87,38 @@ decl.argument = (node) ->
   ident: ident
   quant: !!quant
 
+decl.copy = (type) ->
+  {name, type, value, inout} = type
+  {name, type, value, inout}
+
+decl.type = (name, spec, quant, inout) ->
+  three =
+    float:       'f'
+    vec2:        'v2'
+    vec3:        'v3'
+    vec4:        'v4'
+    mat3:        'm3'
+    mat4:        'm4'
+    sampler2D:   't'
+    samplerCube: 't'
+
+  defaults =
+    float:       0
+    vec2:        if window.THREE then new THREE.Vector3() else null
+    vec3:        if window.THREE then new THREE.Vector3() else null
+    vec4:        if window.THREE then new THREE.Vector4() else null
+    mat4:        if window.THREE then new THREE.Matrix4() else null
+    sampler2D:   0
+    samplerCube: 0
+
+  dirs =
+    in:    decl.in
+    out:   decl.out
+    inout: decl.inout
+
+  type = three[spec]
+  type += 'v' if quant
+  value = defaults[type]
+  inout = dirs[inout] ? dirs.in
+
+  {name, type, spec, value, inout}

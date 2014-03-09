@@ -9,4 +9,6 @@ walk = (map, collect, node, indent) ->
   if recurse
     walk map, collect, child, indent + '  ', debug for child, i in node.children
 
+  null
+
 module.exports = walk

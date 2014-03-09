@@ -89,14 +89,15 @@ decl.argument = (node) ->
 
 decl.param = (dir, storage, spec, quant) ->
   prefix = []
-  prefix.push storage if storage
-  prefix.push spec if spec
+  prefix.push storage if storage?
+  prefix.push spec if spec?
   prefix.push ''
+
   prefix = prefix.join ' '
 
   suffix = if quant then '[' + quant + ']' else ''
 
-  dir += ' '
+  dir += ' ' if dir != ''
 
   (name, long) ->
     (if long then dir else '') + "#{prefix}#{name}#{suffix}"
@@ -137,12 +138,12 @@ decl.type = (name, spec, quant, dir, storage) ->
 
   param   = decl.param dir, storage, spec, quant
 
-  {name, type, param, value, inout, copy: (name) -> decl.copy @, name}
+  {name, type, spec, param, value, inout, copy: (name) -> decl.copy @, name}
 
 decl.copy = (type, _name) ->
-  {name, type, param, value, inout, copy} = type
+  {name, type, spec, param, value, inout, copy} = type
 
   name = _name if _name?
 
-  {name, type, param, value, inout, copy}
+  {name, type, spec, param, value, inout, copy}
 

@@ -1,5 +1,8 @@
 Graph = require './graph'
 
+###
+  In/out outlet on node
+###
 class Outlet
   @index: 0
   @id: (name) ->

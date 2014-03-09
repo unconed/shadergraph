@@ -1,5 +1,5 @@
 ###
-  Graph of shader nodes.
+  Graph of nodes with outlets
 ###
 class Graph
 

@@ -2,7 +2,7 @@ Graph   = require '../graph'
 Block   = require './block'
 Program = require('../linker')
 
-class Isolate extends Block
+class Callback extends Block
   constructor: (@graph) ->
     super
     @namespace = Program.entry()
@@ -10,11 +10,23 @@ class Isolate extends Block
   makeOutlets: () ->
     outlets = []
 
+    ins  = []
+    outs = []
+
     for outlet in @graph.inputs()
-      outlets.push outlet
+      ins.push outlet.type
 
     for outlet in @graph.outputs()
-      outlets.push outlet
+      outs.push outlet.type
+
+    ins  = ins.join  ','
+    outs = outs.join ','
+    type = "(#{ins})(#{outs})"
+
+    outlets.push
+      name:  'callback'
+      type:  type
+      inout: Graph.OUT
 
     outlets
 
@@ -24,8 +36,9 @@ class Isolate extends Block
   solo: () ->
     @subroutine = Program.compile @graph.tail().owner, @namespace
 
-  call: (program, depth = 0) ->
+  link: (program, name, external) ->
     @solo()
-    @_call    program, @subroutine, depth
+    @_include program, @subroutine
+    @_link    program, @subroutine, name, external
 
-module.exports = Isolate
+module.exports = Callback

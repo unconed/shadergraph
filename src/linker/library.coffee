@@ -1,5 +1,10 @@
 Snippet = require '../snippet'
 
+###
+  Snippet library
+  
+  Takes list of snippets and caches them after compilation
+###
 class Library
   constructor: (@snippets = {}) ->
     @objects = {}

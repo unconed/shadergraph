@@ -111,7 +111,7 @@ extractSignatures = (main, internals, externals) ->
     main: null
 
   defn = (symbol) ->
-    decl.type symbol.ident, symbol.type, symbol.quant, symbol.inout
+    decl.type symbol.ident, symbol.type, symbol.quant, symbol.inout, symbol.storage
 
   func = (symbol, inout) ->
     signature = (defn arg for arg in symbol.args)
@@ -141,6 +141,7 @@ extractSignatures = (main, internals, externals) ->
       type: type
       signature: signature
       inout: inout
+      spec: symbol.type
 
   # Main
   sigs.main = func main, decl.out

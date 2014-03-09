@@ -25,22 +25,21 @@ window.ShaderGraph = ShaderGraph
 ##
 
 
-
 code1 = """
-void callback(vec3 color);
-void main(in vec3 color) {
-  callback(color);
+float foobar(vec3 color) {
 }
 """
 
 code2 = """
-void map(inout vec3 color) {
+float callback(vec3 color);
+float foobar(vec3 color) {
 }
 """
 
 code3 = """
-void join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
-  gl_FragColor = vec4(color, 1.0);
+float callback(vec3 color);
+void main(in vec3 color) {
+  float f = callback(color);
 }
 """
 
@@ -54,11 +53,16 @@ shadergraph = ShaderGraph snippets
 
 shader  = shadergraph.shader()
 graph   = shader
-          .snippet('code1')
+          .group()
+            .group()
+              .snippet('code1')
+            .callback()
+            .snippet('code2')
+          .callback()
+          .snippet('code3')
           .end()
 
-program = graph.compile()
-window.program = program
+snippet = graph.compile()
 
 normalize = (code) ->
   # renumber generated outputs
@@ -68,11 +72,12 @@ normalize = (code) ->
     map[match] ? map[match] = "_io_#{++o}#{name}"
   code = code.replace /\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
     map[match] ? map[match] = "_sn_#{++s}#{name}"
-  code = code.replace /\b_pg_[0-9]+\b/g, (match) ->
-    map[match] ? map[match] = "_pg_#{++p}"
+  code = code.replace /\b_pg_[0-9]+_\b/g, (match) ->
+    map[match] ? map[match] = "_pg_#{++p}_"
 
-window.program = program
-window.code = normalize(program.code)
+window.graph   = graph
+window.snippet = snippet
+window.code    = normalize(snippet.code)
 
 ##
 

@@ -2,7 +2,7 @@ Graph  = require './graph'
 Outlet = require './outlet'
 
 ###
- Node in shader graph.
+ Node in graph.
 ###
 class Node
   constructor: (@owner, outlets) ->

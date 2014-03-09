@@ -14,11 +14,11 @@ describe "program", () ->
       map[match] ? map[match] = "_io_#{++o}#{name}"
     code = code.replace /\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
       map[match] ? map[match] = "_sn_#{++s}#{name}"
-    code = code.replace /\b_pg_[0-9]+\b/g, (match) ->
-      map[match] ? map[match] = "_pg_#{++p}"
+    code = code.replace /\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g, (match, name) ->
+      map[match] ? map[match] = "_pg_#{++p}_#{name ? ''}"
 
 
-  it 'links snippets with return values', () ->
+  it 'links snippets with return values (snippet)', () ->
 
     code1 = """
     vec3 first() {
@@ -54,7 +54,7 @@ describe "program", () ->
     void _sn_3_third(vec3 color) {
       gl_FragColor = vec4(color, 1.0);
     }
-    void _pg_1() {
+    void _pg_1_() {
       vec3 _io_1_return;
       vec3 _io_2_return;
 
@@ -79,7 +79,7 @@ describe "program", () ->
     expect(code).toBe(result)
 
 
-  it 'links snippets out/inout/in', () ->
+  it 'links snippets out/inout/in (snippet)', () ->
 
     code1 = """
     void first(out vec3 color) {
@@ -113,7 +113,7 @@ describe "program", () ->
     void _sn_3_third(in vec3 color) {
       gl_FragColor = vec4(color, 1.0);
     }
-    void _pg_1() {
+    void _pg_1_() {
       vec3 _io_1_color;
 
       _sn_1_first(_io_1_color);
@@ -139,7 +139,7 @@ describe "program", () ->
 
 
 
-  it 'links diamond split/join graph', () ->
+  it 'links diamond split/join graph (group/next/combine)', () ->
 
     code1 = """
     void split(out vec3 color1, out vec3 color2) {
@@ -175,7 +175,7 @@ describe "program", () ->
     void _sn_4_join(in vec3 color1, in vec3 color2) {
       gl_FragColor = vec4(color1, 1.0);
     }
-    void _pg_1() {
+    void _pg_1_() {
       vec3 _io_1_color1;
       vec3 _io_2_color2;
 
@@ -207,7 +207,7 @@ describe "program", () ->
 
 
 
-  it 'links diamond split/join graph with pass', () ->
+  it 'links diamond split/join graph with pass (group/next/pass)', () ->
 
     code1 = """
     void split(out vec3 color1, out vec3 color2, out mat4 passthrough) {
@@ -243,7 +243,7 @@ describe "program", () ->
     void _sn_4_join(in vec3 color1, in vec3 color2, in mat4 passthrough) {
       gl_FragColor = vec4(color1, 1.0);
     }
-    void _pg_1() {
+    void _pg_1_() {
       vec3 _io_1_color1;
       vec3 _io_2_color2;
       mat4 _io_3_passthrough;
@@ -276,7 +276,7 @@ describe "program", () ->
 
 
 
-  it 'exports dangling callbacks', () ->
+  it 'exports dangling callbacks (snippet)', () ->
 
     code1 = """
     vec2 callback1(float value);
@@ -307,7 +307,7 @@ describe "program", () ->
     void _sn_4_join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
       gl_FragColor = vec4(color1, 1.0);
     }
-    void _pg_1(in vec4 _io_1_colorIn, out vec4 _io_2_colorOut) {
+    void _pg_1_(in vec4 _io_1_colorIn, out vec4 _io_2_colorOut) {
       vec3 _io_3_color1;
       vec3 _io_4_color2;
 
@@ -325,9 +325,9 @@ describe "program", () ->
               .end()
 
     program = graph.compile()
-    code = normalize(program.code, /uni/)
 
     # verify basic form
+    code = normalize(program.code, /uni/)
     expect(code).toBe(result)
 
     # verify if externals were exported correctly
@@ -345,7 +345,7 @@ describe "program", () ->
 
 
 
-  it 'exports dangling inputs/outputs', () ->
+  it 'exports dangling inputs/outputs (group/next/combine)', () ->
 
     code1 = """
     attribute vec2 att1;
@@ -389,7 +389,7 @@ describe "program", () ->
     void _sn_6_join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
       gl_FragColor = vec4(color1, 1.0);
     }
-    void _pg_1(in vec4 _io_1_colorIn, out vec4 _io_2_colorOut) {
+    void _pg_1_(in vec4 _io_1_colorIn, out vec4 _io_2_colorOut) {
       vec3 _io_3_color1;
       vec3 _io_4_color2;
 
@@ -414,9 +414,9 @@ describe "program", () ->
               .end()
 
     program = graph.compile()
-    code = normalize(program.code, /uni/)
 
     # verify basic form
+    code = normalize(program.code, /uni/)
     expect(code).toBe(result)
 
     # verify if uniforms were duped correctly
@@ -445,3 +445,137 @@ describe "program", () ->
     expect(program.main.signature[1].type).toBe 'v4'
     expect(program.main.signature[1].inout).toBe 1
 
+
+
+
+  it 'links a callback (group/callback)', () ->
+
+    code1 = """
+    float foobar(vec3 color) {
+    }
+    """
+
+    code2 = """
+    float callback(vec3 color);
+    void main(in vec3 color) {
+      float f = callback(color);
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+    }
+
+    result = """
+    float _sn_1_foobar(vec3 color) {
+    }
+    float _sn_2_callback(vec3 color);
+    void _sn_3_main(in vec3 color) {
+      float f = _sn_2_callback(color);
+    }
+    float _sn_2_callback(vec3 color) {
+      float _sn_4_return;
+
+      _sn_4_return = _sn_1_foobar(color);
+      return _sn_4_return;
+    }
+    void _pg_1_(in vec3 _io_1_color) {
+      _sn_3_main(_io_1_color);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .group()
+                .snippet('code1')
+              .callback()
+              .snippet('code2')
+              .end()
+
+    program = graph.compile()
+    code = normalize(program.code)
+
+    expect(code).toBe(result)
+
+
+
+
+  it 'links a callback recursively (group/callback)', () ->
+
+    code1 = """
+    float foobar(vec3 color) {
+    }
+    """
+
+    code2 = """
+    float callback(vec3 color);
+    float foobar(vec3 color) {
+    }
+    """
+
+    code3 = """
+    float callback(vec3 color);
+    void main(in vec3 color) {
+      float f = callback(color);
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+      'code3': code3
+    }
+
+    result = """
+    float _sn_1_foobar(vec3 color) {
+    }
+    float _sn_2_callback(vec3 color);
+    float _sn_3_foobar(vec3 color) {
+    }
+    float _sn_2_callback(vec3 color) {
+      float _sn_4_return;
+
+      _sn_4_return = _sn_1_foobar(color);
+      return _sn_4_return;
+    }
+    float _pg_1_(vec3 _io_1_color) {
+      float _io_2_return;
+
+      _io_2_return = _sn_3_foobar(_io_1_color);
+      return _io_2_return;
+    }
+    float _sn_5_callback(vec3 color);
+    void _sn_6_main(in vec3 color) {
+      float f = _sn_5_callback(color);
+    }
+    float _sn_5_callback(vec3 color) {
+      float _pg_2_return;
+
+      _pg_2_return = _pg_1_(color);
+      return _pg_2_return;
+    }
+    void _pg_3_(in vec3 _io_3_color) {
+      _sn_6_main(_io_3_color);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .group()
+                .group()
+                  .snippet('code1')
+                .callback()
+                .snippet('code2')
+              .callback()
+              .snippet('code3')
+              .end()
+
+    program = graph.compile()
+    code = normalize(program.code)
+
+    expect(code).toBe(result)

@@ -4,11 +4,13 @@ class Block
   constructor: () ->
     @node = new Graph.Node @, @makeOutlets()
 
-  link: (program, outlet, depth = 0) ->
+  link: (program, name, external) ->
   call: (program, depth = 0) ->
+  externals: () -> {}
+  solo: () ->
 
-  _link: (program, module, outlet) ->
-    program.link @node, module, outlet
+  _link: (program, module, name, external) ->
+    program.link @node, module, name, external
 
   _include: (program, module) ->
     program.include @node, module
@@ -22,7 +24,10 @@ class Block
 
       # Callback type
       if outlet.type[0] == '('
-        previous?.link program, outlet, depth + 1
+        for key, ext of @externals() when ext.name == outlet.name
+          external = ext
+          name     = key
+        previous?.link program, name, external
       else
         previous?.call program, depth + 1
 

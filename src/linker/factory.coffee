@@ -2,20 +2,40 @@ Graph   = require '../graph'
 Block   = require '../block'
 Program = require './program'
 
-class State
-  constructor: (@start = [], @end = [], @nodes = []) ->
-
+###
+  Chainable factory
+  
+  Exposes methods to build a graph incrementally
+###
 class Factory
   constructor: (@library) ->
     @end()
 
   snippet: (name, uniforms) ->
-    snippet = @library.fetch name
-    snippet.apply uniforms
+    @_append  @_shader name, uniforms
 
-    block = new Block.Shader snippet
+  before: (name, uniforms) ->
+    @_prepend @_shader name, uniforms
 
-    @append block.node
+  callback: () ->
+    throw "Popping factory stack too far" if @_stack.length <= 2
+
+    @next()._pop()
+
+    sub = @_pop()
+    main = @_state
+
+    if sub.nodes.length
+      subgraph = new Graph.Graph();
+
+      for node in sub.nodes
+        @graph.remove node, true
+        subgraph.add node, true
+
+      block = new Block.Callback subgraph
+      @_append block.node
+
+    @
 
   isolate: () ->
     throw "Popping factory stack too far" if @_stack.length <= 2
@@ -29,34 +49,12 @@ class Factory
       subgraph = new Graph.Graph();
 
       for node in sub.nodes
-        graph.remove node, true
+        @graph.remove node, true
         subgraph.add node, true
 
-      block = new Block.Isolate graph
+      block = new Block.Isolate subgraph
 
-    main.end = sub.end
-
-    @
-
-  append: (node) ->
-    @graph.add node
-
-    end.connect(node) for end in @_state.end
-
-    @_state.start = [node] if !@_state.start.length
-    @_state.end   = [node]
-    @_state.nodes.push node
-
-    @
-
-  prepend: (node) ->
-    @graph.add node
-
-    node.connect(start) for start in @_state.start
-
-    @_state.end   = [node] if !@_state.end.length
-    @_state.start = [node]
-    @_state.nodes push node
+      @_append block.node
 
     @
 
@@ -70,7 +68,8 @@ class Factory
     sub = @_pop()
 
     @_state.start = @_state.start.concat sub.start
-    @_state.end   = @_state.end.concat sub.end
+    @_state.end   = @_state.end  .concat sub.end
+    @_state.nodes = @_state.nodes.concat sub.nodes
 
     @_push()
 
@@ -99,6 +98,7 @@ class Factory
     @
 
   end: () ->
+
     graph = @graph;
 
     @graph  = new Graph.Graph();
@@ -114,6 +114,12 @@ class Factory
   compile: () ->
     @end().compile()
 
+  _shader: (name, uniforms) ->
+    snippet = @library.fetch name
+    snippet.apply uniforms
+    block = new Block.Shader snippet
+    block.node
+
   _push: () ->
     @_stack.unshift new State
     @_state = @_stack[0]
@@ -122,5 +128,29 @@ class Factory
     @_state = @_stack[1]
     @_stack.shift()
 
+  _append: (node) ->
+    @graph.add node
+
+    end.connect(node) for end in @_state.end
+
+    @_state.start = [node] if !@_state.start.length
+    @_state.end   = [node]
+    @_state.nodes.push node
+
+    @
+
+  _prepend: (node) ->
+    @graph.add node
+
+    node.connect(start) for start in @_state.start
+
+    @_state.end   = [node] if !@_state.end.length
+    @_state.start = [node]
+    @_state.nodes.push node
+
+    @
+
+class State
+  constructor: (@start = [], @end = [], @nodes = []) ->
 
 module.exports = Factory

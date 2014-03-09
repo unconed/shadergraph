@@ -10,7 +10,7 @@ class Snippet
     assembler = compile program
     new Snippet program.signatures, assembler
 
-  constructor: (@signatures, @assembler) ->
+  constructor: (@_signatures, @_assembler) ->
     @namespace  = null
     @code       = null
 
@@ -22,13 +22,13 @@ class Snippet
     @attributes = null
 
   clone: () ->
-    new Snippet @signatures, @assembler
+    new Snippet @_signatures, @_assembler
 
   apply: (uniforms, @namespace) ->
     @namespace ?= Snippet.namespace()
-    @code       = @assembler @namespace
+    @code       = @_assembler @namespace
 
-    @main       = @signatures.main
+    @main       = @_signatures.main
     @entry      = @namespace + @main.name
 
     @uniforms   = {}
@@ -39,9 +39,9 @@ class Snippet
     e = (def)       =>  @externals[@namespace + def.name]          = def
     a = (def)       => @attributes[def.name]                       = def
 
-    u(def)       for def in @signatures.uniform
-    e(def)       for def in @signatures.external
-    a(def)       for def in @signatures.attribute
+    u(def)       for def in @_signatures.uniform
+    e(def)       for def in @_signatures.external
+    a(def)       for def in @_signatures.attribute
     u(def, name) for name, def of uniforms
 
     null

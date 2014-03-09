@@ -1,4 +1,5 @@
-Graph = require('../graph').Graph
+Graph   = require('../graph').Graph
+Snippet = require('../snippet').Snippet
 
 class Program
   @index: 0
@@ -9,41 +10,51 @@ class Program
     program.compile()
 
   constructor: (@block) ->
-    @modules = {}
+    @modules    = {}
+    @calls      = {}
+    @includes   = []
+    @externals  = {}
+    @uniforms   = {}
+    @attributes = {}
 
   compile: () ->
-    @block.compile @, 0
-    @assemble()
+    @block.call @, 0
+    @_assemble()
 
-    @
+  include: (node, module) ->
+    return if @_included(module)
+    @modules[module.namespace] = module
 
-  add: (node, module, priority, call) ->
+    @includes.push module.code
+
+    (@uniforms[key]   = def) for key, def of module.uniforms
+    (@attributes[key] = def) for key, def of module.attributes
+
+    for key, def of module.externals
+      name   = def.name
+      outlet = node.get(name)
+
+      if !outlet.input
+        @externals[key] = def
+
+  call: (node, module, priority) ->
     ns = module.namespace
 
-    if exists = @modules[ns]
+    if exists = @calls[ns]
       exists.priority = Math.max exists.priority, priority
     else
-      @modules[ns] = {node, module, priority, call}
+      @calls[ns] = {node, module, priority}
 
     @
 
-  assemble: () ->
-    # Build composite program that acts as new module/snippet
+  _included: (module) ->
+    !!@modules[module.namespace]
 
-    modules = (module for ns, module of @modules)
-    modules.sort (a, b) -> b.priority - a.priority
+  _assemble: () ->
+    # Build composite program that acts as new module/snippet
 
     INOUT_ARG  = '_i_n_o_u_t'
     RETURN_ARG = 'return'
-
-    uniforms   = {}
-    attributes = {}
-    vars       = {}
-    externals  = {}
-    includes   = []
-    calls      = []
-    params     = []
-    signature  = []
 
     # Collapse split inouts
     getShadow = (name) ->
@@ -74,24 +85,15 @@ class Program
       else
         outlet.id
 
-    include = (module, node) ->
-      includes.push module.code
-      (uniforms[key]   = def) for key, def of module.uniforms
-      (attributes[key] = def) for key, def of module.attributes
-
-      for key, def of module.externals
-        name   = def.name
-        outlet = node.get(name)
-
-        if !outlet.input
-          externals[key] = def
-
-    call = (module, node) ->
+    # Link module to callback
+    link = (node, module, outlet) ->
       main      = module.main
       entry     = module.entry
 
-      args  = []
-      ret   = ''
+      args   = []
+      ret    = ''
+      retVal = ''
+      signature
 
       for arg in main.signature
         param = arg.param
@@ -105,52 +107,102 @@ class Program
         else
           args.push id
 
-        if isDangling node, name
-          params.push param(id, true)
-          signature.push arg.copy id
-        else
-          vars[id] = "  " + param(id)
+        params.push param(id, true)
+        signature.push arg.copy id
 
       args = args.join ', '
-      calls.push "  #{ret}#{entry}(#{args})"
+      _call = "#{ret}#{entry}(#{args})"
 
-    build = () ->
-      entry = Program.entry()
+    # Sort and process calls
+    callModules = () =>
+      vars       = {}
+      calls      = []
+      params     = []
+      signature  = []
 
-      vars = (decl for v, decl of vars)
-      vars .push ''
+      # Call module in DAG chain
+      call = (node, module) =>
+        @include node, module
+
+        main      = module.main
+        entry     = module.entry
+
+        args  = []
+        ret   = ''
+
+        for arg in main.signature
+          param = arg.param
+          name  = arg.name
+
+          continue if isShadow name
+          id = lookup node, name
+
+          if name == RETURN_ARG
+            ret = "#{id} = "
+          else
+            args.push id
+
+          if isDangling node, name
+            params.push param(id, true)
+            signature.push arg.copy id
+          else
+            vars[id] = "  " + param(id)
+
+        args = args.join ', '
+        calls.push "  #{ret}#{entry}(#{args})"
+
+      cs = (c for ns, c of @calls)
+      cs.sort (a, b) -> b.priority - a.priority
+      call c.node, c.module for c in cs
+
+      {vars, calls, params, signature}
+
+    # Assemble main() function
+    build = (body) ->
+      entry  = Program.entry()
+
+      vars   = (decl for v, decl of body.vars)
+      params = body.params
+      calls  = body.calls
+
       calls.push ''
 
-      vars  = vars.join  ';\n'
-      calls = calls.join ';\n'
-      args  = params.join ', '
+      if vars.length
+        vars.push ''
+        vars = vars.join(';\n') + '\n'
+      else
+        vars = ''
 
-      code  = "void #{entry}(#{args}) {\n#{vars}\n#{calls}}"
+      calls  = calls .join ';\n'
+      params = params.join ', '
 
-      signature: signature
+      code   = "void #{entry}(#{params}) {\n#{vars}#{calls}}"
+
+      signature: body.signature
       code:      code
       name:      entry
 
-    for module in modules
-      include module.module, module.node
-      call    module.module, module.node if module.call
+    #####################
 
-    main = build()
+    body = callModules()
+    main = build(body)
 
-    includes.push main.code
-    code = includes.join '\n'
+    @includes.push main.code
+    code = @includes.join '\n'
 
-    @namespace  = main.name
-    @code       = code
+    s = new Snippet
 
-    @main       = main
-    @entry      = main.name
+    s.namespace  = main.name
+    s.code       = code
 
-    @uniforms   = uniforms
-    @attributes = attributes
-    @externals  = externals
+    s.main       = main
+    s.entry      = main.name
 
-    @
+    s.externals  = @externals
+    s.uniforms   = @uniforms
+    s.attributes = @attributes
+
+    s
 
     #throw "lol error"
 

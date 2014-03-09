@@ -10,13 +10,73 @@ describe "program", () ->
     # renumber generated outputs
     map = {}
     o = s = p = 0
-    code = code.replace /\b_ot_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
-      map[match] ? map[match] = "_ot_#{++o}#{name}"
+    code = code.replace /\b_io_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
+      map[match] ? map[match] = "_io_#{++o}#{name}"
     code = code.replace /\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
       map[match] ? map[match] = "_sn_#{++s}#{name}"
     code = code.replace /\b_pg_[0-9]+\b/g, (match) ->
       map[match] ? map[match] = "_pg_#{++p}"
 
+
+  it 'links snippets with return values', () ->
+
+    code1 = """
+    vec3 first() {
+      return vec3(1.0, 1.0, 1.0);
+    }
+    """
+
+    code2 = """
+    vec3 second(vec3 color) {
+      return color;
+    }
+    """
+
+    code3 = """
+    void third(vec3 color) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+      'code3': code3
+    }
+
+    result = """
+    vec3 _sn_1_first() {
+      return vec3(1.0, 1.0, 1.0);
+    }
+    vec3 _sn_2_second(vec3 color) {
+      return color;
+    }
+    void _sn_3_third(vec3 color) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    void _pg_1() {
+      vec3 _io_1_return;
+      vec3 _io_2_return;
+
+      _io_1_return = _sn_1_first();
+      _io_2_return = _sn_2_second(_io_1_return);
+      _sn_3_third(_io_2_return);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .snippet('code1')
+              .snippet('code2')
+              .snippet('code3')
+              .end()
+
+    program = graph.compile()
+    code = normalize(program.code)
+
+    expect(code).toBe(result)
 
 
   it 'links snippets out/inout/in', () ->
@@ -54,11 +114,11 @@ describe "program", () ->
       gl_FragColor = vec4(color, 1.0);
     }
     void _pg_1() {
-      vec3 _ot_1_color;
+      vec3 _io_1_color;
 
-      _sn_1_first(_ot_1_color);
-      _sn_2_second(_ot_1_color);
-      _sn_3_third(_ot_1_color);
+      _sn_1_first(_io_1_color);
+      _sn_2_second(_io_1_color);
+      _sn_3_third(_io_1_color);
     }
     """
 
@@ -94,7 +154,7 @@ describe "program", () ->
 
     code3 = """
     void join(in vec3 color1, in vec3 color2) {
-      gl_FragColor = vec4(color, 1.0);
+      gl_FragColor = vec4(color1, 1.0);
     }
     """
 
@@ -113,16 +173,16 @@ describe "program", () ->
     void _sn_3_map(inout vec3 color) {
     }
     void _sn_4_join(in vec3 color1, in vec3 color2) {
-      gl_FragColor = vec4(color, 1.0);
+      gl_FragColor = vec4(color1, 1.0);
     }
     void _pg_1() {
-      vec3 _ot_1_color1;
-      vec3 _ot_2_color2;
+      vec3 _io_1_color1;
+      vec3 _io_2_color2;
 
-      _sn_1_split(_ot_1_color1, _ot_2_color2);
-      _sn_2_map(_ot_1_color1);
-      _sn_3_map(_ot_2_color2);
-      _sn_4_join(_ot_1_color1, _ot_2_color2);
+      _sn_1_split(_io_1_color1, _io_2_color2);
+      _sn_2_map(_io_1_color1);
+      _sn_3_map(_io_2_color2);
+      _sn_4_join(_io_1_color1, _io_2_color2);
     }
     """
 
@@ -162,7 +222,7 @@ describe "program", () ->
 
     code3 = """
     void join(in vec3 color1, in vec3 color2, in mat4 passthrough) {
-      gl_FragColor = vec4(color, 1.0);
+      gl_FragColor = vec4(color1, 1.0);
     }
     """
 
@@ -181,17 +241,17 @@ describe "program", () ->
     void _sn_3_map(inout vec3 color) {
     }
     void _sn_4_join(in vec3 color1, in vec3 color2, in mat4 passthrough) {
-      gl_FragColor = vec4(color, 1.0);
+      gl_FragColor = vec4(color1, 1.0);
     }
     void _pg_1() {
-      vec3 _ot_1_color1;
-      vec3 _ot_2_color2;
-      mat4 _ot_3_passthrough;
+      vec3 _io_1_color1;
+      vec3 _io_2_color2;
+      mat4 _io_3_passthrough;
 
-      _sn_1_split(_ot_1_color1, _ot_2_color2, _ot_3_passthrough);
-      _sn_2_map(_ot_1_color1);
-      _sn_3_map(_ot_2_color2);
-      _sn_4_join(_ot_1_color1, _ot_2_color2, _ot_3_passthrough);
+      _sn_1_split(_io_1_color1, _io_2_color2, _io_3_passthrough);
+      _sn_2_map(_io_1_color1);
+      _sn_3_map(_io_2_color2);
+      _sn_4_join(_io_1_color1, _io_2_color2, _io_3_passthrough);
     }
     """
 
@@ -216,6 +276,75 @@ describe "program", () ->
 
 
 
+  it 'exports dangling callbacks', () ->
+
+    code1 = """
+    vec2 callback1(float value);
+    void split(out vec3 color1, out vec3 color2, in vec4 colorIn) {
+      color = vec3(1.0, 1.0, 1.0);
+    }
+    """
+
+    code2 = """
+    vec3 callback2(vec3 pos);
+    void join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
+      gl_FragColor = vec4(color1, 1.0);
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+    }
+
+    # note: normalized numbering is wrong for callbacks, is verified later 
+    result = """
+    vec2 _sn_1_callback1(float value);
+    void _sn_2_split(out vec3 color1, out vec3 color2, in vec4 colorIn) {
+      color = vec3(1.0, 1.0, 1.0);
+    }
+    vec3 _sn_3_callback2(vec3 pos);
+    void _sn_4_join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
+      gl_FragColor = vec4(color1, 1.0);
+    }
+    void _pg_1(in vec4 _io_1_colorIn, out vec4 _io_2_colorOut) {
+      vec3 _io_3_color1;
+      vec3 _io_4_color2;
+
+      _sn_2_split(_io_3_color1, _io_4_color2, _io_1_colorIn);
+      _sn_4_join(_io_3_color1, _io_4_color2, _io_2_colorOut);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .snippet('code1')
+              .snippet('code2')
+              .end()
+
+    program = graph.compile()
+    code = normalize(program.code, /uni/)
+
+    # verify basic form
+    expect(code).toBe(result)
+
+    # verify if externals were exported correctly
+    n = 0
+    names = ['callback1', 'callback2']
+    snippets = ['split', 'join']
+    types = ['(f)(v2)', '(v3)(v3)']
+    for name, ext of program.externals
+      namespace = ns(name)
+      expect(program.code.indexOf('void '+ namespace + snippets[n] + '(')).not.toBe -1
+      expect(ext.name).toBe(names[n])
+      expect(ext.type).toBe(types[n])
+      n++
+    expect(n).toBe(2)
+
+
+
   it 'exports dangling inputs/outputs', () ->
 
     code1 = """
@@ -234,7 +363,7 @@ describe "program", () ->
     code3 = """
     attribute vec3 att2;
     void join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
-      gl_FragColor = vec4(color, 1.0);
+      gl_FragColor = vec4(color1, 1.0);
     }
     """
 
@@ -244,6 +373,7 @@ describe "program", () ->
       'code3': code3
     }
 
+    # note: normalized numbering is wrong for uniforms, is verified later 
     result = """
     attribute vec2 att1;
     void _sn_1_split(out vec3 color1, out vec3 color2, in vec4 colorIn) {
@@ -257,16 +387,16 @@ describe "program", () ->
     }
     attribute vec3 att2;
     void _sn_6_join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
-      gl_FragColor = vec4(color, 1.0);
+      gl_FragColor = vec4(color1, 1.0);
     }
-    void _pg_1(in vec4 _ot_1_colorIn, out vec4 _ot_2_colorOut) {
-      vec3 _ot_3_color1;
-      vec3 _ot_4_color2;
+    void _pg_1(in vec4 _io_1_colorIn, out vec4 _io_2_colorOut) {
+      vec3 _io_3_color1;
+      vec3 _io_4_color2;
 
-      _sn_1_split(_ot_3_color1, _ot_4_color2, _ot_1_colorIn);
-      _sn_3_map(_ot_3_color1);
-      _sn_5_map(_ot_4_color2);
-      _sn_6_join(_ot_3_color1, _ot_4_color2, _ot_2_colorOut);
+      _sn_1_split(_io_3_color1, _io_4_color2, _io_1_colorIn);
+      _sn_3_map(_io_3_color1);
+      _sn_5_map(_io_4_color2);
+      _sn_6_join(_io_3_color1, _io_4_color2, _io_2_colorOut);
     }
     """
 
@@ -314,4 +444,4 @@ describe "program", () ->
     expect(program.main.signature[0].inout).toBe 0
     expect(program.main.signature[1].type).toBe 'v4'
     expect(program.main.signature[1].inout).toBe 1
-    console.log(program)
+

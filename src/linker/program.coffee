@@ -20,9 +20,9 @@ class Program
   @index: 0
   @entry: () -> "_pg_#{++Program.index}_"
 
-  @compile: (block) ->
+  @compile: (block, phase) ->
     program = new Program block, @namespace
-    program.compile()
+    program.compile phase
 
   # Program starts out empty, ready to compile starting from a particular block
   constructor: (@block, @namespace) ->
@@ -34,13 +34,13 @@ class Program
     @uniforms   = {}
     @attributes = {}
 
-  compile: () ->
+  compile: (phase) ->
     graph = @block.node.graph
     if graph.nodes.length == 1
-      @_snippet @block.solo()
+      @_snippet @block.solo phase
     else
-      @block.call @, 0
-      @_assemble()
+      @block.call @, phase, 0
+      @_assemble phase
 
   # Link to a given external callback
   link: (node, module, name, external) ->
@@ -77,7 +77,7 @@ class Program
   # Helper to construct a snippet at the end
   _snippet: (_s) ->
     s = new Snippet
-    s._program = @
+#    s._program = @
     s.namespace  = _s.namespace
     s.code       = _s.code
     s.main       = _s.main
@@ -93,7 +93,7 @@ class Program
 
   # Build composite program that can act as new module/snippet
   # Unconnected input/outputs and undefined callbacks are exposed in the new global/main scope
-  _assemble: () ->
+  _assemble: (phase) ->
 
     INOUT_ARG  = '_i_n_o_u_t'
     RETURN_ARG = 'return'
@@ -116,7 +116,7 @@ class Program
       else if outlet.inout == Graph.OUT
         outlet.output.length == 0
 
-    # Look up id for outlet on node
+    # Look up id for outlet across graph edges
     lookup = (node, name) ->
       outlet = node.get name
       outlet = outlet.input if outlet.input
@@ -191,7 +191,7 @@ class Program
         other = list.shift()
         _name = other.name
 
-        # Make sure 'return' var is not used
+        # Avoid 'return' keyword
         if _name == RETURN_ARG
           _name = returnVar
 
@@ -202,17 +202,16 @@ class Program
       _dangling = () -> true
 
       inner   = makeBody()
-      call    = makeCall(_lookup, _dangling, entry, main.signature, inner)
+      call    = makeCall _lookup, _dangling, entry, main.signature, inner
 
-      # Make sure we don't add a local var named 'return'
+      # Avoid 'return' keyword
       map =
         return: returnVar
-
       _lookup = (name) -> map[name] ? name
 
       # Build wrapper function for the calling side
       outer   = makeBody()
-      wrapper = makeCall(_lookup, _dangling, entry, external.signature, outer)
+      wrapper = makeCall _lookup, _dangling, entry, external.signature, outer
       outer.calls = [call]
       outer.entry = name
 
@@ -231,7 +230,7 @@ class Program
 
         _lookup   = (name) -> lookup node, name
         _dangling = (name) -> isDangling node, name
-        body.calls.push makeCall(_lookup, _dangling, entry, main.signature, body)
+        body.calls.push makeCall _lookup, _dangling, entry, main.signature, body
 
       body = makeBody()
       cs = (c for ns, c of calls)

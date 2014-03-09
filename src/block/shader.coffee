@@ -13,17 +13,11 @@ class Shader extends Block
     outlets = outlets.concat @snippet.main.signature
     outlets.push external for key, external of @snippet.externals
 
-    #    outlets = outlets.concat @snippet.main
-
     outlets
 
-  solo: () -> @snippet
+  solo: (phase) -> @snippet
 
-  link: (program, name, external) ->
-    @_include program, @snippet
-    @_link    program, @snippet, name, external
-
-  call: (program, depth = 0) ->
-    @_call    program, @snippet, depth
+  call: (program, phase, depth = 0) ->
+    @_call @snippet, program, phase, depth
 
 module.exports = Shader

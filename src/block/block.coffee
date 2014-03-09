@@ -7,16 +7,15 @@ class Block
   link: (program, name, external) ->
   call: (program, depth = 0) ->
   externals: () -> {}
-  solo: () ->
 
-  _link: (program, module, name, external) ->
-    program.link @node, module, name, external
+  _link: (module, program, phase, name, external) ->
+    program.link    @node, module, name, external
 
-  _include: (program, module) ->
+  _include: (module, program) ->
     program.include @node, module
 
-  _call: (program, module, depth) ->
-    program.call @node, module, depth
+  _call: (module, program, phase, depth) ->
+    program.call    @node, module, depth
 
     # Look up inputs
     for outlet in @node.inputs
@@ -25,11 +24,11 @@ class Block
       # Callback type
       if outlet.type[0] == '('
         for key, ext of @externals() when ext.name == outlet.name
-          external = ext
           name     = key
-        previous?.link program, name, external
+          external = ext
+        previous?.link program, phase, name, external
       else
-        previous?.call program, depth + 1
+        previous?.call program, phase, depth + 1
 
     program
 

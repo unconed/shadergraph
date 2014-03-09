@@ -12,13 +12,10 @@ class Factory
     @end()
 
   snippet: (name, uniforms) ->
-    @append name, uniforms
-
-  append: (name, uniforms) ->
     @_append  @_shader name, uniforms
 
-  prepend: (name, uniforms) ->
-    @_prepend @_shader name, uniforms
+  material: (vertex, fragment, uniforms) ->
+    @_append  @_material vertex, fragment, uniforms
 
   group: () ->
     @_push()
@@ -95,6 +92,16 @@ class Factory
     snippet = @library.fetch name
     snippet.apply uniforms
     block = new Block.Shader snippet
+    block.node
+
+  _shader: (vertex, fragment, uniforms) ->
+    vertex   = @library.fetch vertex
+    fragment = @library.fetch fragment
+
+    vertex.apply uniforms
+    fragment.apply uniforms, vertex.namespace
+
+    block = new Block.Material vertex, fragment
     block.node
 
   _subgraph: (sub) ->

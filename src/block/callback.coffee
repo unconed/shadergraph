@@ -33,12 +33,12 @@ class Callback extends Block
   externals: () ->
     @subroutine?.externals ? {}
 
-  solo: () ->
-    @subroutine = Program.compile @graph.tail().owner, @namespace
+  solo: (phase) ->
+    @subroutine = Program.compile @graph.tail().owner, phase, @namespace
 
-  link: (program, name, external) ->
-    @solo()
-    @_include program, @subroutine
-    @_link    program, @subroutine, name, external
+  link: (program, phase, name, external) ->
+    @solo     phase
+    @_include @subroutine, program
+    @_link    @subroutine, program, phase, name, external
 
 module.exports = Callback

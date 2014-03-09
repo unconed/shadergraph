@@ -21,11 +21,11 @@ class Isolate extends Block
   externals: () ->
     @subroutine?.externals ? {}
 
-  solo: () ->
-    @subroutine = Program.compile @graph.tail().owner, @namespace
+  solo: (phase) ->
+    @subroutine = Program.compile @graph.tail().owner, phase, @namespace
 
-  call: (program, depth = 0) ->
-    @solo()
-    @_call    program, @subroutine, depth
+  call: (program, phase, depth = 0) ->
+    @solo  phase
+    @_call @subroutine, program, phase, depth
 
 module.exports = Isolate

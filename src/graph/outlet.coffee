@@ -3,7 +3,7 @@ Graph = require './graph'
 class Outlet
   @index: 0
   @id: (name) ->
-    "_ot_#{++Outlet.index}_#{name}"
+    "_io_#{++Outlet.index}_#{name}"
 
   constructor: (@inout, @name, @hint, @type, @meta) ->
     @hint  ?= name

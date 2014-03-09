@@ -27,8 +27,9 @@ window.ShaderGraph = ShaderGraph
 
 
 code1 = """
-void split(out vec3 color1, out vec3 color2, in vec4 colorIn) {
-  color = vec3(1.0, 1.0, 1.0);
+void callback(vec3 color);
+void main(in vec3 color) {
+  callback(color);
 }
 """
 
@@ -54,12 +55,6 @@ shadergraph = ShaderGraph snippets
 shader  = shadergraph.shader()
 graph   = shader
           .snippet('code1')
-          .group()
-            .snippet('code2')
-          .next()
-            .snippet('code2')
-          .combine()
-          .snippet('code3')
           .end()
 
 program = graph.compile()
@@ -69,8 +64,8 @@ normalize = (code) ->
   # renumber generated outputs
   map = {}
   o = s = p = 0
-  code = code.replace /\b_ot_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
-    map[match] ? map[match] = "_ot_#{++o}#{name}"
+  code = code.replace /\b_io_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
+    map[match] ? map[match] = "_io_#{++o}#{name}"
   code = code.replace /\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
     map[match] ? map[match] = "_sn_#{++s}#{name}"
   code = code.replace /\b_pg_[0-9]+\b/g, (match) ->

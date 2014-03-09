@@ -2,6 +2,7 @@ Block   = require './block'
 
 class Shader extends Block
   constructor: (@snippet) ->
+    @namespace = @snippet.namespace
     super
 
   makeOutlets: () ->
@@ -14,7 +15,7 @@ class Shader extends Block
     outlets
 
   compile: (program, depth = 0) ->
-    program.add @node, @snippet, depth
+    program.add @node, @snippet, depth, true
 
     # Look up inputs
     for outlet in @node.inputs

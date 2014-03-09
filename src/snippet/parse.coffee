@@ -5,7 +5,7 @@ walk      = require './walk'
 
 debug = false
 INOUT_ARG  = '_i_n_o_u_t'
-RETURN_ARG = '_r_e_t_u_r_n'
+RETURN_ARG = 'return'
 
 ###
 parse GLSL into AST

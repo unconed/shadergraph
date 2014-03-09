@@ -13,12 +13,6 @@ class Node
 
     @setOutlets outlets
 
-  getOwner: () ->
-    return @owner
-
-  # Become part of the given graph
-  setGraph: (@graph) ->
-
   # Retrieve input
   getIn: (name) ->
     (outlet for outlet in @inputs when outlet.name == name)[0]

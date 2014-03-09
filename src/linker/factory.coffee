@@ -3,7 +3,7 @@ Block   = require '../block'
 Program = require './program'
 
 class State
-  constructor: (@start = [], @end = []) ->
+  constructor: (@start = [], @end = [], @nodes = []) ->
 
 class Factory
   constructor: (@library) ->
@@ -17,13 +17,35 @@ class Factory
 
     @append block.node
 
+  isolate: () ->
+    throw "Popping factory stack too far" if @_stack.length <= 2
+
+    @next()._pop()
+
+    sub = @_pop()
+    main = @_state
+
+    if sub.nodes.length
+      subgraph = new Graph.Graph();
+
+      for node in sub.nodes
+        graph.remove node, true
+        subgraph.add node, true
+
+      block = new Block.Isolate graph
+
+    main.end = sub.end
+
+    @
+
   append: (node) ->
     @graph.add node
 
     end.connect(node) for end in @_state.end
 
     @_state.start = [node] if !@_state.start.length
-    @_state.end = [node]
+    @_state.end   = [node]
+    @_state.nodes.push node
 
     @
 
@@ -32,8 +54,9 @@ class Factory
 
     node.connect(start) for start in @_state.start
 
-    @_state.end = [node] if !@_state.end.length
+    @_state.end   = [node] if !@_state.end.length
     @_state.start = [node]
+    @_state.nodes push node
 
     @
 
@@ -42,12 +65,6 @@ class Factory
     @_push()
 
     @
-
-  pass: () ->
-    @next()
-
-    @_state.start.push null
-    @combine()
 
   next: () ->
     sub = @_pop()
@@ -59,23 +76,23 @@ class Factory
 
     @
 
+  pass: () ->
+    @next()
+
+    @_state.end = @_stack[2].end
+
+    @combine()
+
   combine: () ->
     throw "Popping factory stack too far" if @_stack.length <= 2
 
     @next()._pop()
 
-    sub = @_pop()
+    sub  = @_pop()
     main = @_state
 
-    if sub.start.length
-      for to in sub.start
-        # Passthrough all input nodes to other side
-        if !to
-          sub.end = sub.end.concat main.end
-
-        # Normal destination
-        else
-          from.connect to, true for from in main.end
+    for to in sub.start
+      from.connect to, true for from in main.end
 
     main.end = sub.end
 
@@ -84,7 +101,7 @@ class Factory
   end: () ->
     graph = @graph;
 
-    @graph = new Graph.Graph();
+    @graph  = new Graph.Graph();
     @_state = new State
     @_stack = [@_state]
 

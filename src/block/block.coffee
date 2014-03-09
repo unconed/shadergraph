@@ -2,7 +2,7 @@ Graph = require '../graph'
 
 class Block
   constructor: () ->
-    @node = new Graph.Node @, @makeOutlets()
+    @node = new Graph.Node @, @makeOutlets?() ? {}
 
   link: (program, name, external) ->
   call: (program, depth = 0) ->

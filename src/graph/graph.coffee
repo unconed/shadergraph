@@ -48,4 +48,12 @@ class Graph
     @nodes.splice @nodes.indexOf(node), 1
     node.graph = null
 
+  adopt: (node) ->
+    if node.length
+      @adopt(_node) for _node in node
+      return
+
+    node.graph.remove node, true
+    @.add node, true
+
 module.exports = Graph

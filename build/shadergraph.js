@@ -5,7 +5,8 @@ Graph = require('../graph');
 
 Block = (function() {
   function Block() {
-    this.node = new Graph.Node(this, this.makeOutlets());
+    var _ref;
+    this.node = new Graph.Node(this, (_ref = typeof this.makeOutlets === "function" ? this.makeOutlets() : void 0) != null ? _ref : {});
   }
 
   Block.prototype.link = function(program, name, external) {};
@@ -413,6 +414,19 @@ Graph = (function() {
     ignore || node.disconnect();
     this.nodes.splice(this.nodes.indexOf(node), 1);
     return node.graph = null;
+  };
+
+  Graph.prototype.adopt = function(node) {
+    var _i, _len, _node;
+    if (node.length) {
+      for (_i = 0, _len = node.length; _i < _len; _i++) {
+        _node = node[_i];
+        this.adopt(_node);
+      }
+      return;
+    }
+    node.graph.remove(node, true);
+    return this.add(node, true);
   };
 
   return Graph;
@@ -1141,12 +1155,6 @@ Factory = (function() {
     return this;
   };
 
-  Factory.prototype.pass = function() {
-    this.next();
-    this._state.end = this._stack[2].end;
-    return this.combine();
-  };
-
   Factory.prototype.combine = function() {
     var from, main, sub, to, _i, _j, _len, _len1, _ref, _ref1, _ref2;
     _ref = this._combine(), sub = _ref[0], main = _ref[1];
@@ -1185,6 +1193,12 @@ Factory = (function() {
     return this;
   };
 
+  Factory.prototype.pass = function() {
+    this.next();
+    this._state.end = this._stack[2].end;
+    return this.combine();
+  };
+
   Factory.prototype.end = function() {
     var graph;
     graph = this.graph;
@@ -1201,6 +1215,34 @@ Factory = (function() {
 
   Factory.prototype.compile = function() {
     return this.end().compile();
+  };
+
+  Factory.prototype.concat = function(factory) {
+    var end, target, to, _i, _j, _len, _len1, _ref, _ref1;
+    target = factory._state;
+    this.graph.adopt(target.nodes);
+    _ref = target.start;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      to = _ref[_i];
+      _ref1 = this._state.end;
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        end = _ref1[_j];
+        end.connect(to);
+      }
+    }
+    if (!this._state.start.length) {
+      this._state.start = target.start;
+    }
+    this._state.end = target.end;
+    this._state.nodes = this._state.nodes.concat(target.nodes);
+    factory.end();
+    return this;
+  };
+
+  Factory.prototype.link = function(factory) {
+    this.group();
+    this.concat(factory);
+    return this.callback();
   };
 
   Factory.prototype._shader = function(name, uniforms) {
@@ -1222,14 +1264,9 @@ Factory = (function() {
   };
 
   Factory.prototype._subgraph = function(sub) {
-    var node, subgraph, _i, _len, _ref;
+    var subgraph;
     subgraph = new Graph.Graph();
-    _ref = sub.nodes;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      node = _ref[_i];
-      this.graph.remove(node, true);
-      subgraph.add(node, true);
-    }
+    subgraph.adopt(sub.nodes);
     return subgraph;
   };
 

@@ -1211,7 +1211,7 @@ Factory = (function() {
     return block.node;
   };
 
-  Factory.prototype._shader = function(vertex, fragment, uniforms) {
+  Factory.prototype._material = function(vertex, fragment, uniforms) {
     var block;
     vertex = this.library.fetch(vertex);
     fragment = this.library.fetch(fragment);

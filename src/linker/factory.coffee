@@ -94,7 +94,7 @@ class Factory
     block = new Block.Shader snippet
     block.node
 
-  _shader: (vertex, fragment, uniforms) ->
+  _material: (vertex, fragment, uniforms) ->
     vertex   = @library.fetch vertex
     fragment = @library.fetch fragment
 

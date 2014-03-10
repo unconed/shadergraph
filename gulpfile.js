@@ -18,7 +18,6 @@ var products = [
 ];
 
 var vendor = [
-  'node_modules/lodash/dist/lodash.js',
 ];
 
 var core = [

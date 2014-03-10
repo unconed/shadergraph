@@ -30,8 +30,10 @@ compile = (program) ->
   placeholders = replaced signatures
 
   # Compile
-  string_compiler code, placeholders
-  #ast_compiler program, placeholders
+  assembler = string_compiler code, placeholders
+  #assembler = ast_compiler program, placeholders
+
+  [signatures, assembler]
 
 ###
 String-replacement based compiler

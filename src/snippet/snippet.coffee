@@ -6,9 +6,9 @@ class Snippet
   @namespace: () -> "_sn_#{++Snippet.index}_"
 
   @load: (name, code) ->
-    program   = parse name, code
-    assembler = compile program
-    new Snippet program.signatures, assembler
+    program           = parse name, code
+    [sigs, assembler] = compile program
+    new Snippet sigs, assembler
 
   constructor: (@_signatures, @_assembler) ->
     @namespace  = null

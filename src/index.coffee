@@ -27,12 +27,13 @@ window.ShaderGraph = ShaderGraph
 
 code1 = """
 float foobar(vec3 color) {
+  return color.x;
 }
 """
 
 code2 = """
-float callback(vec3 color);
-float foobar(vec3 color) {
+void foobar(out float valueOut, in float valueIn) {
+  valueOut = valueIn * 2.0;
 }
 """
 
@@ -54,9 +55,7 @@ shadergraph = ShaderGraph snippets
 shader  = shadergraph.shader()
 graph   = shader
           .group()
-            .group()
-              .snippet('code1')
-            .callback()
+            .snippet('code1')
             .snippet('code2')
           .callback()
           .snippet('code3')

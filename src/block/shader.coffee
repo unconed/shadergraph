@@ -5,9 +5,6 @@ class Shader extends Block
     @namespace = @snippet.namespace
     super
 
-  externals: () ->
-    @snippet.externals
-
   makeOutlets: () ->
     outlets = []
     outlets = outlets.concat @snippet.main.signature
@@ -15,9 +12,11 @@ class Shader extends Block
 
     outlets
 
-  solo: (phase) -> @snippet
-
   call: (program, phase, depth = 0) ->
-    @_call @snippet, program, phase, depth
+    @_call    @snippet, program, phase, depth
+
+  _externals: () ->
+    @snippet.externals
+
 
 module.exports = Shader

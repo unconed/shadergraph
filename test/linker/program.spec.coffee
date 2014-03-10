@@ -73,8 +73,8 @@ describe "program", () ->
               .snippet('code3')
               .end()
 
-    program = graph.compile()
-    code = normalize(program.code)
+    snippet = graph.compile()
+    code = normalize(snippet.code)
 
     expect(code).toBe(result)
 
@@ -131,8 +131,8 @@ describe "program", () ->
               .snippet('code3')
               .end()
 
-    program = graph.compile()
-    code = normalize(program.code)
+    snippet = graph.compile()
+    code = normalize(snippet.code)
 
     expect(code).toBe(result)
 
@@ -199,8 +199,8 @@ describe "program", () ->
               .snippet('code3')
               .end()
 
-    program = graph.compile()
-    code = normalize(program.code)
+    snippet = graph.compile()
+    code = normalize(snippet.code)
 
     expect(code).toBe(result)
 
@@ -268,8 +268,8 @@ describe "program", () ->
               .snippet('code3')
               .end()
 
-    program = graph.compile()
-    code = normalize(program.code)
+    snippet = graph.compile()
+    code = normalize(snippet.code)
 
     expect(code).toBe(result)
 
@@ -324,10 +324,10 @@ describe "program", () ->
               .snippet('code2')
               .end()
 
-    program = graph.compile()
+    snippet = graph.compile()
 
     # verify basic form
-    code = normalize(program.code, /uni/)
+    code = normalize(snippet.code, /uni/)
     expect(code).toBe(result)
 
     # verify if externals were exported correctly
@@ -335,9 +335,9 @@ describe "program", () ->
     names = ['callback1', 'callback2']
     snippets = ['split', 'join']
     types = ['(f)(v2)', '(v3)(v3)']
-    for name, ext of program.externals
+    for name, ext of snippet.externals
       namespace = ns(name)
-      expect(program.code.indexOf('void '+ namespace + snippets[n] + '(')).not.toBe -1
+      expect(snippet.code.indexOf('void '+ namespace + snippets[n] + '(')).not.toBe -1
       expect(ext.name).toBe(names[n])
       expect(ext.type).toBe(types[n])
       n++
@@ -413,37 +413,37 @@ describe "program", () ->
               .snippet('code3')
               .end()
 
-    program = graph.compile()
+    snippet = graph.compile()
 
     # verify basic form
-    code = normalize(program.code, /uni/)
+    code = normalize(snippet.code, /uni/)
     expect(code).toBe(result)
 
     # verify if uniforms were duped correctly
     n = 0
-    for name, uni of program.uniforms
+    for name, uni of snippet.uniforms
       namespace = ns(name)
-      expect(program.code.indexOf('void '+ namespace + 'map(')).not.toBe -1
+      expect(snippet.code.indexOf('void '+ namespace + 'map(')).not.toBe -1
       expect(uni.name).toBe('uni')
       expect(uni.type).toBe('f')
       n++
     expect(n).toBe(2)
 
     # verify attribute
-    expect(program.attributes.att1).toBeTruthy()
-    expect(program.attributes.att1.name).toBe 'att1'
-    expect(program.attributes.att1.type).toBe 'v2'
+    expect(snippet.attributes.att1).toBeTruthy()
+    expect(snippet.attributes.att1.name).toBe 'att1'
+    expect(snippet.attributes.att1.type).toBe 'v2'
 
-    expect(program.attributes.att2).toBeTruthy()
-    expect(program.attributes.att2.name).toBe 'att2'
-    expect(program.attributes.att2.type).toBe 'v3'
+    expect(snippet.attributes.att2).toBeTruthy()
+    expect(snippet.attributes.att2.name).toBe 'att2'
+    expect(snippet.attributes.att2.type).toBe 'v3'
 
     # verify signature
-    expect(program.main.signature.length).toBe 2
-    expect(program.main.signature[0].type).toBe 'v4'
-    expect(program.main.signature[0].inout).toBe 0
-    expect(program.main.signature[1].type).toBe 'v4'
-    expect(program.main.signature[1].inout).toBe 1
+    expect(snippet.main.signature.length).toBe 2
+    expect(snippet.main.signature[0].type).toBe 'v4'
+    expect(snippet.main.signature[0].inout).toBe 0
+    expect(snippet.main.signature[1].type).toBe 'v4'
+    expect(snippet.main.signature[1].inout).toBe 1
 
 
 
@@ -470,19 +470,13 @@ describe "program", () ->
     result = """
     float _sn_1_foobar(vec3 color) {
     }
+    #define _pg_1_ _sn_1_foobar
+    #define _sn_2_callback _pg_1_
     float _sn_2_callback(vec3 color);
     void _sn_3_main(in vec3 color) {
       float f = _sn_2_callback(color);
     }
-    float _sn_2_callback(vec3 color) {
-      float _sn_4_return;
-
-      _sn_4_return = _sn_1_foobar(color);
-      return _sn_4_return;
-    }
-    void _pg_1_(in vec3 _io_1_color) {
-      _sn_3_main(_io_1_color);
-    }
+    #define _pg_2_ _sn_3_main
     """
 
     shadergraph = ShaderGraph snippets
@@ -495,11 +489,10 @@ describe "program", () ->
               .snippet('code2')
               .end()
 
-    program = graph.compile()
-    code = normalize(program.code)
+    snippet = graph.compile()
+    code = normalize(snippet.code)
 
     expect(code).toBe(result)
-
 
 
 
@@ -532,34 +525,18 @@ describe "program", () ->
     result = """
     float _sn_1_foobar(vec3 color) {
     }
+    #define _pg_1_ _sn_1_foobar
+    #define _sn_2_callback _pg_1_
     float _sn_2_callback(vec3 color);
     float _sn_3_foobar(vec3 color) {
     }
-    float _sn_2_callback(vec3 color) {
-      float _sn_4_return;
-
-      _sn_4_return = _sn_1_foobar(color);
-      return _sn_4_return;
+    #define _pg_2_ _sn_3_foobar
+    #define _sn_4_callback _pg_2_
+    float _sn_4_callback(vec3 color);
+    void _sn_5_main(in vec3 color) {
+      float f = _sn_4_callback(color);
     }
-    float _pg_1_(vec3 _io_1_color) {
-      float _io_2_return;
-
-      _io_2_return = _sn_3_foobar(_io_1_color);
-      return _io_2_return;
-    }
-    float _sn_5_callback(vec3 color);
-    void _sn_6_main(in vec3 color) {
-      float f = _sn_5_callback(color);
-    }
-    float _sn_5_callback(vec3 color) {
-      float _pg_2_return;
-
-      _pg_2_return = _pg_1_(color);
-      return _pg_2_return;
-    }
-    void _pg_3_(in vec3 _io_3_color) {
-      _sn_6_main(_io_3_color);
-    }
+    #define _pg_3_ _sn_5_main
     """
 
     shadergraph = ShaderGraph snippets
@@ -575,7 +552,79 @@ describe "program", () ->
               .snippet('code3')
               .end()
 
-    program = graph.compile()
-    code = normalize(program.code)
+    snippet = graph.compile()
+    code = normalize(snippet.code)
 
     expect(code).toBe(result)
+
+
+
+  it 'creates linkages for subgraphs and signature mismatches (group/callback)', () ->
+
+    code1 = """
+    float foobar(vec3 color) {
+      return color.x;
+    }
+    """
+
+    code2 = """
+    void foobar(out float valueOut, in float valueIn) {
+      valueOut = valueIn * 2.0;
+    }
+    """
+
+    code3 = """
+    float callback(vec3 color);
+    void main(in vec3 color) {
+      float f = callback(color);
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+      'code3': code3
+    }
+
+    result = """
+    float _sn_1_foobar(vec3 color) {
+      return color.x;
+    }
+    void _sn_2_foobar(out float valueOut, in float valueIn) {
+      valueOut = valueIn * 2.0;
+    }
+    void _pg_1_(vec3 _io_1_color, out float _io_2_valueOut) {
+      float _io_3_return;
+
+      _io_3_return = _sn_1_foobar(_io_1_color);
+      _sn_2_foobar(_io_2_valueOut, _io_3_return);
+    }
+    float _sn_3_callback(vec3 color) {
+      float _pg_2_return;
+
+      _pg_1_(color, _pg_2_return);
+      return _pg_2_return;
+    }
+    float _sn_3_callback(vec3 color);
+    void _sn_4_main(in vec3 color) {
+      float f = _sn_3_callback(color);
+    }
+    #define _pg_3_ _sn_4_main
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .group()
+                .snippet('code1')
+                .snippet('code2')
+              .callback()
+              .snippet('code3')
+              .end()
+
+    snippet = graph.compile()
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+

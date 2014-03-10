@@ -4,7 +4,7 @@ class Block
   constructor: () ->
     @node = new Graph.Node @, @makeOutlets?() ? {}
 
-  link: (program, name, external) ->
+  link: (program, phase, name, external) ->
   call: (program, depth = 0) ->
   externals: () -> {}
 
@@ -17,16 +17,20 @@ class Block
   _call: (module, program, phase, depth) ->
     program.call    @node, module, depth
 
+    externals = null
+
     # Look up inputs
     for outlet in @node.inputs
       previous = outlet.input?.node.owner
 
       # Callback type
       if outlet.type[0] == '('
-        for key, ext of @externals() when ext.name == outlet.name
+        externals ?= @_externals()
+        for key, ext of externals when ext.name == outlet.name
           name     = key
           external = ext
-        previous?.link program, phase, name, external
+
+        previous?.link program, phase, name, external, outlet
       else
         previous?.call program, phase, depth + 1
 

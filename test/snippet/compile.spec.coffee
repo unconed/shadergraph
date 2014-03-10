@@ -2,8 +2,9 @@ Snippet = ShaderGraph.Snippet
 
 describe "compiler", () ->
 
-  program = null
-  assembler = null
+  program    = null
+  signatures = null
+  assembler  = null
 
   code = """
   uniform float uf1[2], uf2[3];
@@ -68,7 +69,7 @@ describe "compiler", () ->
     compile = Snippet.compile
 
     program = parse 'test', code
-    assembler = compile program
+    [signatures, assembler] = compile program
 
   it 'creates an assembler function', () ->
 

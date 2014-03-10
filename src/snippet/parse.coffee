@@ -102,13 +102,13 @@ sortSymbols = (symbols) ->
 # Generate type signatures and appropriate ins/outs
 extractSignatures = (main, internals, externals) ->
   sigs =
-    uniform: []
+    uniform:   []
     attribute: []
-    varying: []
-    external: []
-    internal: []
-    global: []
-    main: null
+    varying:   []
+    external:  []
+    internal:  []
+    global:    []
+    main:      null
 
   defn = (symbol) ->
     decl.type symbol.ident, symbol.type, symbol.quant, symbol.inout, symbol.storage

@@ -11,17 +11,17 @@ class Factory
     @end()
 
   # Block creation
-  snippet: (name, uniforms) ->
+  call: (name, uniforms) ->
     @_append  @_shader name, uniforms
     @
 
-  # Create parallel branches that act as one block
-  parallel: () ->
+  # Create parallel branches that connect as one block to the tail
+  split: () ->
     @_group '_combine', true
     @
 
-  # Create forked branches that act as multiple blocks
-  fork: () ->
+  # Create parallel branches that fan out from the tail
+  fan: () ->
     @_group '_combine', false
     @
 
@@ -40,7 +40,7 @@ class Factory
     @_next()
     @
 
-  # Add pass-through edge and connect branches to parent
+  # Connect branches to previous tail and add pass-through from tail
   pass: () ->
     pass = @_stack[2].end
     @join()
@@ -74,9 +74,9 @@ class Factory
 
   # Add existing factory as callback
   link: (factory) ->
-    @group()
-    @concat factory
     @callback()
+    @concat factory
+    @join()
 
   # Return finalized graph / reset factory
   end: () ->
@@ -86,7 +86,6 @@ class Factory
     # Remember terminating node(s) of graph
     if @graph
       @_tail @_state, @graph
-      @graph.tail = @_state.end[0]
 
     graph = @graph
 
@@ -120,8 +119,15 @@ class Factory
 
     graph.tail = state.end[0]
 
-    # Add compile method
-    graph.compile = (namespace) => graph.tail.owner.compile @language, namespace
+    # Add compile/link/export shortcut methods
+    graph.compile = (namespace) =>
+      graph.tail.owner.compile @language, namespace
+
+    graph.link    = () =>
+      graph.tail.owner.link @language
+
+    graph.export  = (layout) =>
+      graph.tail.owner.export layout
 
   # Connect parallel branches to tail
   _combine: (sub, main) ->

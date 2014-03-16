@@ -191,11 +191,11 @@ describe "program", () ->
     shader  = shadergraph.shader()
     graph   = shader
               .snippet('code1')
-              .group()
+              .split()
                 .snippet('code2')
               .next()
                 .snippet('code2')
-              .combine()
+              .join()
               .snippet('code3')
               .end()
 
@@ -260,7 +260,7 @@ describe "program", () ->
     shader  = shadergraph.shader()
     graph   = shader
               .snippet('code1')
-              .group()
+              .split()
                 .snippet('code2')
               .next()
                 .snippet('code2')
@@ -405,11 +405,11 @@ describe "program", () ->
     shader  = shadergraph.shader()
     graph   = shader
               .snippet('code1')
-              .group()
+              .split()
                 .snippet('code2')
               .next()
                 .snippet('code2')
-              .combine()
+              .join()
               .snippet('code3')
               .end()
 

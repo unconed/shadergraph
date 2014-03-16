@@ -21,7 +21,7 @@ class Program
   constructor: (@language, @namespace) ->
     @calls      = {}
 
-  # Queue: Call a given module at certain priority
+  # Call a given module at certain priority
   call: (node, module, priority) ->
     ns = module.namespace
 

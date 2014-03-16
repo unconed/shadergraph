@@ -10,24 +10,23 @@ class Callback extends Block
 
   makeOutlets: () ->
     outlets = []
-
-    ins  = []
-    outs = []
+    ins     = []
+    outs    = []
 
     isCallback = (type) -> return type[0] == '('
 
-    for outlet in @graph.inputs()
+    # Pass-through existing callbacks
+    # Collect open inputs/outputs
+    handle = (outlet, list) =>
       if isCallback outlet
         outlets.push outlet.dupe()
       else
-        ins.push outlet.type
+        list.push outlet.type
 
-    for outlet in @graph.outputs()
-      if isCallback outlet
-        outlets.push outlet.dupe()
-      else
-        outs.push outlet.type
+    handle outlet, ins  for outlet in @graph.inputs()
+    handle outlet, outs for outlet in @graph.outputs()
 
+    # Merge inputs/outputs into new callback signature
     ins  = ins.join  ','
     outs = outs.join ','
     type = "(#{ins})(#{outs})"
@@ -42,17 +41,17 @@ class Callback extends Block
   make: () ->
     @subroutine = @graph.compile @namespace
 
-  compile: () ->
-    @make()
-    @subroutine
-
   fetch: (outlet) ->
     @make()
     @subroutine
 
-  link: (program, name, external, outlet) ->
-    @make()
-    @_include @subroutine, program
-    @_link    @subroutine, program, name, external
+  callback: (layout, name, external, outlet) ->
+    @make() if !@subroutine?
+    @_include  @subroutine, layout
+    @_callback @subroutine, layout, name, external, outlet
+
+  export: (layout) ->
+    @_link     @subroutine, layout
+    @graph.export layout
 
 module.exports = Callback

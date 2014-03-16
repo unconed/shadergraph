@@ -12,7 +12,12 @@ class Call extends Block
 
     outlets
 
-  call: (program, depth = 0) ->
-    @_call @snippet, program, depth
+  call: (program, depth) ->
+    @_call   @snippet, program, depth
+    @_inputs @snippet, program, depth
+
+  export: (layout) ->
+    @_link   @snippet, layout
+    @_trace  @snippet, layout
 
 module.exports = Call

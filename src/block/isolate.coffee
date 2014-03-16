@@ -21,18 +21,25 @@ class Isolate extends Block
   make: () ->
     @subroutine = @graph.compile @namespace
 
+  call: (program, depth) ->
+    @make()  if !@subroutine?
+    @_call   @subroutine, program, depth
+    @_inputs @subroutine, program, depth
+
+  export: (layout) ->
+    @make()  if !@subroutine?
+    @_link  @subroutine, layout
+    @_trace @subroutine, layout
+    @graph.export layout
+
   fetch: (outlet) ->
     # Fetch subroutine from either nested Isolate or Callback block
     outlet = @graph.getOut outlet.name
     outlet?.node.owner.fetch outlet
 
-  link: (program, name, external, outlet) ->
-    subroutine = fetch outlet
-    @_include subroutine, program
-    @_link    subroutine, program, name, external
-
-  call: (program, depth = 0) ->
-    @make()
-    @_call @subroutine, program, depth
+  callback: (layout, name, external, outlet) ->
+    subroutine = @fetch outlet
+    @_include  subroutine, layout
+    @_callback subroutine, layout, name, external, outlet
 
 module.exports = Isolate

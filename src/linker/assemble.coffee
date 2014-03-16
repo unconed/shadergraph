@@ -18,10 +18,6 @@ assemble = (language, namespace, calls) ->
 
   process = () ->
 
-#    include  m.node, m.module for m in modules
-#    links         = generate.links links
-#    includes.push links   if links != ''
-
     [body, calls] = handle calls
     body.entry    = namespace if namespace?
     main          = generate.build body, calls

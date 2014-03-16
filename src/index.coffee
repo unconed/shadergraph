@@ -34,8 +34,9 @@ window.ShaderGraph = ShaderGraph
 
 
 code1 = """
+float getMultiplier();
 float foobar(vec3 color) {
-  return color.x;
+  return color.x * getMultiplier();
 }
 """
 
@@ -50,26 +51,36 @@ void main(in float a, in float b) {
 }
 """
 
+code4 = """
+float getMultiplier() {
+  return 1.5;
+}
+"""
+
 snippets = {
   'code1': code1
   'code2': code2
   'code3': code3
+  'code4': code4
 }
 
 shadergraph = ShaderGraph snippets
 
 shader  = shadergraph.shader()
 graph   = shader
-          .snippet('code1')
-          .parallel()
-            .snippet('code2')
-          .next()
-            .snippet('code2')
+          .callback()
+            .call('code4')
           .join()
-          .snippet('code3')
+          .call('code1')
+          .parallel()
+            .call('code2')
+          .next()
+            .call('code2')
+          .join()
+          .call('code3')
           .end()
 
-snippet = graph.compile()
+snippet = graph.link()
 
 normalize = (code) ->
   # renumber generated outputs

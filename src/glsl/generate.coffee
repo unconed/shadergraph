@@ -1,4 +1,5 @@
-$ = require './constants'
+Graph = require '../graph'
+$     = require './constants'
 
 module.exports = _ =
 
@@ -27,8 +28,8 @@ module.exports = _ =
     "#define #{a} #{b}"
 
   # Function define
-  function: (type, entry, params, vars, calls, ret) ->
-    "#{type} #{entry}(#{params}) {\n#{vars}#{calls}#{ret}}"
+  function: (type, entry, params, vars, calls) ->
+    "#{type} #{entry}(#{params}) {\n#{vars}#{calls}}"
 
   # Function invocation
   invoke: (ret, entry, args) ->
@@ -68,7 +69,7 @@ module.exports = _ =
           if name == $.RETURN_ARG
             throw "Error: two unconnected return values within same graph" if body.return != ''
             body.type     = arg.spec
-            body.return   = "  return #{id};\n"
+            body.return   = "  return #{id}"
             body.vars[id] = "  " + param(id)
             body.signature.push arg
           else
@@ -96,11 +97,12 @@ module.exports = _ =
     # Otherwise build function body
     if !code?
       vars    = (decl for v, decl of body.vars)
+      calls   = body.calls.slice()
       params  = body.params
-      calls   = body.calls
       type    = body.type
       ret     = body.return
 
+      calls.push ret if ret != ''
       calls.push ''
 
       if vars.length
@@ -112,7 +114,7 @@ module.exports = _ =
       calls  = _.statements calls
       params = _.list       params
 
-      code   = _.function type, entry, params, vars, calls, ret
+      code   = _.function type, entry, params, vars, calls
 
     signature: body.signature
     code:      code
@@ -120,19 +122,30 @@ module.exports = _ =
 
   # Build links to other callbacks
   links: (links) ->
-    _.statements(_.link l for l in links)
+    out =
+      defs: []
+      bodies: []
+
+    _.link l, out for l in links
+
+    out.defs   = _.statements out.defs
+    out.bodies = _.statements out.bodies
+
+    out
 
   # Link a module's entry point as a callback
-  link: (link) =>
+  link: (link, out) =>
     {module, name, external} = link
     main  = module.main
     entry = module.entry
 
-    # If signatures match, make two symbols equal
-    if same main.signature, external.signature
-      _.define name, entry
+    # If signatures match, #define alias for the symbol
+    if _.same main.signature, external.signature
+      return out.defs.push _.define name, entry
 
-    # Signatures differ, map names to names
+    # Signatures differ, build one-line callback to match defined prototype
+
+    # Map names to names
     ins  = []
     outs = []
     map  = {}
@@ -160,6 +173,7 @@ module.exports = _ =
 
     inner   = _.body()
     _.call _lookup, _dangling, entry, main.signature, inner
+    inner.entry = entry
 
     # Avoid 'return' keyword
     map =
@@ -172,5 +186,18 @@ module.exports = _ =
     outer.calls = inner.calls
     outer.entry = name
 
-    _.build(outer).code
+    out.bodies.push _.build(inner).code.split(' {')[0]
+    out.bodies.push _.build(outer).code
 
+  # Hoist symbols defines to top to ensure (re)definitions use the right alias
+  hoist: (code) ->
+    re = /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/
+
+    lines = code.split /\n/g
+    defs = []
+    out = []
+    for line in lines
+      list = if line.match re then defs else out
+      list.push line
+
+    defs.concat(out).join "\n"

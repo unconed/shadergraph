@@ -22,8 +22,8 @@ class Graph
       outputs.push(outlet) for outlet in node.outputs when outlet.output.length == 0
     return outputs
 
-  tail: () ->
-    @nodes[@nodes.length - 1]
+  getIn:  (name) -> (outlet for outlet in @inputs()  when outlet.name == name)[0]
+  getOut: (name) -> (outlet for outlet in @outputs() when outlet.name == name)[0]
 
   add: (node, ignore) ->
 

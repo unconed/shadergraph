@@ -1,11 +1,12 @@
 Graph   = require '../graph'
 Block   = require './block'
-Program = require('../linker')
 
+###
+  Re-use a subgraph as a callback
+###
 class Callback extends Block
   constructor: (@graph) ->
     super
-    @namespace = Program.entry()
 
   makeOutlets: () ->
     outlets = []
@@ -13,11 +14,19 @@ class Callback extends Block
     ins  = []
     outs = []
 
+    isCallback = (type) -> return type[0] == '('
+
     for outlet in @graph.inputs()
-      ins.push outlet.type
+      if isCallback outlet
+        outlets.push outlet.dupe()
+      else
+        ins.push outlet.type
 
     for outlet in @graph.outputs()
-      outs.push outlet.type
+      if isCallback outlet
+        outlets.push outlet.dupe()
+      else
+        outs.push outlet.type
 
     ins  = ins.join  ','
     outs = outs.join ','
@@ -30,20 +39,20 @@ class Callback extends Block
 
     outlets
 
-  fetch: (outlet) ->
-    @make     phase
+  make: () ->
+    @subroutine = @graph.compile @namespace
+
+  compile: () ->
+    @make()
     @subroutine
 
-  make: (phase) ->
-    @subroutine = Program.compile @graph.tail().owner, phase, @namespace
+  fetch: (outlet) ->
+    @make()
+    @subroutine
 
-  link: (program, phase, name, external, outlet) ->
-    @make     phase
+  link: (program, name, external, outlet) ->
+    @make()
     @_include @subroutine, program
-    @_link    @subroutine, program, phase, name, external
-
-  _externals: () ->
-    @subroutine?.externals ? {}
-
+    @_link    @subroutine, program, name, external
 
 module.exports = Callback

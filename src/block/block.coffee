@@ -1,38 +1,41 @@
-Graph = require '../graph'
+Graph   = require '../graph'
+Program = require('../linker').Program
 
 class Block
-  constructor: () ->
-    @node = new Graph.Node @, @makeOutlets?() ? {}
 
-  link: (program, phase, name, external) ->
+  constructor: () ->
+    @namespace ?= Program.entry()
+    @node       = new Graph.Node @, @makeOutlets?() ? {}
+
+  compile: (language, namespace) ->
+    program = new Program language, namespace ? Program.entry()
+    @call program
+    program.assemble()
+
+  link: (program, name, external) ->
   call: (program, depth = 0) ->
   externals: () -> {}
 
-  _link: (module, program, phase, name, external) ->
+  _link: (module, program, name, external) ->
     program.link    @node, module, name, external
 
   _include: (module, program) ->
     program.include @node, module
 
-  _call: (module, program, phase, depth) ->
+  _call: (module, program, depth) ->
     program.call    @node, module, depth
 
-    externals = null
+    previous = (outlet) -> outlet.input?.node.owner
 
-    # Look up inputs
-    for outlet in @node.inputs
-      previous = outlet.input?.node.owner
+    for arg in module.main.signature
+      outlet = @node.get arg.name
+      previous(outlet)?.call program, depth + 1
 
-      # Callback type
-      if outlet.type[0] == '('
-        externals ?= @_externals()
-        for key, ext of externals when ext.name == outlet.name
-          name     = key
-          external = ext
-
-        previous?.link program, phase, name, external, outlet
-      else
-        previous?.call program, phase, depth + 1
+    ###
+    for key, ext of module.externals
+      outlet = @node.get ext.name
+      previous(outlet)?.link program, key, ext, outlet.input
+    ###
 
     program
 

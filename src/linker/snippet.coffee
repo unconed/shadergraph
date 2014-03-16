@@ -1,16 +1,13 @@
-parse = require './parse'
-compile = require './compile'
-
 class Snippet
   @index: 0
   @namespace: () -> "_sn_#{++Snippet.index}_"
 
-  @load: (name, code) ->
-    program           = parse name, code
-    [sigs, assembler] = compile program
-    new Snippet sigs, assembler
+  @load: (language, name, code) ->
+    program          = language.parse   name, code
+    [sigs, compiler] = language.compile program
+    new Snippet language, sigs, compiler
 
-  constructor: (@_signatures, @_assembler) ->
+  constructor: (@language, @_signatures, @_compiler) ->
     @namespace  = null
     @code       = null
 
@@ -22,11 +19,11 @@ class Snippet
     @attributes = null
 
   clone: () ->
-    new Snippet @_signatures, @_assembler
+    new Snippet @language, @_signatures, @_compiler
 
   apply: (uniforms, @namespace) ->
     @namespace ?= Snippet.namespace()
-    @code       = @_assembler @namespace
+    @code       = @_compiler @namespace
 
     @main       = @_signatures.main
     @entry      = @namespace + @main.name

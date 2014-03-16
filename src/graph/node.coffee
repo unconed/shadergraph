@@ -135,7 +135,7 @@ class Node
     throw "Adding two identical outlets to same node. (#{key})" if @outlets[key]
 
     # Link back outlet
-    outlet.setNode @
+    outlet.node = @
 
     # Add to name hash and inout list
     @inputs.push(outlet)  if outlet.inout == Graph.IN
@@ -164,7 +164,7 @@ class Node
     outlet.disconnect()
 
     # Unlink outlet.
-    outlet.setNode null
+    outlet.node = null
 
     # Remove from name list and inout list.
     delete @outlets[key]

@@ -1,42 +1,38 @@
 Graph   = require '../graph'
 Block   = require './block'
-Program = require('../linker')
 
+###
+  Isolate a subgraph as a single node
+###
 class Isolate extends Block
   constructor: (@graph) ->
     super
-    @namespace = Program.entry()
 
   makeOutlets: () ->
     outlets = []
+    names = null
 
-    for outlet in @graph.inputs()
-      outlets.push outlet
-
-    for outlet in @graph.outputs()
-      outlets.push outlet
+    for set in ['inputs', 'outputs']
+      for outlet in @graph[set]()
+        outlets.push outlet.dupe()
 
     outlets
 
-  make: (phase) ->
-    @subroutine = Program.compile @graph.tail().owner, phase, @namespace
+  make: () ->
+    @subroutine = @graph.compile @namespace
 
   fetch: (outlet) ->
-    # Fetch subroutine for outlet
-    outlet = (o for o in @graph.outputs() when o.name == outlet.name)[0]
-    outlet.node.owner.fetch outlet if outlet?
+    # Fetch subroutine from either nested Isolate or Callback block
+    outlet = @graph.getOut outlet.name
+    outlet?.node.owner.fetch outlet
 
-  link: (program, phase, name, external, outlet) ->
+  link: (program, name, external, outlet) ->
     subroutine = fetch outlet
     @_include subroutine, program
-    @_link    subroutine, program, phase, name, external
+    @_link    subroutine, program, name, external
 
-  call: (program, phase, depth = 0) ->
-    @make  phase
-    @_call @subroutine, program, phase, depth
-
-  _externals: () ->
-    @subroutine?.externals ? {}
-
+  call: (program, depth = 0) ->
+    @make()
+    @_call @subroutine, program, depth
 
 module.exports = Isolate

@@ -1,8 +1,20 @@
-walk      = require './walk'
+###
+  Compile snippet back into GLSL, but with certain symbols replaced by prefixes / placeholders
+###
 
-###
-  compile snippet back into GLSL, but with certain symbols replaced by placeholders
-###
+compile = (program) ->
+  {ast, code, signatures} = program
+
+  # Prepare list of placeholders
+  placeholders = replaced signatures
+
+  # Compile
+  assembler = string_compiler code, placeholders
+  #assembler = ast_compiler program, placeholders
+
+  [signatures, assembler]
+
+# #####
 
 tick = () ->
   now = +new Date
@@ -23,25 +35,13 @@ replaced = (signatures) ->
 
   out
 
-compile = (program) ->
-  {ast, code, signatures} = program
-
-  # Prepare list of placeholders
-  placeholders = replaced signatures
-
-  # Compile
-  assembler = string_compiler code, placeholders
-  #assembler = ast_compiler program, placeholders
-
-  [signatures, assembler]
-
 ###
 String-replacement based compiler
 ###
 string_compiler = (code, placeholders) ->
 
   # Make regexp for finding placeholders
-  # replace on word boundaries
+  # Replace on word boundaries
   re = new RegExp '\\b(' + (key for key of placeholders).join('|') + ')\\b', 'g'
 
   # Strip comments
@@ -299,6 +299,20 @@ ast_compiler = (ast, placeholders) ->
 
     out
 
+# Walk AST, apply map and collect values
+debug = false
+
+walk = (map, collect, node, indent) ->
+  debug && console.log indent, node.type, node.token?.data, node.token?.type
+
+  recurse = map node, collect
+
+  if recurse
+    walk map, collect, child, indent + '  ', debug for child, i in node.children
+
+  null
+
+module.exports = walk
 ###
 
 module.exports = compile

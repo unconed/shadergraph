@@ -8,8 +8,12 @@ class Outlet
   @id: (name) ->
     "_io_#{++Outlet.index}_#{name}"
 
+  @hint: (name) ->
+    name = name.replace /^(_io_[0-9]+_)/, ''
+    name = name.replace /(In|Out|Inout)$/, ''
+
   constructor: (@inout, @name, @hint, @type, @meta) ->
-    @hint  ?= name
+    @hint  ?= Outlet.hint name
 
     @node   = null
     @input  = null
@@ -23,6 +27,11 @@ class Outlet
     @hint  = outlet.hint
     @type  = outlet.type
     @meta  = outlet.meta
+
+  # Copy with unique name
+  dupe: (name = @name) ->
+    {inout, hint, type, meta} = @
+    {inout, hint, type, meta, name: @id}
 
   # Connect to given outlet
   connect: (outlet) ->
@@ -64,8 +73,5 @@ class Outlet
         # Remove all outgoing connections.
         outlet.input = null for outlet in @output
         @output = []
-
-  # Link to given node.
-  setNode: (@node) ->
 
 module.exports = Outlet

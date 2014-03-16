@@ -1,4 +1,5 @@
 Snippet = ShaderGraph.Snippet
+GLSL    = ShaderGraph.GLSL
 
 describe "snippet", () ->
 
@@ -15,7 +16,7 @@ describe "snippet", () ->
     void testSnippet(float param) { };
     """
 
-    snippet = Snippet.load 'test', code
+    snippet = Snippet.load GLSL, 'test', code
 
   it 'loads', () ->
     expect(snippet).toBeTruthy()

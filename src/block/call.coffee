@@ -1,6 +1,6 @@
 Block   = require './block'
 
-class Shader extends Block
+class Call extends Block
   constructor: (@snippet) ->
     @namespace = @snippet.namespace
     super
@@ -12,11 +12,7 @@ class Shader extends Block
 
     outlets
 
-  call: (program, phase, depth = 0) ->
-    @_call    @snippet, program, phase, depth
+  call: (program, depth = 0) ->
+    @_call @snippet, program, depth
 
-  _externals: () ->
-    @snippet.externals
-
-
-module.exports = Shader
+module.exports = Call

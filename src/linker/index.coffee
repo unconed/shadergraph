@@ -1,7 +1,5 @@
-exports.Factory  = require './factory'
-exports.Library  = require './library'
+exports.Snippet  = require './snippet'
 exports.Program  = require './program'
-
 exports.assemble = require './assemble'
-exports.compile  = exports.Program.compile
-exports.entry    = exports.Program.entry
+
+exports.load = exports.Snippet.load

@@ -1,17 +1,25 @@
-Linker  = require './linker'
+glsl    = require './glsl'
+
+f       = require './factory'
+Factory = f.Factory
+library = f.library
+cache   = f.cache
+
 
 class ShaderGraph
-  constructor: (library = {}) ->
-    return new ShaderGraph library if @ !instanceof ShaderGraph
-    @library = new Linker.Library library
+  constructor: (snippets) ->
+    return new ShaderGraph snippets if @ !instanceof ShaderGraph
+
+    @fetch = cache library glsl, snippets
 
   shader: () ->
-    new Linker.Factory @library
+    new Factory glsl, @fetch
 
   # Expose class hierarchy
-  @Graph:   require './graph'
-  @Snippet: require './snippet'
   @Block:   require './block'
+  @Factory: require './factory'
+  @GLSL:    require './glsl'
+  @Graph:   require './graph'
   @Linker:  require './linker'
 
 module.exports = ShaderGraph
@@ -38,9 +46,7 @@ void foobar(out float valueOut, in float valueIn) {
 """
 
 code3 = """
-float callback(vec3 color);
-void main(in vec3 color) {
-  float f = callback(color);
+void main(in float a, in float b) {
 }
 """
 
@@ -54,10 +60,12 @@ shadergraph = ShaderGraph snippets
 
 shader  = shadergraph.shader()
 graph   = shader
-          .group()
-            .snippet('code1')
+          .snippet('code1')
+          .parallel()
             .snippet('code2')
-          .callback()
+          .next()
+            .snippet('code2')
+          .join()
           .snippet('code3')
           .end()
 

@@ -1,23 +1,14 @@
 tokenizer = require '../../vendor/glsl-tokenizer'
 parser    = require '../../vendor/glsl-parser'
 decl      = require './decl'
-walk      = require './walk'
+$         = require './constants'
 
 debug = false
-INOUT_ARG  = '_i_n_o_u_t'
-RETURN_ARG = 'return'
 
 ###
 parse GLSL into AST
 extract all global symbols and make type signatures
 ###
-tick = () ->
-  now = +new Date
-  return (label) ->
-    delta = +new Date() - now
-    console.log label, delta + " ms"
-    delta
-
 # Parse a GLSL snippet
 parse = (name, code) ->
   ast        = parseGLSL name, code
@@ -123,13 +114,13 @@ extractSignatures = (main, internals, externals) ->
 
       a.inout = decl.in
       b.inout = decl.out
-      b.name += INOUT_ARG
+      b.name += $.SHADOW_ARG
 
       signature.push b
 
     # Add output for return type
     if symbol.type != 'void'
-      signature.push decl.type RETURN_ARG, symbol.type, false, 'out'
+      signature.push decl.type $.RETURN_ARG, symbol.type, false, 'out'
 
     # Make type string
     ins = (d.type for d in signature when d.inout == decl.in).join ','
@@ -167,4 +158,29 @@ extractSignatures = (main, internals, externals) ->
 
   sigs
 
+# Walk AST, apply map and collect values
+debug = false
+
+walk = (map, collect, node, indent) ->
+  debug && console.log indent, node.type, node.token?.data, node.token?.type
+
+  recurse = map node, collect
+
+  if recurse
+    walk map, collect, child, indent + '  ', debug for child, i in node.children
+
+  null
+
+# #####
+
+tick = () ->
+  now = +new Date
+  return (label) ->
+    delta = +new Date() - now
+    console.log label, delta + " ms"
+    delta
+
+
+module.exports = walk
 module.exports = parse
+

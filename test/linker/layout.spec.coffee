@@ -41,12 +41,14 @@ describe "layout", () ->
     result = """
     #define _sn_1_callback _pg_1_
     #define _pg_1_ _sn_2_foobar
-    #define _pg_2_ _sn_3_main
     float _sn_2_foobar(vec3 color) {
     }
     float _sn_1_callback(vec3 color);
     void _sn_3_main(in vec3 color) {
       float f = _sn_1_callback(color);
+    }
+    void main(in vec3 _io_1_color) {
+      _sn_3_main(_io_1_color);
     }
     """
 
@@ -60,7 +62,7 @@ describe "layout", () ->
               .call('code2')
               .end()
 
-    snippet = graph.link()
+    snippet = graph.link('main')
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -96,19 +98,21 @@ describe "layout", () ->
     #wtf coffeescript?
     result =
     """#define _sn_1_callback _pg_1_
-  	#define _pg_1_ _sn_2_foobar
-  	#define _pg_2_ _sn_3_foobar
-  	#define _pg_3_ _sn_4_main
-  	#define _sn_5_callback _pg_2_;
-  	float _sn_2_foobar(vec3 color) {
-  	}
-  	float _sn_1_callback(vec3 color);
-  	float _sn_3_foobar(vec3 color) {
-  	}
-  	float _sn_5_callback(vec3 color);
-  	void _sn_4_main(in vec3 color) {
-  	  float f = _sn_5_callback(color);
-  	}
+    #define _pg_1_ _sn_2_foobar
+    #define _pg_2_ _sn_3_foobar
+    #define _sn_4_callback _pg_2_;
+    float _sn_2_foobar(vec3 color) {
+    }
+    float _sn_1_callback(vec3 color);
+    float _sn_3_foobar(vec3 color) {
+    }
+    float _sn_4_callback(vec3 color);
+    void _sn_5_main(in vec3 color) {
+      float f = _sn_4_callback(color);
+    }
+    void main(in vec3 _io_1_color) {
+      _sn_5_main(_io_1_color);
+    }
     """
 
     shadergraph = ShaderGraph snippets
@@ -124,7 +128,7 @@ describe "layout", () ->
               .call('code3')
               .end()
 
-    snippet = graph.link()
+    snippet = graph.link('main')
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -159,29 +163,31 @@ describe "layout", () ->
     }
 
     result = """
-    #define _pg_1_ _sn_1_main
-    void _pg_2_(vec3 color, out float _pg_3_return);
-    float _sn_2_callback(vec3 color) {
-      float _pg_3_return;
-
-      _pg_2_(color, _pg_3_return);
-      return _pg_3_return;
+    void _pg_1_(vec3 color, out float _pg_2_return);
+    float _sn_1_callback(vec3 color) {
+      float _pg_2_return;
+    
+      _pg_1_(color, _pg_2_return);
+      return _pg_2_return;
     }
-    float _sn_3_foobar(vec3 color) {
+    float _sn_2_foobar(vec3 color) {
       return color.x;
     }
-    void _sn_4_foobar(out float valueOut, in float valueIn) {
+    void _sn_3_foobar(out float valueOut, in float valueIn) {
       valueOut = valueIn * 2.0;
     }
-    void _pg_2_(vec3 _io_1_color, out float _io_2_value) {
+    void _pg_1_(vec3 _io_1_color, out float _io_2_value) {
       float _io_3_return;
-
-      _io_3_return = _sn_3_foobar(_io_1_color);
-      _sn_4_foobar(_io_2_value, _io_3_return);
+    
+      _io_3_return = _sn_2_foobar(_io_1_color);
+      _sn_3_foobar(_io_2_value, _io_3_return);
     }
-    float _sn_2_callback(vec3 color);
-    void _sn_1_main(in vec3 color) {
-      float f = _sn_2_callback(color);
+    float _sn_1_callback(vec3 color);
+    void _sn_4_main(in vec3 color) {
+      float f = _sn_1_callback(color);
+    }
+    void main(in vec3 _io_4_color) {
+      _sn_4_main(_io_4_color);
     }
     """
 
@@ -196,7 +202,7 @@ describe "layout", () ->
               .call('code3')
               .end()
 
-    snippet = graph.link()
+    snippet = graph.link('main')
     code = normalize(snippet.code)
 
     expect(code).toBe(result)

@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/unconed/shadergraph.git"
   },
-  "main": "build/shadergraph.js",
+  "main": "src/index.coffee",
   "scripts": {
     "test": "gulp test"
   },

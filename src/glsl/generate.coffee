@@ -91,7 +91,8 @@ module.exports = _ =
     code  = null
 
     # Check if we're only calling one snippet with identical signature
-    if calls && body.calls.length == 1
+    # and not building void main();
+    if calls && body.calls.length == 1 && entry != 'main'
       a = body
       b = calls[0].module
 

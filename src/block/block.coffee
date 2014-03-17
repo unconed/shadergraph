@@ -16,8 +16,8 @@ class Block
     @call program, 0
     program.assemble()
 
-  link: (language) ->
-    module = @compile language
+  link: (language, namespace) ->
+    module = @compile language, namespace
 
     layout = new Layout language
     @_include   module, layout

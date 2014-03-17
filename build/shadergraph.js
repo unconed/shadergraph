@@ -30,9 +30,9 @@ Block = (function() {
     return program.assemble();
   };
 
-  Block.prototype.link = function(language) {
+  Block.prototype.link = function(language, namespace) {
     var layout, module;
-    module = this.compile(language);
+    module = this.compile(language, namespace);
     layout = new Layout(language);
     this._include(module, layout);
     this._export(layout);
@@ -532,8 +532,8 @@ Factory = (function() {
     return graph;
   };
 
-  Factory.prototype.compile = function() {
-    return this.end().compile();
+  Factory.prototype.compile = function(namespace) {
+    return this.end().compile(namespace);
   };
 
   Factory.prototype._combine = function(sub, main) {
@@ -597,8 +597,8 @@ Factory = (function() {
       };
     })(this);
     graph.link = (function(_this) {
-      return function() {
-        return graph.tail.owner.link(_this.language);
+      return function(namespace) {
+        return graph.tail.owner.link(_this.language, namespace);
       };
     })(this);
     return graph["export"] = (function(_this) {
@@ -756,12 +756,15 @@ Material = (function() {
     this.fragment = fragment;
   }
 
-  Material.prototype.build = function() {
+  Material.prototype.build = function(options) {
     var attributes, fragment, key, shader, uniforms, value, vertex, _i, _len, _ref, _ref1, _ref2;
+    if (options == null) {
+      options = {};
+    }
     uniforms = {};
     attributes = {};
-    vertex = this.vertex.compile();
-    fragment = this.fragment.compile();
+    vertex = this.vertex.link('main');
+    fragment = this.fragment.link('main');
     _ref = [vertex, fragment];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       shader = _ref[_i];
@@ -776,12 +779,11 @@ Material = (function() {
         attributes[key] = value;
       }
     }
-    return {
-      vertexShader: vertex.code,
-      fragmentShader: fragment.code,
-      attributes: attributes,
-      uniforms: uniforms
-    };
+    options.vertexShader = vertex.code;
+    options.fragmentShader = fragment.code;
+    options.attributes = attributes;
+    options.uniforms = uniforms;
+    return options;
   };
 
   return Material;
@@ -1436,7 +1438,7 @@ module.exports = _ = {
     var a, b, code, decl, entry, params, ret, type, v, vars;
     entry = body.entry;
     code = null;
-    if (calls && body.calls.length === 1) {
+    if (calls && body.calls.length === 1 && entry !== 'main') {
       a = body;
       b = calls[0].module;
       if (_.same(body.signature, b.main.signature)) {
@@ -3884,6 +3886,7 @@ function parser() {
       }
 
       if(token.type !== 'ident') {
+        console.log(token);
         return unexpected('expected identifier, got '+token.data)
       }
 
@@ -4923,9 +4926,9 @@ module.exports = [
   , 'break'
   , 'continue'
   , 'do'
-  , 'for'
-  , 'while'
-  , 'if'
+  , 'fo'+'r'
+  , 'whi'+'le'
+  , 'i'+'f'
   , 'else'
   , 'in'
   , 'out'

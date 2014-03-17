@@ -96,8 +96,8 @@ class Factory
     graph
 
   # Compile shortcut
-  compile: () ->
-    @end().compile()
+  compile: (namespace) ->
+    @end().compile(namespace)
 
   # Connect parallel branches to tail
   _combine: (sub, main) ->
@@ -150,8 +150,8 @@ class Factory
     graph.compile = (namespace) =>
       graph.tail.owner.compile @language, namespace
 
-    graph.link    = () =>
-      graph.tail.owner.link    @language
+    graph.link    = (namespace) =>
+      graph.tail.owner.link    @language, namespace
 
     graph.export  = (layout) =>
       graph.tail.owner.export  layout

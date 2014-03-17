@@ -2253,7 +2253,7 @@ module.exports = Outlet;
 
 
 },{"./graph":17}],21:[function(require,module,exports){
-var Factory, ShaderGraph, Snippet, cache, code1, code2, code3, code4, f, glsl, graph, l, library, normalize, shader, shadergraph, snippet, snippets;
+var Factory, ShaderGraph, Snippet, cache, f, glsl, l, library;
 
 glsl = require('./glsl');
 
@@ -2299,52 +2299,74 @@ module.exports = ShaderGraph;
 
 window.ShaderGraph = ShaderGraph;
 
-code1 = "float getMultiplier();\nfloat foobar(vec3 color) {\n  return color.x * getMultiplier();\n}";
 
-code2 = "void foobar(out float valueOut, in float valueIn) {\n  valueOut = valueIn * 2.0;\n}";
+/*
 
-code3 = "void main(in float a, in float b) {\n}";
 
-code4 = "float getMultiplier() {\n  return 1.5;\n}";
+code1 = """
+float getMultiplier();
+float foobar(vec3 color) {
+  return color.x * getMultiplier();
+}
+"""
+
+code2 = """
+void foobar(out float valueOut, in float valueIn) {
+  valueOut = valueIn * 2.0;
+}
+"""
+
+code3 = """
+void main(in float a, in float b) {
+}
+"""
+
+code4 = """
+float getMultiplier() {
+  return 1.5;
+}
+"""
 
 snippets = {
-  'code1': code1,
-  'code2': code2,
-  'code3': code3,
+  'code1': code1
+  'code2': code2
+  'code3': code3
   'code4': code4
-};
+}
 
-shadergraph = ShaderGraph(snippets);
+shadergraph = ShaderGraph snippets
 
-shader = shadergraph.shader();
+shader  = shadergraph.shader()
+graph   = shader
+          .callback()
+            .call('code4')
+          .join()
+          .call('code1')
+          .split()
+            .call('code2')
+          .next()
+            .call('code2')
+          .join()
+          .call('code3')
+          .end()
 
-graph = shader.callback().call('code4').join().call('code1').split().call('code2').next().call('code2').join().call('code3').end();
+snippet = graph.link()
 
-snippet = graph.link();
+normalize = (code) ->
+   * renumber generated outputs
+  map = {}
+  o = s = p = 0
+  code = code.replace /\b_io_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
+    map[match] ? map[match] = "_io_#{++o}#{name}"
+  code = code.replace /\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) ->
+    map[match] ? map[match] = "_sn_#{++s}#{name}"
+  code = code.replace /\b_pg_[0-9]+_\b/g, (match) ->
+    map[match] ? map[match] = "_pg_#{++p}_"
 
-normalize = function(code) {
-  var map, o, p, s;
-  map = {};
-  o = s = p = 0;
-  code = code.replace(/\b_io_[0-9]+([A-Za-z0-9_]+)\b/g, function(match, name) {
-    var _ref;
-    return (_ref = map[match]) != null ? _ref : map[match] = "_io_" + (++o) + name;
-  });
-  code = code.replace(/\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, function(match, name) {
-    var _ref;
-    return (_ref = map[match]) != null ? _ref : map[match] = "_sn_" + (++s) + name;
-  });
-  return code = code.replace(/\b_pg_[0-9]+_\b/g, function(match) {
-    var _ref;
-    return (_ref = map[match]) != null ? _ref : map[match] = "_pg_" + (++p) + "_";
-  });
-};
-
-window.graph = graph;
-
-window.snippet = snippet;
-
-window.code = normalize(snippet.code);
+window.graph   = graph
+window.snippet = snippet
+window.code    = normalize(snippet.code)
+ */
 
 
 /*

@@ -150,6 +150,9 @@ class Factory
 
     graph.tail = state.end[0]
 
+    if !graph.tail
+      throw "Cannot finalize empty graph"
+
     # Add compile/link/export shortcut methods
     graph.compile = (namespace) =>
       graph.tail.owner.compile @language, namespace

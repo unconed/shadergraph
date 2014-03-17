@@ -595,6 +595,9 @@ Factory = (function() {
       state.end = [tail.node];
     }
     graph.tail = state.end[0];
+    if (!graph.tail) {
+      throw "Cannot finalize empty graph";
+    }
     graph.compile = (function(_this) {
       return function(namespace) {
         return graph.tail.owner.compile(_this.language, namespace);
@@ -752,12 +755,24 @@ module.exports = library;
 
 
 },{}],11:[function(require,module,exports){
-var Material;
+var Material, tick;
+
+tick = function() {
+  var now;
+  now = +(new Date);
+  return function(label) {
+    var delta;
+    delta = +new Date() - now;
+    console.log(label, delta + " ms");
+    return delta;
+  };
+};
 
 Material = (function() {
   function Material(vertex, fragment) {
     this.vertex = vertex;
     this.fragment = fragment;
+    this.tock = tick();
   }
 
   Material.prototype.build = function(options) {
@@ -787,6 +802,7 @@ Material = (function() {
     options.fragmentShader = fragment.code;
     options.attributes = attributes;
     options.uniforms = uniforms;
+    this.tock('Material build');
     return options;
   };
 
@@ -3107,7 +3123,7 @@ Snippet = (function() {
   };
 
   Snippet.prototype.bind = function(uniforms, namespace) {
-    var a, def, e, name, u, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+    var a, def, e, name, redef, u, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
     this.namespace = namespace;
     if (this.namespace == null) {
       this.namespace = Snippet.namespace();
@@ -3133,10 +3149,17 @@ Snippet = (function() {
         return _this.attributes[def.name] = def;
       };
     })(this);
+    redef = function(def) {
+      return {
+        type: def.type,
+        name: def.name,
+        value: def.value
+      };
+    };
     _ref = this._signatures.uniform;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       def = _ref[_i];
-      u(def);
+      u(redef(def));
     }
     _ref1 = this._signatures.external;
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
@@ -3146,7 +3169,7 @@ Snippet = (function() {
     _ref2 = this._signatures.attribute;
     for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
       def = _ref2[_k];
-      a(def);
+      a(redef(def));
     }
     for (name in uniforms) {
       def = uniforms[name];

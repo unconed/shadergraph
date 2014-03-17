@@ -36,10 +36,12 @@ class Snippet
     e = (def)       =>  @externals[@namespace + def.name]          = def
     a = (def)       => @attributes[def.name]                       = def
 
-    u(def)       for def in @_signatures.uniform
-    e(def)       for def in @_signatures.external
-    a(def)       for def in @_signatures.attribute
-    u(def, name) for name, def of uniforms
+    redef = (def) -> {type: def.type, name: def.name, value: def.value}
+
+    u redef def for def in @_signatures.uniform
+    e def       for def in @_signatures.external
+    a redef def for def in @_signatures.attribute
+    u def, name for name, def of uniforms
 
     null
 

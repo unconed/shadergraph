@@ -1,5 +1,13 @@
+tick = () ->
+  now = +new Date
+  return (label) ->
+    delta = +new Date() - now
+    console.log label, delta + " ms"
+    delta
+
 class Material
   constructor: (@vertex, @fragment) ->
+    @tock = tick()
 
   build: (options = {}) ->
     uniforms   = {}
@@ -16,6 +24,8 @@ class Material
     options.fragmentShader = fragment.code
     options.attributes     = attributes
     options.uniforms       = uniforms
+
+    @tock 'Material build'
 
     options
 

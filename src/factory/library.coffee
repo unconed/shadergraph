@@ -1,5 +1,3 @@
-Snippet = require('../linker').Snippet
-
 ###
   Snippet library
   
@@ -8,18 +6,18 @@ Snippet = require('../linker').Snippet
     - (name) -> getter: dynamic lookup
     - nothing:          no library, pass source code instead of snippet names
 ###
-library = (language, snippets) ->
+library = (language, snippets, load) ->
 
   if snippets?
     if typeof snippets == 'function'
       return (name) ->
-        Snippet.load language, name, snippets(name)
+        load language, name, snippets(name)
     else if typeof snippets == 'object'
       return (name) ->
         throw "Unknown snippet `#{name}`" if !snippets[name]?
-        Snippet.load language, name, snippets[name]
+        load language, name, snippets[name]
 
   (name) ->
-    Snippet.load language, '', name
+    load language, '', name
 
 module.exports = library

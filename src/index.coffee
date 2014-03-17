@@ -5,12 +5,15 @@ Factory = f.Factory
 library = f.library
 cache   = f.cache
 
+l       = require './linker'
+Snippet = l.Snippet
+
 
 class ShaderGraph
   constructor: (snippets) ->
     return new ShaderGraph snippets if @ !instanceof ShaderGraph
 
-    @fetch = cache library glsl, snippets
+    @fetch = cache library glsl, snippets, Snippet.load
 
   shader: () ->
     new Factory glsl, @fetch
@@ -72,7 +75,7 @@ graph   = shader
             .call('code4')
           .join()
           .call('code1')
-          .parallel()
+          .split()
             .call('code2')
           .next()
             .call('code2')

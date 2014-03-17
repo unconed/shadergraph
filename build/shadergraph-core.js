@@ -711,10 +711,6 @@ exports.cache = require('./cache');
 
 
 },{"./cache":7,"./factory":8,"./library":10}],10:[function(require,module,exports){
-var Snippet, library;
-
-Snippet = require('../linker').Snippet;
-
 
 /*
   Snippet library
@@ -724,31 +720,32 @@ Snippet = require('../linker').Snippet;
     - (name) -> getter: dynamic lookup
     - nothing:          no library, pass source code instead of snippet names
  */
+var library;
 
-library = function(language, snippets) {
+library = function(language, snippets, load) {
   if (snippets != null) {
     if (typeof snippets === 'function') {
       return function(name) {
-        return Snippet.load(language, name, snippets(name));
+        return load(language, name, snippets(name));
       };
     } else if (typeof snippets === 'object') {
       return function(name) {
         if (snippets[name] == null) {
           throw "Unknown snippet `" + name + "`";
         }
-        return Snippet.load(language, name, snippets[name]);
+        return load(language, name, snippets[name]);
       };
     }
   }
   return function(name) {
-    return Snippet.load(language, '', name);
+    return load(language, '', name);
   };
 };
 
 module.exports = library;
 
 
-},{"../linker":23}],11:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 
 /*
   Compile snippet back into GLSL, but with certain symbols replaced by prefixes / placeholders
@@ -1287,6 +1284,11 @@ var $, Graph, _;
 Graph = require('../graph');
 
 $ = require('./constants');
+
+
+/*
+ GLSL code generator for compiler and linker stubs
+ */
 
 module.exports = _ = {
   unshadow: function(name) {
@@ -2251,7 +2253,7 @@ module.exports = Outlet;
 
 
 },{"./graph":17}],21:[function(require,module,exports){
-var Factory, ShaderGraph, cache, code1, code2, code3, code4, f, glsl, graph, library, normalize, shader, shadergraph, snippet, snippets;
+var Factory, ShaderGraph, Snippet, cache, code1, code2, code3, code4, f, glsl, graph, l, library, normalize, shader, shadergraph, snippet, snippets;
 
 glsl = require('./glsl');
 
@@ -2263,12 +2265,16 @@ library = f.library;
 
 cache = f.cache;
 
+l = require('./linker');
+
+Snippet = l.Snippet;
+
 ShaderGraph = (function() {
   function ShaderGraph(snippets) {
     if (!(this instanceof ShaderGraph)) {
       return new ShaderGraph(snippets);
     }
-    this.fetch = cache(library(glsl, snippets));
+    this.fetch = cache(library(glsl, snippets, Snippet.load));
   }
 
   ShaderGraph.prototype.shader = function() {
@@ -2312,7 +2318,7 @@ shadergraph = ShaderGraph(snippets);
 
 shader = shadergraph.shader();
 
-graph = shader.callback().call('code4').join().call('code1').parallel().call('code2').next().call('code2').join().call('code3').end();
+graph = shader.callback().call('code4').join().call('code1').split().call('code2').next().call('code2').join().call('code3').end();
 
 snippet = graph.link();
 

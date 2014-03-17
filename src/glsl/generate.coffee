@@ -1,6 +1,10 @@
 Graph = require '../graph'
 $     = require './constants'
 
+###
+ GLSL code generator for compiler and linker stubs
+###
+
 module.exports = _ =
 
   # Check if shadow outlet
@@ -189,7 +193,7 @@ module.exports = _ =
     out.bodies.push _.build(inner).code.split(' {')[0]
     out.bodies.push _.build(outer).code
 
-  # Hoist symbols defines to top to ensure (re)definitions use the right alias
+  # Hoist our symbols defines to the top so (re)definitions use the right alias
   hoist: (code) ->
     re = /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/
 

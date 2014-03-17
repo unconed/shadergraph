@@ -1,12 +1,13 @@
-glsl    = require './glsl'
+glsl     = require './glsl'
+f        = require './factory'
+l        = require './linker'
 
-f       = require './factory'
-Factory = f.Factory
-library = f.library
-cache   = f.cache
+Factory  = f.Factory
+Material = f.Material
+library  = f.library
+cache    = f.cache
 
-l       = require './linker'
-Snippet = l.Snippet
+Snippet  = l.Snippet
 
 
 class ShaderGraph
@@ -18,6 +19,9 @@ class ShaderGraph
   shader: () ->
     new Factory glsl, @fetch
 
+  material: () ->
+    new Material @shader(), @shader()
+
   # Expose class hierarchy
   @Block:   require './block'
   @Factory: require './factory'
@@ -27,8 +31,6 @@ class ShaderGraph
 
 module.exports = ShaderGraph
 window.ShaderGraph = ShaderGraph
-
-
 
 
 

@@ -37,7 +37,7 @@ class Program
     data         = assemble @language, @namespace ? Program.entry, @calls
     snippet      = new Snippet
     snippet[key] = data[key] for key of data
-    console.log @
+
     snippet
 
 module.exports = Program

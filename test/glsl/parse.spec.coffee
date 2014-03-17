@@ -1,4 +1,4 @@
-Snippet = ShaderGraph.Snippet
+GLSL = ShaderGraph.GLSL
 
 describe "parser", () ->
 
@@ -49,7 +49,7 @@ describe "parser", () ->
     }
     """
 
-    parse = Snippet.parse
+    parse = GLSL.parse
     program = parse 'test', code
 
   it 'parses GLSL and signatures', () ->

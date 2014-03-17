@@ -41,7 +41,7 @@ class Layout
     data         = link @language, @links, @includes, module
     snippet      = new Snippet
     snippet[key] = data[key] for key of data
-    console.log @
+
     snippet
 
 

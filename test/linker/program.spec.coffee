@@ -18,7 +18,7 @@ describe "program", () ->
       map[match] ? map[match] = "_pg_#{++p}_#{name ? ''}"
 
 
-  it 'links snippets with return values (snippet)', () ->
+  it 'links snippets with return values (call)', () ->
 
     code1 = """
     vec3 first() {
@@ -68,9 +68,9 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .snippet('code1')
-              .snippet('code2')
-              .snippet('code3')
+              .call('code1')
+              .call('code2')
+              .call('code3')
               .end()
 
     snippet = graph.compile()
@@ -79,7 +79,7 @@ describe "program", () ->
     expect(code).toBe(result)
 
 
-  it 'links snippets out/inout/in (snippet)', () ->
+  it 'links snippets out/inout/in (call)', () ->
 
     code1 = """
     void first(out vec3 color) {
@@ -126,9 +126,9 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .snippet('code1')
-              .snippet('code2')
-              .snippet('code3')
+              .call('code1')
+              .call('code2')
+              .call('code3')
               .end()
 
     snippet = graph.compile()
@@ -139,7 +139,7 @@ describe "program", () ->
 
 
 
-  it 'links diamond split/join graph (group/next/combine)', () ->
+  it 'links diamond split/join graph (split/next/join)', () ->
 
     code1 = """
     void split(out vec3 color1, out vec3 color2) {
@@ -190,13 +190,13 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .snippet('code1')
+              .call('code1')
               .split()
-                .snippet('code2')
+                .call('code2')
               .next()
-                .snippet('code2')
+                .call('code2')
               .join()
-              .snippet('code3')
+              .call('code3')
               .end()
 
     snippet = graph.compile()
@@ -207,7 +207,7 @@ describe "program", () ->
 
 
 
-  it 'links diamond split/join graph with pass (group/next/pass)', () ->
+  it 'links diamond split/join graph with pass (split/next/pass)', () ->
 
     code1 = """
     void split(out vec3 color1, out vec3 color2, out mat4 passthrough) {
@@ -259,13 +259,84 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .snippet('code1')
+              .call('code1')
               .split()
-                .snippet('code2')
+                .call('code2')
               .next()
-                .snippet('code2')
+                .call('code2')
               .pass()
-              .snippet('code3')
+              .call('code3')
+              .end()
+
+    snippet = graph.compile()
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+
+
+
+  it 'links fanned diamond split/join graph (fan/next/join)', () ->
+
+    code1 = """
+    void split(out vec3 color) {
+      color = vec3(1.0, 1.0, 1.0);
+    }
+    """
+
+    code2 = """
+    void map(in vec3 colorIn, out vec3 colorOut) {
+      colorOut = colorIn;
+    }
+    """
+
+    code3 = """
+    void join(in vec3 color1, in vec3 color2) {
+      gl_FragColor = vec4(color1 + color2, 1.0);
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+      'code3': code3
+    }
+
+    result = """
+    void _sn_1_split(out vec3 color) {
+      color = vec3(1.0, 1.0, 1.0);
+    }
+    void _sn_2_map(in vec3 colorIn, out vec3 colorOut) {
+      colorOut = colorIn;
+    }
+    void _sn_3_map(in vec3 colorIn, out vec3 colorOut) {
+      colorOut = colorIn;
+    }
+    void _sn_4_join(in vec3 color1, in vec3 color2) {
+      gl_FragColor = vec4(color1 + color2, 1.0);
+    }
+    void _pg_1_() {
+      vec3 _io_1_color;
+      vec3 _io_2_color;
+      vec3 _io_3_color;
+
+      _sn_1_split(_io_1_color);
+      _sn_2_map(_io_1_color, _io_2_color);
+      _sn_3_map(_io_1_color, _io_3_color);
+      _sn_4_join(_io_2_color, _io_3_color);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .call('code1')
+              .fan()
+                .call('code2')
+              .next()
+                .call('code2')
+              .join()
+              .call('code3')
               .end()
 
     snippet = graph.compile()
@@ -276,7 +347,7 @@ describe "program", () ->
 
 
 
-  it 'exports dangling callbacks (snippet)', () ->
+  it 'exports dangling callbacks (call)', () ->
 
     code1 = """
     vec2 callback1(float value);
@@ -307,12 +378,12 @@ describe "program", () ->
     void _sn_4_join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
       gl_FragColor = vec4(color1, 1.0);
     }
-    void _pg_1_(in vec4 _io_1_colorIn, out vec4 _io_2_colorOut) {
+    void _pg_1_(in vec4 _io_1_color, out vec4 _io_2_color) {
       vec3 _io_3_color1;
       vec3 _io_4_color2;
 
-      _sn_2_split(_io_3_color1, _io_4_color2, _io_1_colorIn);
-      _sn_4_join(_io_3_color1, _io_4_color2, _io_2_colorOut);
+      _sn_2_split(_io_3_color1, _io_4_color2, _io_1_color);
+      _sn_4_join(_io_3_color1, _io_4_color2, _io_2_color);
     }
     """
 
@@ -320,8 +391,8 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .snippet('code1')
-              .snippet('code2')
+              .call('code1')
+              .call('code2')
               .end()
 
     snippet = graph.compile()
@@ -345,7 +416,7 @@ describe "program", () ->
 
 
 
-  it 'exports dangling inputs/outputs (group/next/combine)', () ->
+  it 'exports dangling inputs/outputs (split/next/join)', () ->
 
     code1 = """
     attribute vec2 att1;
@@ -389,14 +460,14 @@ describe "program", () ->
     void _sn_6_join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
       gl_FragColor = vec4(color1, 1.0);
     }
-    void _pg_1_(in vec4 _io_1_colorIn, out vec4 _io_2_colorOut) {
+    void _pg_1_(in vec4 _io_1_color, out vec4 _io_2_color) {
       vec3 _io_3_color1;
       vec3 _io_4_color2;
 
-      _sn_1_split(_io_3_color1, _io_4_color2, _io_1_colorIn);
+      _sn_1_split(_io_3_color1, _io_4_color2, _io_1_color);
       _sn_3_map(_io_3_color1);
       _sn_5_map(_io_4_color2);
-      _sn_6_join(_io_3_color1, _io_4_color2, _io_2_colorOut);
+      _sn_6_join(_io_3_color1, _io_4_color2, _io_2_color);
     }
     """
 
@@ -404,13 +475,13 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .snippet('code1')
+              .call('code1')
               .split()
-                .snippet('code2')
+                .call('code2')
               .next()
-                .snippet('code2')
+                .call('code2')
               .join()
-              .snippet('code3')
+              .call('code3')
               .end()
 
     snippet = graph.compile()
@@ -444,187 +515,4 @@ describe "program", () ->
     expect(snippet.main.signature[0].inout).toBe 0
     expect(snippet.main.signature[1].type).toBe 'v4'
     expect(snippet.main.signature[1].inout).toBe 1
-
-
-
-
-  it 'links a callback (group/callback)', () ->
-
-    code1 = """
-    float foobar(vec3 color) {
-    }
-    """
-
-    code2 = """
-    float callback(vec3 color);
-    void main(in vec3 color) {
-      float f = callback(color);
-    }
-    """
-
-    snippets = {
-      'code1': code1
-      'code2': code2
-    }
-
-    result = """
-    float _sn_1_foobar(vec3 color) {
-    }
-    #define _pg_1_ _sn_1_foobar
-    #define _sn_2_callback _pg_1_
-    float _sn_2_callback(vec3 color);
-    void _sn_3_main(in vec3 color) {
-      float f = _sn_2_callback(color);
-    }
-    #define _pg_2_ _sn_3_main
-    """
-
-    shadergraph = ShaderGraph snippets
-
-    shader  = shadergraph.shader()
-    graph   = shader
-              .group()
-                .snippet('code1')
-              .callback()
-              .snippet('code2')
-              .end()
-
-    snippet = graph.compile()
-    code = normalize(snippet.code)
-
-    expect(code).toBe(result)
-
-
-
-  it 'links a callback recursively (group/callback)', () ->
-
-    code1 = """
-    float foobar(vec3 color) {
-    }
-    """
-
-    code2 = """
-    float callback(vec3 color);
-    float foobar(vec3 color) {
-    }
-    """
-
-    code3 = """
-    float callback(vec3 color);
-    void main(in vec3 color) {
-      float f = callback(color);
-    }
-    """
-
-    snippets = {
-      'code1': code1
-      'code2': code2
-      'code3': code3
-    }
-
-    result = """
-    float _sn_1_foobar(vec3 color) {
-    }
-    #define _pg_1_ _sn_1_foobar
-    #define _sn_2_callback _pg_1_
-    float _sn_2_callback(vec3 color);
-    float _sn_3_foobar(vec3 color) {
-    }
-    #define _pg_2_ _sn_3_foobar
-    #define _sn_4_callback _pg_2_
-    float _sn_4_callback(vec3 color);
-    void _sn_5_main(in vec3 color) {
-      float f = _sn_4_callback(color);
-    }
-    #define _pg_3_ _sn_5_main
-    """
-
-    shadergraph = ShaderGraph snippets
-
-    shader  = shadergraph.shader()
-    graph   = shader
-              .group()
-                .group()
-                  .snippet('code1')
-                .callback()
-                .snippet('code2')
-              .callback()
-              .snippet('code3')
-              .end()
-
-    snippet = graph.compile()
-    code = normalize(snippet.code)
-
-    expect(code).toBe(result)
-
-
-
-  it 'creates linkages for subgraphs and signature mismatches (group/callback)', () ->
-
-    code1 = """
-    float foobar(vec3 color) {
-      return color.x;
-    }
-    """
-
-    code2 = """
-    void foobar(out float valueOut, in float valueIn) {
-      valueOut = valueIn * 2.0;
-    }
-    """
-
-    code3 = """
-    float callback(vec3 color);
-    void main(in vec3 color) {
-      float f = callback(color);
-    }
-    """
-
-    snippets = {
-      'code1': code1
-      'code2': code2
-      'code3': code3
-    }
-
-    result = """
-    float _sn_1_foobar(vec3 color) {
-      return color.x;
-    }
-    void _sn_2_foobar(out float valueOut, in float valueIn) {
-      valueOut = valueIn * 2.0;
-    }
-    void _pg_1_(vec3 _io_1_color, out float _io_2_valueOut) {
-      float _io_3_return;
-
-      _io_3_return = _sn_1_foobar(_io_1_color);
-      _sn_2_foobar(_io_2_valueOut, _io_3_return);
-    }
-    float _sn_3_callback(vec3 color) {
-      float _pg_2_return;
-
-      _pg_1_(color, _pg_2_return);
-      return _pg_2_return;
-    }
-    float _sn_3_callback(vec3 color);
-    void _sn_4_main(in vec3 color) {
-      float f = _sn_3_callback(color);
-    }
-    #define _pg_3_ _sn_4_main
-    """
-
-    shadergraph = ShaderGraph snippets
-
-    shader  = shadergraph.shader()
-    graph   = shader
-              .group()
-                .snippet('code1')
-                .snippet('code2')
-              .callback()
-              .snippet('code3')
-              .end()
-
-    snippet = graph.compile()
-    code = normalize(snippet.code)
-
-    expect(code).toBe(result)
 

@@ -1,4 +1,4 @@
-Snippet = ShaderGraph.Snippet
+Snippet = ShaderGraph.Linker.Snippet
 GLSL    = ShaderGraph.GLSL
 
 describe "snippet", () ->

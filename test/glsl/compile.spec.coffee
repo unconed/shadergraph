@@ -1,4 +1,4 @@
-Snippet = ShaderGraph.Snippet
+GLSL = ShaderGraph.GLSL
 
 describe "compiler", () ->
 
@@ -65,8 +65,8 @@ describe "compiler", () ->
   """
 
   beforeEach () ->
-    parse   = Snippet.parse
-    compile = Snippet.compile
+    parse   = GLSL.parse
+    compile = GLSL.compile
 
     program = parse 'test', code
     [signatures, assembler] = compile program

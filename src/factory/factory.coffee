@@ -20,7 +20,7 @@ class Factory
     @_group '_combine', true
     @
 
-  # Create parallel branches that fan out from the tail
+  # Create parallel branches that fan out from the tail (multiple outgoing connections per outlet)
   fan: () ->
     @_group '_combine', false
     @
@@ -111,8 +111,10 @@ class Factory
     subgraph.adopt sub.nodes
     subgraph
 
-  # Merge multiple ends into single tail node
+  # Finalize graph tail
   _tail: (state, graph) ->
+
+    # Merge multiple ends into single tail node
     if state.end.length > 1
       tail = new Block.Join state.end
       state.end  = [tail.node]
@@ -124,10 +126,10 @@ class Factory
       graph.tail.owner.compile @language, namespace
 
     graph.link    = () =>
-      graph.tail.owner.link @language
+      graph.tail.owner.link    @language
 
     graph.export  = (layout) =>
-      graph.tail.owner.export layout
+      graph.tail.owner.export  layout
 
   # Connect parallel branches to tail
   _combine: (sub, main) ->
@@ -191,7 +193,7 @@ class Factory
     node = block.node
     @graph.add node
 
-    end.connect(node) for end in @_state.end
+    end.connect node for end in @_state.end
 
     @_state.start = [node] if !@_state.start.length
     @_state.end   = [node]
@@ -202,7 +204,7 @@ class Factory
     node = block.node
     @graph.add node
 
-    node.connect(start) for start in @_state.start
+    node.connect start for start in @_state.start
 
     @_state.end   = [node] if !@_state.end.length
     @_state.start = [node]

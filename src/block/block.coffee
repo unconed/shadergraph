@@ -20,8 +20,8 @@ class Block
     module = @compile language
 
     layout = new Layout language
-    @_export layout
-    @_include module, layout
+    @_include   module, layout
+    @_export    layout
     layout.link module
 
   call:     (program, depth = 0) ->

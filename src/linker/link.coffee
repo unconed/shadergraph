@@ -22,6 +22,7 @@ link = (language, links, modules, exported) ->
     includes.push exports.defs   if exports.defs != ''
     includes.push exports.bodies if exports.bodies != ''
 
+    modules.reverse()
     include m.node, m.module for m in modules
 
     code = generate.lines includes

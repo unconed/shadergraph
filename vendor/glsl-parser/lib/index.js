@@ -455,6 +455,7 @@ function parser() {
       }
 
       if(token.type !== 'ident') {
+        console.log(token);
         return unexpected('expected identifier, got '+token.data)
       }
 

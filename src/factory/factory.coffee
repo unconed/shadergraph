@@ -73,7 +73,7 @@ class Factory
     @
 
   # Add existing factory as callback
-  link: (factory) ->
+  import: (factory) ->
     @callback()
     @concat factory
     @join()
@@ -97,7 +97,11 @@ class Factory
 
   # Compile shortcut
   compile: (namespace) ->
-    @end().compile(namespace)
+    @end().compile namespace
+
+  # Link shortcut
+  link: (namespace) ->
+    @end().link namespace
 
   # Connect parallel branches to tail
   _combine: (sub, main) ->

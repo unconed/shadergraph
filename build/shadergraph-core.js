@@ -511,7 +511,7 @@ Factory = (function() {
     return this;
   };
 
-  Factory.prototype.link = function(factory) {
+  Factory.prototype["import"] = function(factory) {
     this.callback();
     this.concat(factory);
     return this.join();
@@ -534,6 +534,10 @@ Factory = (function() {
 
   Factory.prototype.compile = function(namespace) {
     return this.end().compile(namespace);
+  };
+
+  Factory.prototype.link = function(namespace) {
+    return this.end().link(namespace);
   };
 
   Factory.prototype._combine = function(sub, main) {

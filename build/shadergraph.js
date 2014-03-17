@@ -442,7 +442,7 @@ Factory = (function() {
   }
 
   Factory.prototype.call = function(name, uniforms) {
-    this._append(this._shader(name, uniforms));
+    this._call(name, uniforms);
     return this;
   };
 
@@ -536,44 +536,6 @@ Factory = (function() {
     return this.end().compile();
   };
 
-  Factory.prototype._shader = function(name, uniforms) {
-    var snippet;
-    snippet = this.fetch(name);
-    snippet.apply(uniforms);
-    return new Block.Call(snippet);
-  };
-
-  Factory.prototype._subgraph = function(sub) {
-    var subgraph;
-    subgraph = new Graph;
-    subgraph.adopt(sub.nodes);
-    return subgraph;
-  };
-
-  Factory.prototype._tail = function(state, graph) {
-    var tail;
-    if (state.end.length > 1) {
-      tail = new Block.Join(state.end);
-      state.end = [tail.node];
-    }
-    graph.tail = state.end[0];
-    graph.compile = (function(_this) {
-      return function(namespace) {
-        return graph.tail.owner.compile(_this.language, namespace);
-      };
-    })(this);
-    graph.link = (function(_this) {
-      return function() {
-        return graph.tail.owner.link(_this.language);
-      };
-    })(this);
-    return graph["export"] = (function(_this) {
-      return function(layout) {
-        return graph.tail.owner["export"](layout);
-      };
-    })(this);
-  };
-
   Factory.prototype._combine = function(sub, main) {
     var from, to, _i, _j, _len, _len1, _ref, _ref1;
     _ref = sub.start;
@@ -606,6 +568,44 @@ Factory = (function() {
       this._tail(sub, subgraph);
       return this._append(block);
     }
+  };
+
+  Factory.prototype._call = function(name, uniforms) {
+    var snippet;
+    snippet = this.fetch(name);
+    snippet.bind(uniforms);
+    return this._append(new Block.Call(snippet));
+  };
+
+  Factory.prototype._subgraph = function(sub) {
+    var subgraph;
+    subgraph = new Graph;
+    subgraph.adopt(sub.nodes);
+    return subgraph;
+  };
+
+  Factory.prototype._tail = function(state, graph) {
+    var tail;
+    if (state.end.length > 1) {
+      tail = new Block.Join(state.end);
+      state.end = [tail.node];
+    }
+    graph.tail = state.end[0];
+    graph.compile = (function(_this) {
+      return function(namespace) {
+        return graph.tail.owner.compile(_this.language, namespace);
+      };
+    })(this);
+    graph.link = (function(_this) {
+      return function() {
+        return graph.tail.owner.link(_this.language);
+      };
+    })(this);
+    return graph["export"] = (function(_this) {
+      return function(layout) {
+        return graph.tail.owner["export"](layout);
+      };
+    })(this);
   };
 
   Factory.prototype._group = function(op, empty) {
@@ -3100,7 +3100,7 @@ Snippet = (function() {
     return new Snippet(this.language, this._signatures, this._compiler);
   };
 
-  Snippet.prototype.apply = function(uniforms, namespace) {
+  Snippet.prototype.bind = function(uniforms, namespace) {
     var a, def, e, name, u, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
     this.namespace = namespace;
     if (this.namespace == null) {

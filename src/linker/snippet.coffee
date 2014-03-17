@@ -21,7 +21,7 @@ class Snippet
   clone: () ->
     new Snippet @language, @_signatures, @_compiler
 
-  apply: (uniforms, @namespace) ->
+  bind: (uniforms, @namespace) ->
     @namespace ?= Snippet.namespace()
     @code       = @_compiler @namespace
 

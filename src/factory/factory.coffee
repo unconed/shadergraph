@@ -12,7 +12,7 @@ class Factory
 
   # Block creation
   call: (name, uniforms) ->
-    @_append  @_shader name, uniforms
+    @_call name, uniforms
     @
 
   # Create parallel branches that connect as one block to the tail
@@ -99,11 +99,36 @@ class Factory
   compile: () ->
     @end().compile()
 
-  # Create shader block
-  _shader: (name, uniforms) ->
+  # Connect parallel branches to tail
+  _combine: (sub, main) ->
+    for to in sub.start
+      from.connect to, sub.empty for from in main.end
+
+    main.end = sub.end
+
+  # Make subgraph and connect to tail 
+  _isolate: (sub, main) ->
+    if sub.nodes.length
+      subgraph = @_subgraph sub
+      block = new Block.Isolate subgraph
+
+      @_tail   sub, subgraph
+      @_append block
+
+  # Convert to callback and connect to tail
+  _callback: (sub, main) ->
+    if sub.nodes.length
+      subgraph = @_subgraph sub
+      block = new Block.Callback subgraph
+
+      @_tail   sub, subgraph
+      @_append block
+
+  # Create call block
+  _call: (name, uniforms) ->
     snippet = @fetch name
-    snippet.apply uniforms
-    new Block.Call snippet
+    snippet.bind uniforms
+    @_append new Block.Call snippet
 
   # Move current state into subgraph
   _subgraph: (sub) ->
@@ -130,31 +155,6 @@ class Factory
 
     graph.export  = (layout) =>
       graph.tail.owner.export  layout
-
-  # Connect parallel branches to tail
-  _combine: (sub, main) ->
-    for to in sub.start
-      from.connect to, sub.empty for from in main.end
-
-    main.end = sub.end
-
-  # Make subgraph and connect to tail 
-  _isolate: (sub, main) ->
-    if sub.nodes.length
-      subgraph = @_subgraph sub
-      block = new Block.Isolate subgraph
-
-      @_tail   sub, subgraph
-      @_append block
-
-  # Convert to callback and connect to tail
-  _callback: (sub, main) ->
-    if sub.nodes.length
-      subgraph = @_subgraph sub
-      block = new Block.Callback subgraph
-
-      @_tail   sub, subgraph
-      @_append block
 
   # Create group for branches or callbacks
   _group: (op, empty) ->

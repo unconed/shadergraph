@@ -23,7 +23,7 @@ describe "snippet", () ->
 
   it 'compiles with namespace', () ->
 
-    snippet.apply {}, '_sgtest_'
+    snippet.bind {}, '_sgtest_'
 
     expect(snippet.entry).toBe('_sgtest_testSnippet')
     expect(snippet.main).toBeTruthy()
@@ -53,6 +53,6 @@ describe "snippet", () ->
       uni:
         type: 'f'
         value: 1.0
-    snippet.apply uniforms, '_bind_'
+    snippet.bind uniforms, '_bind_'
 
     expect(snippet.uniforms['_bind_uni']).toBe(uniforms.uni)

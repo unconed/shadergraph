@@ -133,7 +133,7 @@ module.exports = _ =
 
     _.link l, out for l in links
 
-    out.defs   = _.statements out.defs
+    out.defs   = _.lines      out.defs
     out.bodies = _.statements out.bodies
 
     out
@@ -194,8 +194,24 @@ module.exports = _ =
     out.bodies.push _.build(inner).code.split(' {')[0]
     out.bodies.push _.build(outer).code
 
-  # Hoist our symbols defines to the top so (re)definitions use the right alias
+  # Remove all function prototypes to avoid redefinition errors
+  defuse: (code) ->
+
+    blocks = code.split /(?=[{}])/g
+    level  = 0
+    for b, i in blocks
+      if (i % 2 == 0) and level == 0
+        # Don't try this at home kids
+        blocks[i] = b.replace /([A-Za-z0-9_]+\s*)?[A-Za-z0-9_]+\s*[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg, ''
+      else
+        level += if b == '{' then 1 else -1
+
+    code = blocks.join ''
+
+  # Move stuff around so it compiles properly
   hoist: (code) ->
+
+    # Hoist symbol defines to the top so (re)definitions use the right alias
     re = /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/
 
     lines = code.split /\n/g

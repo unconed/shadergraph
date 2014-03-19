@@ -1510,7 +1510,7 @@ module.exports = _ = {
       l = links[_i];
       _.link(l, out);
     }
-    out.defs = _.statements(out.defs);
+    out.defs = _.lines(out.defs);
     out.bodies = _.statements(out.bodies);
     return out;
   },
@@ -1568,6 +1568,20 @@ module.exports = _ = {
       return out.bodies.push(_.build(outer).code);
     };
   })(this),
+  defuse: function(code) {
+    var b, blocks, i, level, _i, _len;
+    blocks = code.split(/(?=[{}])/g);
+    level = 0;
+    for (i = _i = 0, _len = blocks.length; _i < _len; i = ++_i) {
+      b = blocks[i];
+      if ((i % 2 === 0) && level === 0) {
+        blocks[i] = b.replace(/([A-Za-z0-9_]+\s*)?[A-Za-z0-9_]+\s*[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg, '');
+      } else {
+        level += b === '{' ? 1 : -1;
+      }
+    }
+    return code = blocks.join('');
+  },
   hoist: function(code) {
     var defs, line, lines, list, out, re, _i, _len;
     re = /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/;
@@ -1687,11 +1701,12 @@ collect = function(out) {
 };
 
 sortSymbols = function(symbols) {
-  var e, externals, internals, main, maybe, s, _i, _len;
+  var e, externals, found, internals, main, maybe, s, _i, _len;
   main = null;
   internals = [];
   externals = [];
   maybe = {};
+  found = false;
   for (_i = 0, _len = symbols.length; _i < _len; _i++) {
     s = symbols[_i];
     if (!s.body) {
@@ -1717,7 +1732,12 @@ sortSymbols = function(symbols) {
         delete maybe[s.ident];
       }
       internals.push(s);
-      main = s;
+      if (s.ident === 'main') {
+        main = s;
+        found = true;
+      } else if (!found) {
+        main = s;
+      }
     }
   }
   return [main, internals, externals];
@@ -2993,7 +3013,7 @@ link = function(language, links, modules, exported) {
   };
   include = function(node, module) {
     var def, key, _ref, _ref1, _ref2, _results;
-    includes.push(module.code);
+    includes.push(generate.defuse(module.code));
     _ref = module.uniforms;
     for (key in _ref) {
       def = _ref[key];

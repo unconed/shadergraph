@@ -43,7 +43,6 @@ describe "layout", () ->
     #define _pg_1_ _sn_2_foobar
     float _sn_2_foobar(vec3 color) {
     }
-    float _sn_1_callback(vec3 color);
     void _sn_3_main(in vec3 color) {
       float f = _sn_1_callback(color);
     }
@@ -98,17 +97,15 @@ describe "layout", () ->
     #wtf coffeescript?
     result =
     """#define _sn_1_callback _pg_1_
-    #define _pg_1_ _sn_2_foobar
+    #define _sn_2_callback _pg_2_
     #define _pg_2_ _sn_3_foobar
-    #define _sn_4_callback _pg_2_;
-    float _sn_2_foobar(vec3 color) {
-    }
-    float _sn_1_callback(vec3 color);
+    #define _pg_1_ _sn_4_foobar
     float _sn_3_foobar(vec3 color) {
     }
-    float _sn_4_callback(vec3 color);
+    float _sn_4_foobar(vec3 color) {
+    }
     void _sn_5_main(in vec3 color) {
-      float f = _sn_4_callback(color);
+      float f = _sn_1_callback(color);
     }
     void main(in vec3 _io_1_color) {
       _sn_5_main(_io_1_color);
@@ -182,7 +179,6 @@ describe "layout", () ->
       _io_3_return = _sn_2_foobar(_io_1_color);
       _sn_3_foobar(_io_2_value, _io_3_return);
     }
-    float _sn_1_callback(vec3 color);
     void _sn_4_main(in vec3 color) {
       float f = _sn_1_callback(color);
     }

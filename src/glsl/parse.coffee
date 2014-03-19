@@ -65,6 +65,7 @@ sortSymbols = (symbols) ->
   internals = []
   externals = []
   maybe = {}
+  found = false
 
   for s in symbols
     if !s.body
@@ -86,7 +87,12 @@ sortSymbols = (symbols) ->
       internals.push s
 
       # Last function is main
-      main = s
+      # unless there is a function called 'main'
+      if s.ident == 'main'
+        main = s
+        found = true
+      else if !found
+        main = s
 
   [main, internals, externals]
 

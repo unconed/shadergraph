@@ -50,7 +50,7 @@ link = (language, links, modules, exported) ->
 
   # Include piece of code
   include = (node, module) ->
-    includes.push module.code
+    includes.push generate.defuse module.code
 
     (uniforms[key]   = def) for key, def of module.uniforms
     (attributes[key] = def) for key, def of module.attributes

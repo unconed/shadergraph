@@ -4,6 +4,7 @@
  Imports given modules and generates linkages for registered callbacks.
 
  Builds composite program that can act as new module/snippet
+ with single module as exported entry point
 ###
 
 link = (language, links, modules, exported) ->

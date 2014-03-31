@@ -200,11 +200,13 @@ module.exports = _ =
     blocks = code.split /(?=[{}])/g
     level  = 0
     for b, i in blocks
-      if (i % 2 == 0) and level == 0
+      switch b[0]
+        when '{' then level++
+        when '}' then level--
+
+      if level == 0
         # Don't try this at home kids
-        blocks[i] = b.replace /([A-Za-z0-9_]+\s*)?[A-Za-z0-9_]+\s*[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg, ''
-      else
-        level += if b == '{' then 1 else -1
+        blocks[i] = b.replace /([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg, ''
 
     code = blocks.join ''
 

@@ -58,7 +58,7 @@ Block = (function() {
     if (!layout.visit(this.namespace)) {
       return;
     }
-    debug && console.log('Visiting', this.toString(), this.namespace);
+    debug && console.log('Visiting', this.namespace);
     return this["export"](layout);
   };
 
@@ -461,8 +461,13 @@ Factory = (function() {
     this.end();
   }
 
-  Factory.prototype.call = function(name, uniforms) {
-    this._call(name, uniforms);
+  Factory.prototype.call = function(name, uniforms, namespace) {
+    this._call(name, uniforms, namespace);
+    return this;
+  };
+
+  Factory.prototype.loose = function(name, uniforms, namespace) {
+    this._loose(name, uniforms, namespace);
     return this;
   };
 
@@ -580,11 +585,23 @@ Factory = (function() {
     }
   };
 
-  Factory.prototype._call = function(name, uniforms) {
+  Factory.prototype._call = function(name, uniforms, namespace) {
+    var block, snippet;
+    snippet = this.fetch(name);
+    snippet.bind(uniforms, namespace);
+    block = new Block.Call(snippet);
+    if (block.node.inputs.length) {
+      return this._append(block);
+    } else {
+      return this._insert(block);
+    }
+  };
+
+  Factory.prototype._loose = function(name, uniforms, namespace) {
     var snippet;
     snippet = this.fetch(name);
-    snippet.bind(uniforms);
-    return this._append(new Block.Call(snippet));
+    snippet.bind(uniforms, namespace);
+    return this._insert(new Block.Call(snippet));
   };
 
   Factory.prototype._subgraph = function(sub) {
@@ -692,7 +709,9 @@ Factory = (function() {
     var node;
     node = block.node;
     this.graph.add(node);
-    return this._state.nodes.push(node);
+    this._state.start.push(node);
+    this._state.nodes.push(node);
+    return this._state.end.push(node);
   };
 
   return Factory;
@@ -1580,10 +1599,15 @@ module.exports = _ = {
     level = 0;
     for (i = _i = 0, _len = blocks.length; _i < _len; i = ++_i) {
       b = blocks[i];
-      if ((i % 2 === 0) && level === 0) {
-        blocks[i] = b.replace(/([A-Za-z0-9_]+\s*)?[A-Za-z0-9_]+\s*[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg, '');
-      } else {
-        level += b === '{' ? 1 : -1;
+      switch (b[0]) {
+        case '{':
+          level++;
+          break;
+        case '}':
+          level--;
+      }
+      if (level === 0) {
+        blocks[i] = b.replace(/([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg, '');
       }
     }
     return code = blocks.join('');
@@ -2922,7 +2946,7 @@ Layout = (function() {
   };
 
   Layout.prototype.include = function(node, module) {
-    if (this.included(module)) {
+    if (this.modules[module.namespace]) {
       return;
     }
     this.modules[module.namespace] = true;
@@ -2930,12 +2954,6 @@ Layout = (function() {
       node: node,
       module: module
     });
-  };
-
-  Layout.prototype.included = function(module) {
-    if (this.modules[module.namespace]) {
-
-    }
   };
 
   Layout.prototype.visit = function(namespace) {

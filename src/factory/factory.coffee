@@ -10,9 +10,14 @@ class Factory
   constructor: (@language, @fetch) ->
     @end()
 
-  # Block creation
-  call: (name, uniforms) ->
-    @_call name, uniforms
+  # Connected block creation
+  call: (name, uniforms, namespace) ->
+    @_call name, uniforms, namespace
+    @
+
+  # Loose block creation
+  loose: (name, uniforms, namespace) ->
+    @_loose name, uniforms, namespace
     @
 
   # Create parallel branches that connect as one block to the tail
@@ -122,11 +127,21 @@ class Factory
       @_tail   sub, subgraph
       @_append block
 
-  # Create call block
-  _call: (name, uniforms) ->
+  # Create next call block
+  _call: (name, uniforms, namespace) ->
     snippet = @fetch name
-    snippet.bind uniforms
-    @_append new Block.Call snippet
+    snippet.bind uniforms, namespace
+    block = new Block.Call snippet
+    if block.node.inputs.length
+      @_append block
+    else
+      @_insert block
+
+  # Insert dangling call block
+  _loose: (name, uniforms, namespace) ->
+    snippet = @fetch name
+    snippet.bind uniforms, namespace
+    @_insert new Block.Call snippet
 
   # Move current state into subgraph
   _subgraph: (sub) ->
@@ -215,7 +230,9 @@ class Factory
   _insert: (block) ->
     node = block.node
     @graph.add node
+    @_state.start.push node
     @_state.nodes.push node
+    @_state.end.push node
 
 class State
   constructor: (@op = null, @empty = false, @start = [], @end = [], @nodes = []) ->

@@ -34,7 +34,7 @@ class Block
   _export: (layout) ->
     debug && console.log 'Block::_export'
     return unless layout.visit @namespace
-    debug && console.log 'Visiting', @.toString(), @namespace
+    debug && console.log 'Visiting', @namespace
     @export layout
 
   _call: (module, program, depth) ->

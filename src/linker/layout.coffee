@@ -22,14 +22,10 @@ class Layout
 
   # Include this module of code
   include: (node, module) ->
-    return if @included(module)
+    return if @modules[module.namespace]
     @modules[module.namespace] = true
 
     @includes.push {node, module}
-
-  # Check if module already included
-  included: (module) ->
-    return if @modules[module.namespace]
 
   # Visit each namespace at most once to avoid infinite recursion
   visit: (namespace) ->

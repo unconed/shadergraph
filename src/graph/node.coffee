@@ -6,8 +6,8 @@ Outlet = require './outlet'
 ###
 class Node
   constructor: (@owner, outlets) ->
-    @graph = null
-    @inputs = []
+    @graph   = null
+    @inputs  = []
     @outputs = []
     @outlets = null
 

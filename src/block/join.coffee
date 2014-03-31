@@ -7,6 +7,9 @@ class Join extends Block
   constructor: (@nodes) ->
     super
 
+  clone: () ->
+    new Join @nodes
+
   makeOutlets: () -> []
 
   call: (program, depth) ->

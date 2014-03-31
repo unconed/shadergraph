@@ -5,6 +5,9 @@ class Call extends Block
     @namespace = @snippet.namespace
     super
 
+  clone: () ->
+    new Call @snippet
+
   makeOutlets: () ->
     outlets = []
     outlets = outlets.concat @snippet.main.signature

@@ -8,6 +8,9 @@ class Callback extends Block
   constructor: (@graph) ->
     super
 
+  clone: () ->
+    new Callback @graph
+
   makeOutlets: () ->
     outlets = []
     ins     = []

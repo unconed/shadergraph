@@ -8,6 +8,9 @@ class Isolate extends Block
   constructor: (@graph) ->
     super
 
+  clone: () ->
+    new Isolate @graph
+
   makeOutlets: () ->
     outlets = []
     names = null

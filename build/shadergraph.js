@@ -23,6 +23,10 @@ Block = (function() {
     this.node = new Graph.Node(this, (_ref = typeof this.makeOutlets === "function" ? this.makeOutlets() : void 0) != null ? _ref : {});
   }
 
+  Block.prototype.clone = function() {
+    return new Block;
+  };
+
   Block.prototype.compile = function(language, namespace) {
     var program;
     program = new Program(language, namespace != null ? namespace : Program.entry());
@@ -135,6 +139,10 @@ Call = (function(_super) {
     Call.__super__.constructor.apply(this, arguments);
   }
 
+  Call.prototype.clone = function() {
+    return new Call(this.snippet);
+  };
+
   Call.prototype.makeOutlets = function() {
     var external, key, outlets, _ref;
     outlets = [];
@@ -185,6 +193,10 @@ Callback = (function(_super) {
     this.graph = graph;
     Callback.__super__.constructor.apply(this, arguments);
   }
+
+  Callback.prototype.clone = function() {
+    return new Callback(this.graph);
+  };
 
   Callback.prototype.makeOutlets = function() {
     var handle, ins, isCallback, outlet, outlets, outs, type, _i, _j, _len, _len1, _ref, _ref1;
@@ -287,6 +299,10 @@ Isolate = (function(_super) {
     Isolate.__super__.constructor.apply(this, arguments);
   }
 
+  Isolate.prototype.clone = function() {
+    return new Isolate(this.graph);
+  };
+
   Isolate.prototype.makeOutlets = function() {
     var names, outlet, outlets, set, _i, _j, _len, _len1, _ref, _ref1;
     outlets = [];
@@ -362,6 +378,10 @@ Join = (function(_super) {
     this.nodes = nodes;
     Join.__super__.constructor.apply(this, arguments);
   }
+
+  Join.prototype.clone = function() {
+    return new Join(this.nodes);
+  };
 
   Join.prototype.makeOutlets = function() {
     return [];
@@ -490,31 +510,17 @@ Factory = (function() {
   };
 
   Factory.prototype.concat = function(factory) {
-    var end, target, to, _i, _j, _len, _len1, _ref, _ref1;
-    target = factory._state;
-    this.graph.adopt(target.nodes);
-    _ref = target.start;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      to = _ref[_i];
-      _ref1 = this._state.end;
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        end = _ref1[_j];
-        end.connect(to);
-      }
-    }
-    if (!this._state.start.length) {
-      this._state.start = target.start;
-    }
-    this._state.end = target.end;
-    this._state.nodes = this._state.nodes.concat(target.nodes);
-    factory.end();
-    return this;
+    var block;
+    block = new Block.Isolate(factory.graph);
+    this._tail(factory._state, factory.graph);
+    return this._append(block);
   };
 
   Factory.prototype["import"] = function(factory) {
-    this.callback();
-    this.concat(factory);
-    return this.join();
+    var block;
+    block = new Block.Callback(factory.graph);
+    this._tail(factory._state, factory.graph);
+    return this._append(block);
   };
 
   Factory.prototype.end = function() {

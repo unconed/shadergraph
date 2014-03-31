@@ -11,6 +11,9 @@ class Block
     @namespace ?= Program.entry()
     @node       = new Graph.Node @, @makeOutlets?() ? {}
 
+  clone: () ->
+    new Block
+
   compile: (language, namespace) ->
     program = new Program language, namespace ? Program.entry()
     @call program, 0

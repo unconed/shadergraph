@@ -57,26 +57,20 @@ class Factory
     @
 
   # Concatenate existing factory onto tail
+  # Retains original factory
   concat: (factory) ->
-    target = factory._state
-    @graph.adopt target.nodes
+    block = new Block.Isolate factory.graph
 
-    for to in target.start
-      end.connect to for end in @_state.end
-
-    @_state.start = target.start if !@_state.start.length
-    @_state.end   = target.end
-    @_state.nodes = @_state.nodes.concat target.nodes
-
-    factory.end()
-
-    @
+    @_tail   factory._state, factory.graph
+    @_append block
 
   # Add existing factory as callback
+  # Retains original factory
   import: (factory) ->
-    @callback()
-    @concat factory
-    @join()
+    block = new Block.Callback factory.graph
+
+    @_tail   factory._state, factory.graph
+    @_append block
 
   # Return finalized graph / reset factory
   end: () ->

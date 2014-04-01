@@ -43,6 +43,10 @@ link = (language, links, modules, exported) ->
   isDangling = (node, name) ->
     outlet = node.get name
 
+    if !outlet
+      module = node.owner.snippet?._name ? node.owner.namespace
+      throw "Unable to link program. Unlinked callback `#{name}` on `#{module}`"
+
     if outlet.inout == Graph.IN
       outlet.input == null
 

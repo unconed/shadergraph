@@ -5,9 +5,9 @@ class Snippet
   @load: (language, name, code) ->
     program          = language.parse   name, code
     [sigs, compiler] = language.compile program
-    new Snippet language, sigs, compiler
+    new Snippet language, sigs, compiler, name
 
-  constructor: (@language, @_signatures, @_compiler) ->
+  constructor: (@language, @_signatures, @_compiler, @_name) ->
     @namespace  = null
     @code       = null
 
@@ -19,7 +19,7 @@ class Snippet
     @attributes = null
 
   clone: () ->
-    new Snippet @language, @_signatures, @_compiler
+    new Snippet @language, @_signatures, @_compiler, @_name
 
   bind: (uniforms, @namespace) ->
     @namespace ?= Snippet.namespace()

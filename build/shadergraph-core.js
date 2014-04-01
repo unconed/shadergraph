@@ -3028,8 +3028,12 @@ link = function(language, links, modules, exported) {
     };
   };
   isDangling = function(node, name) {
-    var outlet;
+    var module, outlet, _ref, _ref1;
     outlet = node.get(name);
+    if (!outlet) {
+      module = (_ref = (_ref1 = node.owner.snippet) != null ? _ref1._name : void 0) != null ? _ref : node.owner.namespace;
+      throw "Unable to link program. Unlinked callback `" + name + "` on `" + module + "`";
+    }
     if (outlet.inout === Graph.IN) {
       return outlet.input === null;
     } else if (outlet.inout === Graph.OUT) {
@@ -3147,13 +3151,14 @@ Snippet = (function() {
     var compiler, program, sigs, _ref;
     program = language.parse(name, code);
     _ref = language.compile(program), sigs = _ref[0], compiler = _ref[1];
-    return new Snippet(language, sigs, compiler);
+    return new Snippet(language, sigs, compiler, name);
   };
 
-  function Snippet(language, _signatures, _compiler) {
+  function Snippet(language, _signatures, _compiler, _name) {
     this.language = language;
     this._signatures = _signatures;
     this._compiler = _compiler;
+    this._name = _name;
     this.namespace = null;
     this.code = null;
     this.main = null;
@@ -3164,7 +3169,7 @@ Snippet = (function() {
   }
 
   Snippet.prototype.clone = function() {
-    return new Snippet(this.language, this._signatures, this._compiler);
+    return new Snippet(this.language, this._signatures, this._compiler, this._name);
   };
 
   Snippet.prototype.bind = function(uniforms, namespace) {

@@ -29,9 +29,9 @@ class Outlet
     @meta  = outlet.meta
 
   # Copy with unique name
-  dupe: (name = @name) ->
+  dupe: (name = @id) ->
     {inout, hint, type, meta} = @
-    {inout, hint, type, meta, name: @id}
+    {inout, hint, type, meta, name: name}
 
   # Connect to given outlet
   connect: (outlet) ->

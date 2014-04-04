@@ -19,7 +19,7 @@ describe "layout", () ->
 
 
 
-  it 'links a callback (group/callback)', () ->
+  it 'links a callback (callback/join)', () ->
 
     code1 = """
     float foobar(vec3 color) {
@@ -68,7 +68,7 @@ describe "layout", () ->
     expect(snippet.entry.match /^_pg_[0-9]+_$/).toBeTruthy
 
 
-  it 'links a callback recursively (group/callback)', () ->
+  it 'links a callback recursively (callback/join)', () ->
 
     code1 = """
     float foobar(vec3 color) {
@@ -132,7 +132,7 @@ describe "layout", () ->
 
 
 
-  it 'creates linkages for subgraphs and signature mismatches (group/callback)', () ->
+  it 'creates linkages for subgraphs and signature mismatches (callback/join)', () ->
 
     code1 = """
     float foobar(vec3 color) {
@@ -203,3 +203,51 @@ describe "layout", () ->
 
     expect(code).toBe(result)
 
+
+  it 'links nested graphs (isolate/join)', () ->
+
+    code1 = """
+    float foobar(vec3 color) {
+      return color.x;
+    }
+    """
+
+    code2 = """
+    void main(float f) {
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+    }
+
+    result = """
+    #define _pg_1_ _sn_1_foobar
+    float _sn_1_foobar(vec3 color) {
+      return color.x;
+    }
+    void _sn_2_main(float f) {
+    }
+    void main(vec3 _io_1_color) {
+      float _io_2_return;
+    
+      _io_2_return = _pg_1_(_io_1_color);
+      _sn_2_main(_io_2_return);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .isolate()
+                .call('code1')
+              .join()
+              .call('code2')
+              .end()
+
+    snippet = graph.link('main')
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)

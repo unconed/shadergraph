@@ -304,7 +304,7 @@ Isolate = (function(_super) {
   };
 
   Isolate.prototype.makeOutlets = function() {
-    var names, outlet, outlets, set, _i, _j, _len, _len1, _ref, _ref1;
+    var hint, names, outlet, outlets, set, _i, _j, _len, _len1, _ref, _ref1;
     outlets = [];
     names = null;
     _ref = ['inputs', 'outputs'];
@@ -313,7 +313,11 @@ Isolate = (function(_super) {
       _ref1 = this.graph[set]();
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         outlet = _ref1[_j];
-        outlets.push(outlet.dupe());
+        hint = void 0;
+        if (outlet.hint === 'return') {
+          hint = 'return';
+        }
+        outlets.push(outlet.dupe(hint));
       }
     }
     return outlets;
@@ -2313,7 +2317,7 @@ Outlet = (function() {
   Outlet.prototype.dupe = function(name) {
     var hint, inout, meta, type;
     if (name == null) {
-      name = this.name;
+      name = this.id;
     }
     inout = this.inout, hint = this.hint, type = this.type, meta = this.meta;
     return {
@@ -2321,7 +2325,7 @@ Outlet = (function() {
       hint: hint,
       type: type,
       meta: meta,
-      name: this.id
+      name: name
     };
   };
 

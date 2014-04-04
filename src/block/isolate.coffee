@@ -17,7 +17,11 @@ class Isolate extends Block
 
     for set in ['inputs', 'outputs']
       for outlet in @graph[set]()
-        outlets.push outlet.dupe()
+        # Preserve name of 'return' outlets
+        hint = undefined
+        hint = 'return' if outlet.hint == 'return'
+
+        outlets.push outlet.dupe hint
 
     outlets
 

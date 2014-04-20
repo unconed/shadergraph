@@ -50,9 +50,9 @@ describe "snippet", () ->
 
   it 'binds uniforms', () ->
     uniforms =
-      uni:
+      uni1:
         type: 'f'
         value: 1.0
     snippet.bind uniforms, '_bind_'
 
-    expect(snippet.uniforms['_bind_uni']).toBe(uniforms.uni)
+    expect(snippet.uniforms['_bind_uni1']).toBe(uniforms.uni1)

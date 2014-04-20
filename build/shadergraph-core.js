@@ -3177,7 +3177,7 @@ Snippet = (function() {
   };
 
   Snippet.prototype.bind = function(uniforms, namespace) {
-    var a, def, e, name, redef, u, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+    var a, def, e, exist, name, redef, u, x, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
     this.namespace = namespace;
     if (this.namespace == null) {
       this.namespace = Snippet.namespace();
@@ -3188,6 +3188,12 @@ Snippet = (function() {
     this.uniforms = {};
     this.externals = {};
     this.attributes = {};
+    exist = {};
+    x = (function(_this) {
+      return function(def) {
+        return exist[def.name] = true;
+      };
+    })(this);
     u = (function(_this) {
       return function(def, name) {
         return _this.uniforms[_this.namespace + (name != null ? name : def.name)] = def;
@@ -3213,21 +3219,28 @@ Snippet = (function() {
     _ref = this._signatures.uniform;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       def = _ref[_i];
-      u(redef(def));
+      x(def);
     }
-    _ref1 = this._signatures.external;
+    _ref1 = this._signatures.uniform;
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
       def = _ref1[_j];
-      e(def);
+      u(redef(def));
     }
-    _ref2 = this._signatures.attribute;
+    _ref2 = this._signatures.external;
     for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
       def = _ref2[_k];
+      e(def);
+    }
+    _ref3 = this._signatures.attribute;
+    for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+      def = _ref3[_l];
       a(redef(def));
     }
     for (name in uniforms) {
       def = uniforms[name];
-      u(def, name);
+      if (exist[name]) {
+        u(def, name);
+      }
     }
     return null;
   };

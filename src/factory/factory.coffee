@@ -35,7 +35,7 @@ class Factory
     @_group '_isolate'
     @
 
-  # Create isolated subgraph
+  # Create callback subgraph
   callback: () ->
     @_group '_callback'
     @

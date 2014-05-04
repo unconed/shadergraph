@@ -522,14 +522,16 @@ Factory = (function() {
     var block;
     block = new Block.Isolate(factory.graph);
     this._tail(factory._state, factory.graph);
-    return this._append(block);
+    this._append(block);
+    return this;
   };
 
   Factory.prototype["import"] = function(factory) {
     var block;
     block = new Block.Callback(factory.graph);
     this._tail(factory._state, factory.graph);
-    return this._append(block);
+    this._append(block);
+    return this;
   };
 
   Factory.prototype.end = function() {

@@ -68,6 +68,7 @@ class Factory
 
     @_tail   factory._state, factory.graph
     @_append block
+    @
 
   # Add existing factory as callback
   # Retains original factory
@@ -76,6 +77,7 @@ class Factory
 
     @_tail   factory._state, factory.graph
     @_append block
+    @
 
   # Return finalized graph / reset factory
   end: () ->

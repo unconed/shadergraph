@@ -758,18 +758,22 @@ exports.cache = require('./cache');
   Takes:
     - Hash of snippets: named library
     - (name) -> getter: dynamic lookup
-    - nothing:          no library, pass source code instead of snippet names
+    - nothing:          no library, only pass in inline source code
+  
+  If 'name' contains any of "{;(" it is assumed to be direct GLSL code.
  */
 var library;
 
 library = function(language, snippets, load) {
+  var callback, inline;
+  callback = null;
   if (snippets != null) {
     if (typeof snippets === 'function') {
-      return function(name) {
+      callback = function(name) {
         return load(language, name, snippets(name));
       };
     } else if (typeof snippets === 'object') {
-      return function(name) {
+      callback = function(name) {
         if (snippets[name] == null) {
           throw "Unknown snippet `" + name + "`";
         }
@@ -777,8 +781,14 @@ library = function(language, snippets, load) {
       };
     }
   }
-  return function(name) {
+  inline = function(name) {
     return load(language, '', name);
+  };
+  return function(name) {
+    if ((callback == null) || name.match(/[{;(]/)) {
+      return inline(name);
+    }
+    return callback(name);
   };
 };
 

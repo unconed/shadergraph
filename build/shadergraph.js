@@ -619,11 +619,17 @@ Factory = (function() {
 
   Factory.prototype._tail = function(state, graph) {
     var tail;
-    if (state.end.length > 1) {
-      tail = new Block.Join(state.end);
-      state.end = [tail.node];
+    tail = state.end.concat(state.tail);
+    tail.filter(function(node, i) {
+      return tail.indexOf(node) === i;
+    });
+    if (tail.length > 1) {
+      tail = new Block.Join(tail);
+      tail = [tail.node];
     }
-    graph.tail = state.end[0];
+    graph.tail = tail[0];
+    state.end = tail;
+    state.tail = [];
     if (!graph.tail) {
       throw "Cannot finalize empty graph";
     }
@@ -656,6 +662,7 @@ Factory = (function() {
     this._state.start = this._state.start.concat(sub.start);
     this._state.end = this._state.end.concat(sub.end);
     this._state.nodes = this._state.nodes.concat(sub.nodes);
+    this._state.tail = this._state.tail.concat(sub.tail);
     return this._push();
   };
 
@@ -717,7 +724,8 @@ Factory = (function() {
     this.graph.add(node);
     this._state.start.push(node);
     this._state.nodes.push(node);
-    return this._state.end.push(node);
+    this._state.end.push(node);
+    return this._state.tail.push(node);
   };
 
   return Factory;
@@ -725,12 +733,13 @@ Factory = (function() {
 })();
 
 State = (function() {
-  function State(op, empty, start, end, nodes) {
+  function State(op, empty, start, end, nodes, tail) {
     this.op = op != null ? op : null;
     this.empty = empty != null ? empty : false;
     this.start = start != null ? start : [];
     this.end = end != null ? end : [];
     this.nodes = nodes != null ? nodes : [];
+    this.tail = tail != null ? tail : [];
   }
 
   return State;

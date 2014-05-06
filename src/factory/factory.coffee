@@ -20,12 +20,12 @@ class Factory
     @_loose name, uniforms, namespace
     @
 
-  # Create parallel branches that connect as one block to the tail
+  # Create parallel branches that connect as one block to the end
   split: () ->
     @_group '_combine', true
     @
 
-  # Create parallel branches that fan out from the tail (multiple outgoing connections per outlet)
+  # Create parallel branches that fan out from the end (multiple outgoing connections per outlet)
   fan: () ->
     @_group '_combine', false
     @
@@ -45,7 +45,7 @@ class Factory
     @_next()
     @
 
-  # Connect branches to previous tail and add pass-through from tail
+  # Connect branches to previous tail and add pass-through from end
   pass: () ->
     pass = @_stack[2].end
     @join()
@@ -154,12 +154,18 @@ class Factory
   # Finalize graph tail
   _tail: (state, graph) ->
 
-    # Merge multiple ends into single tail node
-    if state.end.length > 1
-      tail = new Block.Join state.end
-      state.end  = [tail.node]
+    # Merge terminating ends into single tail node if needed
+    tail = state.end.concat state.tail
+    tail.filter (node, i) -> tail.indexOf(node) == i
 
-    graph.tail = state.end[0]
+    if tail.length > 1
+      tail = new Block.Join tail
+      tail = [tail.node]
+
+    # Save single endpoint
+    graph.tail = tail[0]
+    state.end  = tail
+    state.tail = []
 
     if !graph.tail
       throw "Cannot finalize empty graph"
@@ -187,6 +193,7 @@ class Factory
     @_state.start = @_state.start.concat sub.start
     @_state.end   = @_state.end  .concat sub.end
     @_state.nodes = @_state.nodes.concat sub.nodes
+    @_state.tail  = @_state.tail .concat sub.tail
 
     @_push()
 
@@ -234,9 +241,10 @@ class Factory
     @graph.add node
     @_state.start.push node
     @_state.nodes.push node
-    @_state.end.push node
+    @_state.end  .push node
+    @_state.tail .push node
 
 class State
-  constructor: (@op = null, @empty = false, @start = [], @end = [], @nodes = []) ->
+  constructor: (@op = null, @empty = false, @start = [], @end = [], @nodes = [], @tail = []) ->
 
 module.exports = Factory

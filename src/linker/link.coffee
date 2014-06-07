@@ -15,6 +15,7 @@ link = (language, links, modules, exported) ->
   externals  = {}
   uniforms   = {}
   attributes = {}
+  varyings   = {}
   includes   = []
 
   process = () ->
@@ -37,6 +38,7 @@ link = (language, links, modules, exported) ->
     externals:   externals
     uniforms:    uniforms
     attributes:  attributes
+    varyings:    varyings
     code:        code
 
   # Check for dangling input/output
@@ -58,6 +60,7 @@ link = (language, links, modules, exported) ->
     includes.push generate.defuse module.code
 
     (uniforms[key]   = def) for key, def of module.uniforms
+    (varyings[key]   = def) for key, def of module.varyings
     (attributes[key] = def) for key, def of module.attributes
 
     for key, def of module.externals

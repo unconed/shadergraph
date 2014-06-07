@@ -13,6 +13,7 @@ assemble = (language, namespace, calls) ->
 
   externals  = {}
   uniforms   = {}
+  varyings   = {}
   attributes = {}
   includes   = []
 
@@ -32,6 +33,7 @@ assemble = (language, namespace, calls) ->
     entry:       main.name
     externals:   externals
     uniforms:    uniforms
+    varyings:    varyings
     attributes:  attributes
 
   # Sort and process calls
@@ -60,6 +62,7 @@ assemble = (language, namespace, calls) ->
     includes.push module.code
 
     (uniforms[key]   = def) for key, def of module.uniforms
+    (varyings[key]   = def) for key, def of module.varyings
     (attributes[key] = def) for key, def of module.attributes
 
     for key, def of module.externals

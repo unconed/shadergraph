@@ -831,11 +831,12 @@ Material = (function() {
   }
 
   Material.prototype.build = function(options) {
-    var attributes, fragment, key, shader, uniforms, value, vertex, _i, _len, _ref, _ref1, _ref2;
+    var attributes, fragment, key, shader, uniforms, value, varyings, vertex, _i, _len, _ref, _ref1, _ref2, _ref3;
     if (options == null) {
       options = {};
     }
     uniforms = {};
+    varyings = {};
     attributes = {};
     vertex = this.vertex.link('main');
     fragment = this.fragment.link('main');
@@ -847,9 +848,14 @@ Material = (function() {
         value = _ref1[key];
         uniforms[key] = value;
       }
-      _ref2 = shader.attributes;
+      _ref2 = shader.varyings;
       for (key in _ref2) {
         value = _ref2[key];
+        varyings[key] = value;
+      }
+      _ref3 = shader.attributes;
+      for (key in _ref3) {
+        value = _ref3[key];
         attributes[key] = value;
       }
     }
@@ -857,6 +863,7 @@ Material = (function() {
     options.fragmentShader = fragment.code;
     options.attributes = attributes;
     options.uniforms = uniforms;
+    options.varyings = varyings;
     if (debug) {
       this.tock('Material build');
     }
@@ -2496,10 +2503,11 @@ Graph = require('../graph');
  */
 
 assemble = function(language, namespace, calls) {
-  var attributes, externals, generate, handle, include, includes, isDangling, lookup, process, uniforms;
+  var attributes, externals, generate, handle, include, includes, isDangling, lookup, process, uniforms, varyings;
   generate = language.generate;
   externals = {};
   uniforms = {};
+  varyings = {};
   attributes = {};
   includes = [];
   process = function() {
@@ -2518,6 +2526,7 @@ assemble = function(language, namespace, calls) {
       entry: main.name,
       externals: externals,
       uniforms: uniforms,
+      varyings: varyings,
       attributes: attributes
     };
   };
@@ -2558,22 +2567,27 @@ assemble = function(language, namespace, calls) {
     };
   })(this);
   include = function(node, module) {
-    var def, key, _ref, _ref1, _ref2, _results;
+    var def, key, _ref, _ref1, _ref2, _ref3, _results;
     includes.push(module.code);
     _ref = module.uniforms;
     for (key in _ref) {
       def = _ref[key];
       uniforms[key] = def;
     }
-    _ref1 = module.attributes;
+    _ref1 = module.varyings;
     for (key in _ref1) {
       def = _ref1[key];
-      attributes[key] = def;
+      varyings[key] = def;
     }
-    _ref2 = module.externals;
-    _results = [];
+    _ref2 = module.attributes;
     for (key in _ref2) {
       def = _ref2[key];
+      attributes[key] = def;
+    }
+    _ref3 = module.externals;
+    _results = [];
+    for (key in _ref3) {
+      def = _ref3[key];
       if (isDangling(node, def.name)) {
         _results.push(externals[key] = def);
       } else {
@@ -2707,12 +2721,13 @@ module.exports = Layout;
 var link;
 
 link = function(language, links, modules, exported) {
-  var attributes, externals, generate, include, includes, isDangling, process, uniforms;
+  var attributes, externals, generate, include, includes, isDangling, process, uniforms, varyings;
   generate = language.generate;
   includes = [];
   externals = {};
   uniforms = {};
   attributes = {};
+  varyings = {};
   includes = [];
   process = function() {
     var code, e, exports, m, _i, _len;
@@ -2738,6 +2753,7 @@ link = function(language, links, modules, exported) {
       externals: externals,
       uniforms: uniforms,
       attributes: attributes,
+      varyings: varyings,
       code: code
     };
   };
@@ -2755,22 +2771,27 @@ link = function(language, links, modules, exported) {
     }
   };
   include = function(node, module) {
-    var def, key, _ref, _ref1, _ref2, _results;
+    var def, key, _ref, _ref1, _ref2, _ref3, _results;
     includes.push(generate.defuse(module.code));
     _ref = module.uniforms;
     for (key in _ref) {
       def = _ref[key];
       uniforms[key] = def;
     }
-    _ref1 = module.attributes;
+    _ref1 = module.varyings;
     for (key in _ref1) {
       def = _ref1[key];
-      attributes[key] = def;
+      varyings[key] = def;
     }
-    _ref2 = module.externals;
-    _results = [];
+    _ref2 = module.attributes;
     for (key in _ref2) {
       def = _ref2[key];
+      attributes[key] = def;
+    }
+    _ref3 = module.externals;
+    _results = [];
+    for (key in _ref3) {
+      def = _ref3[key];
       if (isDangling(node, def.name)) {
         _results.push(externals[key] = def);
       } else {

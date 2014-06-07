@@ -13,6 +13,7 @@ class Material
 
   build: (options = {}) ->
     uniforms   = {}
+    varyings   = {}
     attributes = {}
 
     vertex   = @vertex  .link 'main'
@@ -20,12 +21,14 @@ class Material
 
     for shader in [vertex, fragment]
       (uniforms[key]   = value) for key, value of shader.uniforms
+      (varyings[key]   = value) for key, value of shader.varyings
       (attributes[key] = value) for key, value of shader.attributes
 
     options.vertexShader   = vertex  .code
     options.fragmentShader = fragment.code
     options.attributes     = attributes
     options.uniforms       = uniforms
+    options.varyings       = varyings
 
     @tock 'Material build' if debug
 

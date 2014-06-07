@@ -38,13 +38,13 @@ describe "compiler", () ->
   result = """
   uniform float _t_uf1[2], _t_uf2[3];
   varying vec3 _t_v3;
-  attribute vec4 av4;
+  attribute vec4 _t_av4;
   const float _t_cf;
   vec4 _t_gv4 = vec4(1.0);
   
   void _t_callback1(in vec4 v4in);
   
-  
+  #pragma test
   void _t_callback2(in vec3 v3in, out vec4 v4out);
   void _t_internal(in mat4 m4in, out mat4 m4out) {
     vec4 v4o;
@@ -58,7 +58,7 @@ describe "compiler", () ->
     vec4 dummy_gv4;
     mat4 m1, m2;
     _t_internal(m1, m2);
-    _t_callback1(av4);
+    _t_callback1(_t_av4);
     _t_callback3(_t_v3, _t_gv4, ov4);
     gl_FragColor = ov4;
   };

@@ -29,8 +29,8 @@ replaced = (signatures) ->
 
   s signatures.main
 
-  # Prefix all global symbols except attributes
-  for key in ['external', 'internal', 'varying', 'uniform']
+  # Prefix all global symbols
+  for key in ['external', 'internal', 'varying', 'uniform', 'attribute']
     s(sig) for sig in signatures[key]
 
   out
@@ -49,18 +49,16 @@ string_compiler = (code, placeholders) ->
   code = code.replace /\/\*([^*]|\*[^\/])*\*\//g, ''
 
   # Strip all preprocessor commands (lazy)
-  code = code.replace /^#[^\n]*/mg, ''
+  #code = code.replace /^#[^\n]*/mg, ''
 
   # Assembler function that takes map of symbol names + namespace prefix
   # and returns GLSL source code
-  (prefix = '', replaced = {}) ->
-    names = {}
+  (prefix = '', exceptions = {}) ->
+    replace = {}
     for key of placeholders
-      names[key] = prefix + (replaced[key] ? key)
+      replace[key] = if exceptions[key]? then key else prefix + key
 
-    code.replace re, (key) ->
-      names[key]
-
+    code.replace re, (key) -> replace[key]
 
 
 
@@ -285,15 +283,15 @@ ast_compiler = (ast, placeholders) ->
 
   # assembler function that takes map of symbol names
   # and returns GLSL source code
-  (prefix = '', replaced = {}) ->
-    names = {}
+  (prefix = '', exceptions = {}) ->
+    replace = {}
     for key of placeholders
-      names[key] = prefix + (replaced[key] ? key)
+      replace[key] = if exceptions[key]? then key else prefix + key
 
     out = ""
     for token in tokens
       if token.call
-        out += token(names)
+        out += token(replace)
       else
         out += token
 

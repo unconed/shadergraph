@@ -7,7 +7,7 @@ Block   = require '../block'
   Exposes methods to build a graph incrementally
 ###
 class Factory
-  constructor: (@language, @fetch) ->
+  constructor: (@language, @fetch, @config) ->
     @end()
 
   # Connected block creation
@@ -132,7 +132,7 @@ class Factory
   # Create next call block
   _call: (name, uniforms, namespace) ->
     snippet = @fetch name
-    snippet.bind uniforms, namespace
+    snippet.bind @config, uniforms, namespace
     block = new Block.Call snippet
     if block.node.inputs.length
       @_append block
@@ -142,7 +142,7 @@ class Factory
   # Insert dangling call block
   _loose: (name, uniforms, namespace) ->
     snippet = @fetch name
-    snippet.bind uniforms, namespace
+    snippet.bind @config, uniforms, namespace
     @_insert new Block.Call snippet
 
   # Move current state into subgraph

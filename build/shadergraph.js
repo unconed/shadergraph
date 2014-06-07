@@ -459,9 +459,10 @@ Block = require('../block');
  */
 
 Factory = (function() {
-  function Factory(language, fetch) {
+  function Factory(language, fetch, config) {
     this.language = language;
     this.fetch = fetch;
+    this.config = config;
     this.end();
   }
 
@@ -594,7 +595,7 @@ Factory = (function() {
   Factory.prototype._call = function(name, uniforms, namespace) {
     var block, snippet;
     snippet = this.fetch(name);
-    snippet.bind(uniforms, namespace);
+    snippet.bind(this.config, uniforms, namespace);
     block = new Block.Call(snippet);
     if (block.node.inputs.length) {
       return this._append(block);
@@ -606,7 +607,7 @@ Factory = (function() {
   Factory.prototype._loose = function(name, uniforms, namespace) {
     var snippet;
     snippet = this.fetch(name);
-    snippet.bind(uniforms, namespace);
+    snippet.bind(this.config, uniforms, namespace);
     return this._insert(new Block.Call(snippet));
   };
 
@@ -805,7 +806,9 @@ module.exports = library;
 
 
 },{}],11:[function(require,module,exports){
-var Material, tick;
+var Material, debug, tick;
+
+debug = false;
 
 tick = function() {
   var now;
@@ -822,7 +825,9 @@ Material = (function() {
   function Material(vertex, fragment) {
     this.vertex = vertex;
     this.fragment = fragment;
-    this.tock = tick();
+    if (debug) {
+      this.tock = tick();
+    }
   }
 
   Material.prototype.build = function(options) {
@@ -852,7 +857,9 @@ Material = (function() {
     options.fragmentShader = fragment.code;
     options.attributes = attributes;
     options.uniforms = uniforms;
-    this.tock('Material build');
+    if (debug) {
+      this.tock('Material build');
+    }
     return options;
   };
 
@@ -896,7 +903,7 @@ replaced = function(signatures) {
     return out[sig.name] = true;
   };
   s(signatures.main);
-  _ref = ['external', 'internal', 'varying', 'uniform'];
+  _ref = ['external', 'internal', 'varying', 'uniform', 'attribute'];
   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
     key = _ref[_i];
     _ref1 = signatures[key];
@@ -925,21 +932,20 @@ string_compiler = function(code, placeholders) {
   })()).join('|') + ')\\b', 'g');
   code = code.replace(/\/\/[^\n]*/g, '');
   code = code.replace(/\/\*([^*]|\*[^\/])*\*\//g, '');
-  code = code.replace(/^#[^\n]*/mg, '');
-  return function(prefix, replaced) {
-    var names, _ref;
+  return function(prefix, exceptions) {
+    var replace;
     if (prefix == null) {
       prefix = '';
     }
-    if (replaced == null) {
-      replaced = {};
+    if (exceptions == null) {
+      exceptions = {};
     }
-    names = {};
+    replace = {};
     for (key in placeholders) {
-      names[key] = prefix + ((_ref = replaced[key]) != null ? _ref : key);
+      replace[key] = exceptions[key] != null ? key : prefix + key;
     }
     return code.replace(re, function(key) {
-      return names[key];
+      return replace[key];
     });
   };
 };
@@ -1163,15 +1169,15 @@ ast_compiler = (ast, placeholders) ->
 
    * assembler function that takes map of symbol names
    * and returns GLSL source code
-  (prefix = '', replaced = {}) ->
-    names = {}
+  (prefix = '', exceptions = {}) ->
+    replace = {}
     for key of placeholders
-      names[key] = prefix + (replaced[key] ? key)
+      replace[key] = if exceptions[key]? then key else prefix + key
 
     out = ""
     for token in tokens
       if token.call
-        out += token(names)
+        out += token(replace)
       else
         out += token
 
@@ -2396,7 +2402,7 @@ module.exports = Outlet;
 
 
 },{"./graph":18}],22:[function(require,module,exports){
-var Factory, Material, ShaderGraph, Snippet, cache, f, glsl, l, library;
+var Factory, Material, ShaderGraph, Snippet, cache, f, glsl, l, library, merge;
 
 glsl = require('./glsl');
 
@@ -2414,20 +2420,46 @@ cache = f.cache;
 
 Snippet = l.Snippet;
 
+merge = function(a, b) {
+  var key, out, value, _ref;
+  if (b == null) {
+    b = {};
+  }
+  out = {};
+  for (key in a) {
+    value = a[key];
+    out[key] = (_ref = b[key]) != null ? _ref : a[key];
+  }
+  return out;
+};
+
 ShaderGraph = (function() {
-  function ShaderGraph(snippets) {
+  function ShaderGraph(snippets, config) {
+    var defaults;
     if (!(this instanceof ShaderGraph)) {
-      return new ShaderGraph(snippets);
+      return new ShaderGraph(snippets, config);
     }
+    defaults = {
+      globalUniforms: false,
+      globalVaryings: true,
+      globalAttributes: true,
+      globals: []
+    };
+    this.config = merge(defaults, config);
     this.fetch = cache(library(glsl, snippets, Snippet.load));
   }
 
-  ShaderGraph.prototype.shader = function() {
-    return new Factory(glsl, this.fetch);
+  ShaderGraph.prototype.shader = function(config) {
+    var _config;
+    if (config == null) {
+      config = {};
+    }
+    _config = merge(this.config, config);
+    return new Factory(glsl, this.fetch, _config);
   };
 
-  ShaderGraph.prototype.material = function() {
-    return new Material(this.shader(), this.shader());
+  ShaderGraph.prototype.material = function(config) {
+    return new Material(this.shader(config), this.shader(config));
   };
 
   ShaderGraph.Block = require('./block');
@@ -3209,19 +3241,39 @@ Snippet = (function() {
     return new Snippet(this.language, this._signatures, this._compiler, this._name);
   };
 
-  Snippet.prototype.bind = function(uniforms, namespace) {
-    var a, def, e, exist, name, redef, u, x, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3, _ref4;
+  Snippet.prototype.bind = function(config, uniforms, namespace) {
+    var a, def, e, exceptions, exist, global, key, local, name, redef, u, v, x, _a, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _u, _v;
     if (uniforms === '' + uniforms) {
       _ref = [uniforms, namespace != null ? namespace : {}], namespace = _ref[0], uniforms = _ref[1];
     }
-    this.namespace = namespace != null ? namespace : Snippet.namespace();
-    this.code = this._compiler(this.namespace);
     this.main = this._signatures.main;
+    this.namespace = (_ref1 = namespace != null ? namespace : this.namespace) != null ? _ref1 : Snippet.namespace();
     this.entry = this.namespace + this.main.name;
     this.uniforms = {};
     this.externals = {};
     this.attributes = {};
+    this.varyings = {};
     exist = {};
+    exceptions = {};
+    global = function(name) {
+      exceptions[name] = true;
+      return name;
+    };
+    local = (function(_this) {
+      return function(name) {
+        return _this.namespace + name;
+      };
+    })(this);
+    if (config.globals) {
+      _ref2 = config.globals;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        key = _ref2[_i];
+        global(key);
+      }
+    }
+    _u = config.globalUniforms ? global : local;
+    _v = config.globalVaryings ? global : local;
+    _a = config.globalAttributes ? global : local;
     x = (function(_this) {
       return function(def) {
         return exist[def.name] = true;
@@ -3229,17 +3281,22 @@ Snippet = (function() {
     })(this);
     u = (function(_this) {
       return function(def, name) {
-        return _this.uniforms[_this.namespace + (name != null ? name : def.name)] = def;
+        return _this.uniforms[_u(name != null ? name : def.name)] = def;
+      };
+    })(this);
+    v = (function(_this) {
+      return function(def) {
+        return _this.varyings[_v(def.name)] = def;
       };
     })(this);
     e = (function(_this) {
       return function(def) {
-        return _this.externals[_this.namespace + def.name] = def;
+        return _this.externals[local(def.name)] = def;
       };
     })(this);
     a = (function(_this) {
       return function(def) {
-        return _this.attributes[def.name] = def;
+        return _this.attributes[_a(def.name)] = def;
       };
     })(this);
     redef = function(def) {
@@ -3249,24 +3306,29 @@ Snippet = (function() {
         value: def.value
       };
     };
-    _ref1 = this._signatures.uniform;
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      def = _ref1[_i];
+    _ref3 = this._signatures.uniform;
+    for (_j = 0, _len1 = _ref3.length; _j < _len1; _j++) {
+      def = _ref3[_j];
       x(def);
     }
-    _ref2 = this._signatures.uniform;
-    for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-      def = _ref2[_j];
+    _ref4 = this._signatures.uniform;
+    for (_k = 0, _len2 = _ref4.length; _k < _len2; _k++) {
+      def = _ref4[_k];
       u(redef(def));
     }
-    _ref3 = this._signatures.external;
-    for (_k = 0, _len2 = _ref3.length; _k < _len2; _k++) {
-      def = _ref3[_k];
+    _ref5 = this._signatures.varying;
+    for (_l = 0, _len3 = _ref5.length; _l < _len3; _l++) {
+      def = _ref5[_l];
+      v(redef(def));
+    }
+    _ref6 = this._signatures.external;
+    for (_m = 0, _len4 = _ref6.length; _m < _len4; _m++) {
+      def = _ref6[_m];
       e(def);
     }
-    _ref4 = this._signatures.attribute;
-    for (_l = 0, _len3 = _ref4.length; _l < _len3; _l++) {
-      def = _ref4[_l];
+    _ref7 = this._signatures.attribute;
+    for (_n = 0, _len5 = _ref7.length; _n < _len5; _n++) {
+      def = _ref7[_n];
       a(redef(def));
     }
     for (name in uniforms) {
@@ -3275,6 +3337,7 @@ Snippet = (function() {
         u(def, name);
       }
     }
+    this.code = this._compiler(this.namespace, exceptions);
     return null;
   };
 

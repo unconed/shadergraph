@@ -4,6 +4,8 @@ GLSL    = ShaderGraph.GLSL
 describe "snippet", () ->
 
   snippet = null
+  configLocal  = { globalAttributes: false, globalVaryings: false, globalUniforms: false }
+  configGlobal = { globalAttributes: true,  globalVaryings: true,  globalUniforms: true }
 
   beforeEach () ->
     code = """
@@ -11,6 +13,8 @@ describe "snippet", () ->
     uniform vec3 uni2;
     attribute vec3 att1;
     attribute vec4 att2;
+    varying vec4 var1;
+    varying vec3 var2;
     void callback1(in vec3 color);
     void callback2(out vec3 color);
     void testSnippet(float param) { };
@@ -21,9 +25,9 @@ describe "snippet", () ->
   it 'loads', () ->
     expect(snippet).toBeTruthy()
 
-  it 'compiles with namespace', () ->
+  it 'compiles locals with namespace', () ->
 
-    snippet.bind {}, '_sgtest_'
+    snippet.bind configLocal, '_sgtest_'
 
     expect(snippet.entry).toBe('_sgtest_testSnippet')
     expect(snippet.main).toBeTruthy()
@@ -42,18 +46,53 @@ describe "snippet", () ->
     expect(snippet.externals['_sgtest_callback2'].name).toBe('callback2')
     expect(snippet.externals['_sgtest_callback2'].type).toBe('()(v3)')
 
-    # don't rename attributes
+    expect(snippet.attributes['_sgtest_att1'].name).toBe('att1')
+    expect(snippet.attributes['_sgtest_att1'].type).toBe('v3')
+    expect(snippet.attributes['_sgtest_att2'].name).toBe('att2')
+    expect(snippet.attributes['_sgtest_att2'].type).toBe('v4')
+
+    expect(snippet.varyings['_sgtest_var1'].name).toBe('var1')
+    expect(snippet.varyings['_sgtest_var1'].type).toBe('v4')
+    expect(snippet.varyings['_sgtest_var2'].name).toBe('var2')
+    expect(snippet.varyings['_sgtest_var2'].type).toBe('v3')
+
+  it 'compiles globals without namespace', () ->
+
+    snippet.bind configGlobal, '_sgtest_'
+
+    expect(snippet.entry).toBe('_sgtest_testSnippet')
+    expect(snippet.main).toBeTruthy()
+
+    expect(snippet.main.signature.length).toBe(1)
+    expect(snippet.main.signature[0].name).toBe('param')
+    expect(snippet.main.signature[0].type).toBe('f')
+
+    expect(snippet.uniforms['uni1'].name).toBe('uni1')
+    expect(snippet.uniforms['uni1'].type).toBe('f')
+    expect(snippet.uniforms['uni2'].name).toBe('uni2')
+    expect(snippet.uniforms['uni2'].type).toBe('v3')
+
+    expect(snippet.externals['_sgtest_callback1'].name).toBe('callback1')
+    expect(snippet.externals['_sgtest_callback1'].type).toBe('(v3)()')
+    expect(snippet.externals['_sgtest_callback2'].name).toBe('callback2')
+    expect(snippet.externals['_sgtest_callback2'].type).toBe('()(v3)')
+
     expect(snippet.attributes['att1'].name).toBe('att1')
     expect(snippet.attributes['att1'].type).toBe('v3')
     expect(snippet.attributes['att2'].name).toBe('att2')
     expect(snippet.attributes['att2'].type).toBe('v4')
+
+    expect(snippet.varyings['var1'].name).toBe('var1')
+    expect(snippet.varyings['var1'].type).toBe('v4')
+    expect(snippet.varyings['var2'].name).toBe('var2')
+    expect(snippet.varyings['var2'].type).toBe('v3')
 
   it 'binds uniforms', () ->
     uniforms =
       uni1:
         type: 'f'
         value: 1.0
-    snippet.bind uniforms, '_bind_'
+    snippet.bind configLocal, uniforms, '_bind_'
 
     expect(snippet.uniforms['_bind_uni1']).toBe(uniforms.uni1)
 
@@ -62,6 +101,6 @@ describe "snippet", () ->
       uni1:
         type: 'f'
         value: 1.0
-    snippet.bind '_bind_', uniforms
+    snippet.bind configLocal, '_bind_', uniforms
 
     expect(snippet.uniforms['_bind_uni1']).toBe(uniforms.uni1)

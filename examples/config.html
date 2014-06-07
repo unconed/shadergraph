@@ -2,15 +2,16 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>ShaderGraph - Material</title>
+  <title>ShaderGraph - Configuration</title>
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
 <script type="application/x-glsl" id="vertex">
+uniform float strength;
 attribute vec3 color;
 varying vec3 vColor;
 
 void main() {
-  vColor = color;
+  vColor = color * strength;
 }
 </script>
 
@@ -47,18 +48,28 @@ void setColor(vec3 color) {
 
   // Load ShaderGraph with given fetch function
   // (can also pass in dictionary of snippets)
-  shadergraph = ShaderGraph(fetch);
+  shadergraph = ShaderGraph(fetch, {
+    // Flip all global / local toggles from the default
+    globalAttributes: false,
+    globalVaryings: false,
+    globalUniforms: true,
+  });
 
   // Prepare new material (vertex + fragment shader)
   material = shadergraph.material()
 
+  // Prepare uniform (three.js style)
+  uniforms = {
+    strength: { type: 'f', value: 0.5 }
+  };
+
   // Build vertex shader graph
   material.vertex
-    .call('vertex')
+    .call('vertex', 'my', uniforms)
 
   // Build fragment shader graph
   material.fragment
-    .call('getColor')
+    .call('getColor', 'my')
     .call('setColor')
 
   // Link both shaders and combine into a three.js style material

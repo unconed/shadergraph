@@ -18,7 +18,7 @@ class Snippet
     @externals  = null
     @attributes = null
 
-    # Tidy up pseudo-snippets
+    # Tidy up object for export
     delete @language    if !@language
     delete @_signatures if !@_signatures
     delete @_compiler   if !@_compiler
@@ -27,34 +27,52 @@ class Snippet
   clone: () ->
     new Snippet @language, @_signatures, @_compiler, @_name
 
-  bind: (uniforms, namespace) ->
+  bind: (config, uniforms, namespace) ->
 
     if uniforms == '' + uniforms
       [namespace, uniforms] = [uniforms, namespace ? {}]
 
-    @namespace  = namespace ? Snippet.namespace()
-    @code       = @_compiler @namespace
-
     @main       = @_signatures.main
+    @namespace  = namespace ? @namespace ? Snippet.namespace()
     @entry      = @namespace + @main.name
 
     @uniforms   = {}
     @externals  = {}
     @attributes = {}
+    @varyings   = {}
     exist       = {}
+    exceptions  = {}
 
-    x = (def)       =>       exist[def.name]                       = true
-    u = (def, name) =>   @uniforms[@namespace + (name ? def.name)] = def
-    e = (def)       =>  @externals[@namespace + def.name]          = def
-    a = (def)       => @attributes[def.name]                       = def
+    # Handle globals and locals for prefixing
+    global = (name) ->
+      exceptions[name] = true
+      name
+    local  = (name) =>
+      @namespace + name
+
+    # Apply config
+    global key for key in config.globals if config.globals
+    _u = if config.globalUniforms   then global else local
+    _v = if config.globalVaryings   then global else local
+    _a = if config.globalAttributes then global else local
+
+    # Build finalized properties
+    x = (def)       =>       exist[def.name]           = true
+    u = (def, name) =>   @uniforms[_u name ? def.name] = def
+    v = (def)       =>   @varyings[_v def.name]        = def
+    e = (def)       =>  @externals[local def.name]     = def
+    a = (def)       => @attributes[_a def.name]        = def
 
     redef = (def) -> {type: def.type, name: def.name, value: def.value}
 
     x def       for def in @_signatures.uniform
     u redef def for def in @_signatures.uniform
+    v redef def for def in @_signatures.varying
     e def       for def in @_signatures.external
     a redef def for def in @_signatures.attribute
     u def, name for name, def of uniforms when exist[name]
+
+    @code       = @_compiler @namespace, exceptions
 
     null
 

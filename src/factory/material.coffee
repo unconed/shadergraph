@@ -1,3 +1,5 @@
+debug = false
+
 tick = () ->
   now = +new Date
   return (label) ->
@@ -7,7 +9,7 @@ tick = () ->
 
 class Material
   constructor: (@vertex, @fragment) ->
-    @tock = tick()
+    @tock = tick() if debug
 
   build: (options = {}) ->
     uniforms   = {}
@@ -25,7 +27,7 @@ class Material
     options.attributes     = attributes
     options.uniforms       = uniforms
 
-    @tock 'Material build'
+    @tock 'Material build' if debug
 
     options
 

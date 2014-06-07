@@ -55,12 +55,12 @@ void setColor(vec3 color) {
   // Build vertex shader graph
   material.vertex
     // Use a namespace to match up varying between two graphs
-    .call('vertex', {}, 'shader')
+    .call('vertex', 'shader')
 
   // Build fragment shader graph
   material.fragment
     // Repeat 'shader' namespace
-    .call('getColor', {}, 'shader')
+    .call('getColor', 'shader')
     .call('setColor')
 
   // Link both shaders and combine into a three.js style material

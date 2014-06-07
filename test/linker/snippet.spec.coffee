@@ -56,3 +56,12 @@ describe "snippet", () ->
     snippet.bind uniforms, '_bind_'
 
     expect(snippet.uniforms['_bind_uni1']).toBe(uniforms.uni1)
+
+  it 'binds uniforms backwards', () ->
+    uniforms =
+      uni1:
+        type: 'f'
+        value: 1.0
+    snippet.bind '_bind_', uniforms
+
+    expect(snippet.uniforms['_bind_uni1']).toBe(uniforms.uni1)

@@ -27,8 +27,12 @@ class Snippet
   clone: () ->
     new Snippet @language, @_signatures, @_compiler, @_name
 
-  bind: (uniforms, @namespace) ->
-    @namespace ?= Snippet.namespace()
+  bind: (uniforms, namespace) ->
+
+    if uniforms == '' + uniforms
+      [namespace, uniforms] = [uniforms, namespace ? {}]
+
+    @namespace  = namespace ? Snippet.namespace()
     @code       = @_compiler @namespace
 
     @main       = @_signatures.main

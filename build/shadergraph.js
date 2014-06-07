@@ -3191,6 +3191,18 @@ Snippet = (function() {
     this.uniforms = null;
     this.externals = null;
     this.attributes = null;
+    if (!this.language) {
+      delete this.language;
+    }
+    if (!this._signatures) {
+      delete this._signatures;
+    }
+    if (!this._compiler) {
+      delete this._compiler;
+    }
+    if (!this._name) {
+      delete this._name;
+    }
   }
 
   Snippet.prototype.clone = function() {

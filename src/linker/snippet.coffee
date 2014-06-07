@@ -18,6 +18,12 @@ class Snippet
     @externals  = null
     @attributes = null
 
+    # Tidy up pseudo-snippets
+    delete @language    if !@language
+    delete @_signatures if !@_signatures
+    delete @_compiler   if !@_compiler
+    delete @_name       if !@_name
+
   clone: () ->
     new Snippet @language, @_signatures, @_compiler, @_name
 

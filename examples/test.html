@@ -4,11 +4,74 @@
   <meta charset="utf-8">
   <title>ShaderGraph - Test</title>
   <script type="text/javascript" src="../build/shadergraph.js"></script>
+
+  <script type="application/x-glsl" id="getRampColor">
+  vec3 getRampColor(float ramp) {
+    return vec3(ramp, ramp * ramp, ramp * ramp * ramp);
+  }
+  </script>
+
+  <script type="application/x-glsl" id="getColor">
+  uniform vec3 diffuseColor;
+  vec3 getRampColor(float ramp);
+
+  vec3 getColor() {
+    return diffuseColor * getRampColor(length(diffuseColor));
+  }
+  </script>
+  
+  <script type="application/x-glsl" id="setColor">
+  void setColor(vec3 color) {
+    gl_FragColor = vec4(color, 1.0);
+  }
+  </script>
+
 </head>
 <body>
+  <h6>See Console For Result</h6>
+  <pre></pre>
+
   <script>
 
+  // Fetch snippets above
+  var fetch = function (key) {
+    element = document.getElementById(key);
+    return element.textContent || element.innerText;
+  }
+
+  // Load ShaderGraph with given fetch function
+  // (can also pass in dictionary of snippets)
+  shadergraph = ShaderGraph(fetch);
+
+  // Prepare new shader
+  shader  = shadergraph.shader()
+
+  // Prepare uniform (three.js style)
+  uniforms = {
+    diffuseColor: { type: 'v3', value: { x: 0.5, y: 0.75, z: 1.0 }}
+  };
+
+  // Build shader graph
+  graph   = shader
+
+            // Build a callback
+            .callback()
+              .call('getRampColor')
+            .join()
+
+            // Build two-step chain that uses the callback and the uniform
+            .call('getColor', uniforms)
+            .call('setColor')
+            .end()
+
+  // Link entire shader to main() function
+  snippet = graph.link('main')
+
+  // Show in document body
+  document.querySelector('pre').innerText = snippet.code;
+  console.log(snippet);
 
   </script>
+  
 </body>
 </html>

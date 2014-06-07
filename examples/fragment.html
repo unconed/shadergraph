@@ -5,26 +5,26 @@
   <title>ShaderGraph - Test</title>
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
-  <script type="application/x-glsl" id="getRampColor">
-  vec3 getRampColor(float ramp) {
-    return vec3(ramp, ramp * ramp, ramp * ramp * ramp);
-  }
-  </script>
+<script type="application/x-glsl" id="getRampColor">
+vec3 getRampColor(float ramp) {
+  return vec3(ramp, ramp * ramp, ramp * ramp * ramp);
+}
+</script>
 
-  <script type="application/x-glsl" id="getColor">
-  uniform vec3 diffuseColor;
-  vec3 getRampColor(float ramp);
+<script type="application/x-glsl" id="getColor">
+uniform vec3 diffuseColor;
+vec3 getRampColor(float ramp);
 
-  vec3 getColor() {
-    return diffuseColor * getRampColor(length(diffuseColor));
-  }
-  </script>
-  
-  <script type="application/x-glsl" id="setColor">
-  void setColor(vec3 color) {
-    gl_FragColor = vec4(color, 1.0);
-  }
-  </script>
+vec3 getColor() {
+  return diffuseColor * getRampColor(length(diffuseColor));
+}
+</script>
+
+<script type="application/x-glsl" id="setColor">
+void setColor(vec3 color) {
+  gl_FragColor = vec4(color, 1.0);
+}
+</script>
 
 </head>
 <body>
@@ -52,20 +52,18 @@
   };
 
   // Build shader graph
-  graph   = shader
+  shader
+    // Build a callback
+    .callback()
+      .call('getRampColor')
+    .join()
 
-            // Build a callback
-            .callback()
-              .call('getRampColor')
-            .join()
-
-            // Build two-step chain that uses the callback and the uniform
-            .call('getColor', uniforms)
-            .call('setColor')
-            .end()
+    // Build two-step chain that uses the callback and the uniform
+    .call('getColor', uniforms)
+    .call('setColor')
 
   // Link entire shader to main() function
-  snippet = graph.link('main')
+  snippet = shader.link('main')
 
   // Show in document body
   document.querySelector('pre').innerText = snippet.code;

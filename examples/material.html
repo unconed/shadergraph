@@ -49,7 +49,7 @@ void setColor(vec3 color) {
   }
 
   // Load ShaderGraph with given fetch function
-  // (can also pass in dictionary of snippets)
+  // (can also pass in dictionary of snippets, or pass literal code to .call() below)
   shadergraph = ShaderGraph(fetch);
 
   // Prepare new material (vertex + fragment shader)

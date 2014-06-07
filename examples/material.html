@@ -30,6 +30,11 @@ void setColor(vec3 color) {
 </head>
 <body>
   <h6>See Console For Result</h6>
+  
+  <h4>Vertex Shader</h4>
+  <pre></pre>
+
+  <h4>Fragment Shader</h4>
   <pre></pre>
 
   <script>
@@ -62,11 +67,9 @@ void setColor(vec3 color) {
   program = material.build()
 
   // Show in document body
-  result = program.vertexShader
-         + "\n\n\n\n/********************/\n\n\n\n"
-         + program.fragmentShader
-
-  document.querySelector('pre').innerText = result
+  pre = document.querySelectorAll('pre');
+  pre[0].innerText = program.vertexShader;
+  pre[1].innerText = program.fragmentShader;
   console.log(program);
 
   </script>

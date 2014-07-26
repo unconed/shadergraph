@@ -550,6 +550,17 @@ Factory = (function() {
     return graph;
   };
 
+  Factory.prototype.require = function(name, uniforms, namespace) {
+    var factory;
+    if (name === "" + name) {
+      this.callback();
+      this.call(name, uniforms, namespace);
+      return this.join();
+    } else {
+      return this["import"](factory = name);
+    }
+  };
+
   Factory.prototype.compile = function(namespace) {
     return this.end().compile(namespace);
   };
@@ -959,12 +970,14 @@ string_compiler = function(code, placeholders) {
 
 
 /*
-AST-based compiler
-(not used)
+ * AST-based compiler
+ * (not used)
+ *
+ * glsl-parser's AST is too awkward to serialize back into source code
+ *
+ * not implemented: do, while, for, struct, precision
+ *#
 
-glsl-parser's AST is a bit awkward to serialize back into source code
-
-todo: do, while, for, struct, precision
 ast_compiler = (ast, placeholders) ->
 
    * stream out tokens, either strings or string callbacks
@@ -2715,8 +2728,7 @@ module.exports = Layout;
  
  Imports given modules and generates linkages for registered callbacks.
 
- Builds composite program that can act as new module/snippet
- with single module as exported entry point
+ Builds composite program with single module as exported entry point
  */
 var link;
 

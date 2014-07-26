@@ -35,8 +35,8 @@ class Isolate extends Block
 
   export: (layout) ->
     @make()  if !@subroutine?
-    @_link  @subroutine, layout
-    @_trace @subroutine, layout
+    @_link   @subroutine, layout
+    @_trace  @subroutine, layout
     @graph.export layout
 
   fetch: (outlet) ->

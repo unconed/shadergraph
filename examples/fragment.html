@@ -58,10 +58,13 @@ void setColor(vec3 color) {
 
   // Build shader graph
   shader
-    // Build a callback
-    .callback()
-      .call('getRampColor')
-    .join()
+    // Require a callback
+    .require('getRampColor')
+
+    // Build a callback manually
+    //.callback()
+    //  .call('getRampColor')
+    //.join()
 
     // Build two-step chain that uses the callback and the uniform
     .call('getColor', uniforms)
@@ -72,7 +75,7 @@ void setColor(vec3 color) {
 
   // Show in document body
   document.querySelector('pre').innerText = snippet.code;
-  console.log(snippet);
+  console.log("shader.link('main') = ", snippet);
 
   </script>
   

@@ -96,6 +96,15 @@ class Factory
 
     graph
 
+  # Combined callback/import shortcut
+  require: (name, uniforms, namespace) ->
+    if name == "" + name
+      @callback()
+      @call name, uniforms, namespace
+      @join()
+    else
+      @import factory = name
+
   # Compile shortcut
   compile: (namespace) ->
     @end().compile namespace

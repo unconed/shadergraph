@@ -17,55 +17,7 @@ describe "program", () ->
     code = code.replace /\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g, (match, name) ->
       map[match] ? map[match] = "_pg_#{++p}_#{name ? ''}"
 
-  it 'imports a factory (import)', () ->
-
-    code1 = """
-    float foobar(vec3 color) {
-    }
-    """
-
-    code2 = """
-    float callback(vec3 color);
-    void main(in vec3 color) {
-      float f = callback(color);
-    }
-    """
-
-    snippets = {
-      'code1': code1
-      'code2': code2
-    }
-
-    result = """
-    #define _sn_1_callback _pg_1_
-    #define _pg_1_ _sn_2_foobar
-    float _sn_2_foobar(vec3 color) {
-    }
-    void _sn_3_main(in vec3 color) {
-      float f = _sn_1_callback(color);
-    }
-    void main(in vec3 _io_1_color) {
-      _sn_3_main(_io_1_color);
-    }
-    """
-
-    shadergraph = ShaderGraph snippets
-
-    shader = shadergraph.shader()
-    shader.call('code1')
-
-    graph  = shadergraph.shader()
-              .import(shader)
-              .call('code2')
-              .end()
-
-    snippet = graph.link('main')
-    code = normalize(snippet.code)
-
-    expect(code).toBe(result)
-    expect(snippet.entry.match /^_pg_[0-9]+_$/).toBeTruthy
-
-  it 'imports a factory (require)', () ->
+  it 'imports a factory (require/pipe)', () ->
 
     code1 = """
     float foobar(vec3 color) {
@@ -104,7 +56,7 @@ describe "program", () ->
 
     graph  = shadergraph.shader()
               .require(shader)
-              .call('code2')
+              .pipe('code2')
               .end()
 
     snippet = graph.link('main')
@@ -113,7 +65,7 @@ describe "program", () ->
     expect(code).toBe(result)
     expect(snippet.entry.match /^_pg_[0-9]+_$/).toBeTruthy
 
-  it 'constructs an implicit callback (require)', () ->
+  it 'constructs an implicit callback (import/call)', () ->
 
     code1 = """
     float foobar(vec3 color) {
@@ -150,7 +102,7 @@ describe "program", () ->
     shader = shadergraph.shader()
 
     graph  = shader
-              .require('code1')
+              .import('code1')
               .call('code2')
               .end()
 

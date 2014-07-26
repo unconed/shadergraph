@@ -67,8 +67,8 @@ void setColor(vec3 color) {
     //.join()
 
     // Build two-step chain that uses the callback and the uniform
-    .call('getColor', uniforms)
-    .call('setColor')
+    .pipe('getColor', uniforms)
+    .pipe('setColor')
 
   // Link entire shader to main() function
   snippet = shader.link('main')

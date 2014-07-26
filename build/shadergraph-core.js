@@ -466,9 +466,32 @@ Factory = (function() {
     this.end();
   }
 
-  Factory.prototype.call = function(name, uniforms, namespace) {
-    this._call(name, uniforms, namespace);
+  Factory.prototype.pipe = function(name, uniforms, namespace) {
+    if (name instanceof Factory) {
+      this._concat(name);
+    } else {
+      this._call(name, uniforms, namespace);
+    }
     return this;
+  };
+
+  Factory.prototype.call = function(name, uniforms, namespace) {
+    return this.pipe(name, uniforms, namespace);
+  };
+
+  Factory.prototype.require = function(name, uniforms, namespace) {
+    if (name instanceof Factory) {
+      this._import(name);
+    } else {
+      this.callback();
+      this._call(name, uniforms, namespace);
+      this.join();
+    }
+    return this;
+  };
+
+  Factory.prototype["import"] = function(name, uniforms, namespace) {
+    return this.require(name, uniforms, namespace);
   };
 
   Factory.prototype.loose = function(name, uniforms, namespace) {
@@ -519,22 +542,6 @@ Factory = (function() {
     return this;
   };
 
-  Factory.prototype.concat = function(factory) {
-    var block;
-    block = new Block.Isolate(factory.graph);
-    this._tail(factory._state, factory.graph);
-    this._append(block);
-    return this;
-  };
-
-  Factory.prototype["import"] = function(factory) {
-    var block;
-    block = new Block.Callback(factory.graph);
-    this._tail(factory._state, factory.graph);
-    this._append(block);
-    return this;
-  };
-
   Factory.prototype.end = function() {
     var graph, _ref;
     while (((_ref = this._stack) != null ? _ref.length : void 0) > 1) {
@@ -550,23 +557,28 @@ Factory = (function() {
     return graph;
   };
 
-  Factory.prototype.require = function(name, uniforms, namespace) {
-    var factory;
-    if (name === "" + name) {
-      this.callback();
-      this.call(name, uniforms, namespace);
-      return this.join();
-    } else {
-      return this["import"](factory = name);
-    }
-  };
-
   Factory.prototype.compile = function(namespace) {
     return this.end().compile(namespace);
   };
 
   Factory.prototype.link = function(namespace) {
     return this.end().link(namespace);
+  };
+
+  Factory.prototype._concat = function(factory) {
+    var block;
+    block = new Block.Isolate(factory.graph);
+    this._tail(factory._state, factory.graph);
+    this._append(block);
+    return this;
+  };
+
+  Factory.prototype._import = function(factory) {
+    var block;
+    block = new Block.Callback(factory.graph);
+    this._tail(factory._state, factory.graph);
+    this._append(block);
+    return this;
   };
 
   Factory.prototype._combine = function(sub, main) {

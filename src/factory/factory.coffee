@@ -10,10 +10,29 @@ class Factory
   constructor: (@language, @fetch, @config) ->
     @end()
 
-  # Connected block creation
-  call: (name, uniforms, namespace) ->
-    @_call name, uniforms, namespace
+  # Combined call/concat shortcut
+  pipe: (name, uniforms, namespace) ->
+    if name instanceof Factory
+      @_concat name
+    else
+      @_call name, uniforms, namespace
     @
+
+  call: (name, uniforms, namespace) ->
+    @pipe name, uniforms, namespace
+
+  # Combined callback/import shortcut
+  require: (name, uniforms, namespace) ->
+    if name instanceof Factory
+      @_import name
+    else
+      @callback()
+      @_call name, uniforms, namespace
+      @join()
+    @
+
+  import: (name, uniforms, namespace) ->
+    @require name, uniforms, namespace
 
   # Loose block creation
   loose: (name, uniforms, namespace) ->
@@ -61,24 +80,6 @@ class Factory
       @[op] sub, main
     @
 
-  # Concatenate existing factory onto tail
-  # Retains original factory
-  concat: (factory) ->
-    block = new Block.Isolate factory.graph
-
-    @_tail   factory._state, factory.graph
-    @_append block
-    @
-
-  # Add existing factory as callback
-  # Retains original factory
-  import: (factory) ->
-    block = new Block.Callback factory.graph
-
-    @_tail   factory._state, factory.graph
-    @_append block
-    @
-
   # Return finalized graph / reset factory
   end: () ->
     # Pop remaining stack
@@ -96,15 +97,6 @@ class Factory
 
     graph
 
-  # Combined callback/import shortcut
-  require: (name, uniforms, namespace) ->
-    if name == "" + name
-      @callback()
-      @call name, uniforms, namespace
-      @join()
-    else
-      @import factory = name
-
   # Compile shortcut
   compile: (namespace) ->
     @end().compile namespace
@@ -112,6 +104,24 @@ class Factory
   # Link shortcut
   link: (namespace) ->
     @end().link namespace
+
+  # Concatenate existing factory onto tail
+  # Retains original factory
+  _concat: (factory) ->
+    block = new Block.Isolate factory.graph
+
+    @_tail   factory._state, factory.graph
+    @_append block
+    @
+
+  # Add existing factory as callback
+  # Retains original factory
+  _import: (factory) ->
+    block = new Block.Callback factory.graph
+
+    @_tail   factory._state, factory.graph
+    @_append block
+    @
 
   # Connect parallel branches to tail
   _combine: (sub, main) ->

@@ -818,7 +818,7 @@ library = function(language, snippets, load) {
     return load(language, '', name);
   };
   return function(name) {
-    if ((callback == null) || name.match(/[{;(]/)) {
+    if ((callback == null) || name.match(/[{;(#]/)) {
       return inline(name);
     }
     return callback(name);

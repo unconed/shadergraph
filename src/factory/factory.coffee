@@ -34,11 +34,6 @@ class Factory
   import: (name, uniforms, namespace) ->
     @require name, uniforms, namespace
 
-  # Loose block creation
-  loose: (name, uniforms, namespace) ->
-    @_loose name, uniforms, namespace
-    @
-
   # Create parallel branches that connect as one block to the end
   split: () ->
     @_group '_combine', true
@@ -157,12 +152,6 @@ class Factory
       @_append block
     else
       @_insert block
-
-  # Insert dangling call block
-  _loose: (name, uniforms, namespace) ->
-    snippet = @fetch name
-    snippet.bind @config, uniforms, namespace
-    @_insert new Block.Call snippet
 
   # Move current state into subgraph
   _subgraph: (sub) ->

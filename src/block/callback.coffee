@@ -21,7 +21,7 @@ class Callback extends Block
     # Pass-through existing callbacks
     # Collect open inputs/outputs
     handle = (outlet, list) =>
-      if isCallback outlet
+      if isCallback outlet.type
         outlets.push outlet.dupe()
       else
         list.push outlet.type

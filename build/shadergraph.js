@@ -587,7 +587,8 @@ Factory = (function() {
         from.connect(to, sub.empty);
       }
     }
-    return main.end = sub.end;
+    main.end = sub.end;
+    return main.nodes = main.nodes.concat(sub.nodes);
   };
 
   Factory.prototype._isolate = function(sub, main) {
@@ -606,7 +607,7 @@ Factory = (function() {
       subgraph = this._subgraph(sub);
       block = new Block.Callback(subgraph);
       this._tail(sub, subgraph);
-      return this._append(block);
+      return this._insert(block);
     }
   };
 

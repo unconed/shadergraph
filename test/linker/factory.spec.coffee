@@ -111,3 +111,64 @@ describe "program", () ->
 
     expect(code).toBe(result)
     expect(snippet.entry.match /^_pg_[0-9]+_$/).toBeTruthy
+
+  it 'passes through an implicit callback (call/import/call)', () ->
+
+    code1 = """
+    float foobar(vec3 color) {
+    }
+    """
+
+    code2 = """
+    float callback(vec3 color);
+    void main(in vec3 color, in float x) {
+      float f = callback(color) * x;
+    }
+    """
+
+    code3 = """
+    float callback() {
+      return 1.0;
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+      'code3': code3
+    }
+
+    result = """
+    #define _sn_1_callback _pg_1_
+    #define _pg_1_ _sn_2_foobar
+    float _sn_2_foobar(vec3 color) {
+    }
+    float _sn_3_callback() {
+      return 1.0;
+    }
+    void _sn_4_main(in vec3 color, in float x) {
+      float f = _sn_1_callback(color) * x;
+    }
+    void main(in vec3 _io_1_color) {
+      float _io_2_return;
+    
+      _io_2_return = _sn_3_callback();
+      _sn_4_main(_io_1_color, _io_2_return);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader = shadergraph.shader()
+
+    graph  = shader
+              .call('code3')
+              .import('code1')
+              .call('code2')
+              .end()
+
+    snippet = graph.link('main')
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+    expect(snippet.entry.match /^_pg_[0-9]+_$/).toBeTruthy

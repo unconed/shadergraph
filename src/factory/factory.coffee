@@ -123,7 +123,8 @@ class Factory
     for to in sub.start
       from.connect to, sub.empty for from in main.end
 
-    main.end = sub.end
+    main.end   = sub.end
+    main.nodes = main.nodes.concat sub.nodes
 
   # Make subgraph and connect to tail 
   _isolate: (sub, main) ->
@@ -141,7 +142,7 @@ class Factory
       block = new Block.Callback subgraph
 
       @_tail   sub, subgraph
-      @_append block
+      @_insert block
 
   # Create next call block
   _call: (name, uniforms, namespace) ->

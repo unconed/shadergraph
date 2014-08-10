@@ -731,7 +731,10 @@ Factory = (function() {
       this._state.end = [node];
     }
     this._state.start = [node];
-    return this._state.nodes.push(node);
+    this._state.nodes.push(node);
+    if (!node.outputs.length) {
+      return this._state.tail.push(node);
+    }
   };
 
   Factory.prototype._insert = function(block) {
@@ -739,9 +742,11 @@ Factory = (function() {
     node = block.node;
     this.graph.add(node);
     this._state.start.push(node);
-    this._state.nodes.push(node);
     this._state.end.push(node);
-    return this._state.tail.push(node);
+    this._state.nodes.push(node);
+    if (!node.outputs.length) {
+      return this._state.tail.push(node);
+    }
   };
 
   return Factory;

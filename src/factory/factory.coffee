@@ -244,16 +244,20 @@ class Factory
 
     @_state.end   = [node] if !@_state.end.length
     @_state.start = [node]
+
     @_state.nodes.push node
+    @_state.tail .push node if !node.outputs.length
 
   # Insert loose block
   _insert: (block) ->
     node = block.node
     @graph.add node
+
     @_state.start.push node
-    @_state.nodes.push node
     @_state.end  .push node
-    @_state.tail .push node
+
+    @_state.nodes.push node
+    @_state.tail .push node if !node.outputs.length
 
 class State
   constructor: (@op = null, @empty = false, @start = [], @end = [], @nodes = [], @tail = []) ->

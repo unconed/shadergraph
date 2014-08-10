@@ -52,7 +52,7 @@ describe "program", () ->
     shadergraph = ShaderGraph snippets
 
     shader = shadergraph.shader()
-    shader.call('code1')
+    shader.pipe('code1')
 
     graph  = shadergraph.shader()
               .require(shader)
@@ -103,7 +103,7 @@ describe "program", () ->
 
     graph  = shader
               .import('code1')
-              .call('code2')
+              .pipe('code2')
               .end()
 
     snippet = graph.link('main')
@@ -162,9 +162,50 @@ describe "program", () ->
     shader = shadergraph.shader()
 
     graph  = shader
-              .call('code3')
+              .pipe('code3')
               .import('code1')
-              .call('code2')
+              .pipe('code2')
+              .end()
+
+    snippet = graph.link('main')
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+    expect(snippet.entry.match /^_pg_[0-9]+_$/).toBeTruthy
+
+  it 'aggregates tail blocks (pipe/pipe)', () ->
+
+    code1 = """
+    void foobar() {
+    }
+    """
+
+    snippets = {
+      'code1': code1
+    }
+
+    result = """
+    void _sn_1_foobar() {
+    }
+    void _sn_2_foobar() {
+    }
+    void _sn_3_foobar() {
+    }
+    void main() {
+      _sn_1_foobar();
+      _sn_2_foobar();
+      _sn_3_foobar();
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader = shadergraph.shader()
+
+    graph  = shader
+              .pipe('code1')
+              .pipe('code1')
+              .pipe('code1')
               .end()
 
     snippet = graph.link('main')

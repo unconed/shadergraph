@@ -231,7 +231,9 @@ class Factory
 
     @_state.start = [node] if !@_state.start.length
     @_state.end   = [node]
+
     @_state.nodes.push node
+    @_state.tail .push node if !node.outputs.length
 
   # Add block and connect to start
   _prepend: (block) ->

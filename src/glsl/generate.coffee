@@ -195,7 +195,7 @@ module.exports = _ =
     out.bodies.push _.build(outer).code
 
   # Remove all function prototypes to avoid redefinition errors
-  defuse: (code) ->
+  defuse: (code, prototypes) ->
 
     blocks = code.split /(?=[{}])/g
     level  = 0
@@ -206,12 +206,14 @@ module.exports = _ =
 
       if level == 0
         # Don't try this at home kids
-        blocks[i] = b.replace /([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg, ''
+        blocks[i] = b.replace /([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg, (m) ->
+          prototypes.push m
+          ''
 
     code = blocks.join ''
 
   # Move stuff around so it compiles properly
-  hoist: (code) ->
+  hoist: (code, prototypes) ->
 
     # Hoist symbol defines to the top so (re)definitions use the right alias
     re = /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/
@@ -223,4 +225,5 @@ module.exports = _ =
       list = if line.match re then defs else out
       list.push line
 
+    #defs.concat(prototypes).concat(out).join "\n"
     defs.concat(out).join "\n"

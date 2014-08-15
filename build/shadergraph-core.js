@@ -1402,7 +1402,7 @@ module.exports = _ = {
       return out.bodies.push(_.build(outer).code);
     };
   })(this),
-  defuse: function(code) {
+  defuse: function(code, prototypes) {
     var b, blocks, i, level, _i, _len;
     blocks = code.split(/(?=[{}])/g);
     level = 0;
@@ -1416,12 +1416,15 @@ module.exports = _ = {
           level--;
       }
       if (level === 0) {
-        blocks[i] = b.replace(/([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg, '');
+        blocks[i] = b.replace(/([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg, function(m) {
+          prototypes.push(m);
+          return '';
+        });
       }
     }
     return code = blocks.join('');
   },
-  hoist: function(code) {
+  hoist: function(code, prototypes) {
     var defs, line, lines, list, out, re, _i, _len;
     re = /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/;
     lines = code.split(/\n/g);
@@ -2491,7 +2494,7 @@ module.exports = Layout;
 var link;
 
 link = function(language, links, modules, exported) {
-  var attributes, externals, generate, include, includes, isDangling, process, uniforms, varyings;
+  var attributes, externals, generate, include, includes, isDangling, process, prototypes, uniforms, varyings;
   generate = language.generate;
   includes = [];
   externals = {};
@@ -2499,6 +2502,7 @@ link = function(language, links, modules, exported) {
   attributes = {};
   varyings = {};
   includes = [];
+  prototypes = [];
   process = function() {
     var code, e, exports, m, _i, _len;
     exports = generate.links(links);
@@ -2514,7 +2518,7 @@ link = function(language, links, modules, exported) {
       include(m.node, m.module);
     }
     code = generate.lines(includes);
-    code = generate.hoist(code);
+    code = generate.hoist(code, prototypes);
     e = exported;
     return {
       namespace: e.main.name,
@@ -2542,7 +2546,7 @@ link = function(language, links, modules, exported) {
   };
   include = function(node, module) {
     var def, key, _ref, _ref1, _ref2, _ref3, _results;
-    includes.push(generate.defuse(module.code));
+    includes.push(generate.defuse(module.code, prototypes));
     _ref = module.uniforms;
     for (key in _ref) {
       def = _ref[key];

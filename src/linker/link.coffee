@@ -16,6 +16,7 @@ link = (language, links, modules, exported) ->
   attributes = {}
   varyings   = {}
   includes   = []
+  prototypes = []
 
   process = () ->
 
@@ -27,7 +28,7 @@ link = (language, links, modules, exported) ->
     include m.node, m.module for m in modules
 
     code = generate.lines includes
-    code = generate.hoist code
+    code = generate.hoist code, prototypes
 
     # Export module's externals
     e = exported
@@ -56,7 +57,7 @@ link = (language, links, modules, exported) ->
 
   # Include piece of code
   include = (node, module) ->
-    includes.push generate.defuse module.code
+    includes.push generate.defuse module.code, prototypes
 
     (uniforms[key]   = def) for key, def of module.uniforms
     (varyings[key]   = def) for key, def of module.varyings

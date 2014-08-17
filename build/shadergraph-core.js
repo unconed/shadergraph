@@ -123,6 +123,7 @@ Block = (function() {
 module.exports = Block;
 
 
+
 },{"../graph":19,"../linker":24}],2:[function(require,module,exports){
 var Block, Call,
   __hasProp = {}.hasOwnProperty,
@@ -170,6 +171,7 @@ Call = (function(_super) {
 })(Block);
 
 module.exports = Call;
+
 
 
 },{"./block":1}],3:[function(require,module,exports){
@@ -265,6 +267,7 @@ Callback = (function(_super) {
 module.exports = Callback;
 
 
+
 },{"../graph":19,"./block":1}],4:[function(require,module,exports){
 exports.Block = require('./block');
 
@@ -275,6 +278,7 @@ exports.Callback = require('./callback');
 exports.Isolate = require('./isolate');
 
 exports.Join = require('./join');
+
 
 
 },{"./block":1,"./call":2,"./callback":3,"./isolate":5,"./join":6}],5:[function(require,module,exports){
@@ -363,6 +367,7 @@ Isolate = (function(_super) {
 module.exports = Isolate;
 
 
+
 },{"../graph":19,"./block":1}],6:[function(require,module,exports){
 var Block, Join,
   __hasProp = {}.hasOwnProperty,
@@ -422,6 +427,7 @@ Join = (function(_super) {
 module.exports = Join;
 
 
+
 },{"./block":1}],7:[function(require,module,exports){
 
 /*
@@ -442,6 +448,7 @@ cache = function(fetch) {
 };
 
 module.exports = cache;
+
 
 
 },{}],8:[function(require,module,exports){
@@ -770,6 +777,7 @@ State = (function() {
 module.exports = Factory;
 
 
+
 },{"../block":4,"../graph":19}],9:[function(require,module,exports){
 exports.Factory = require('./factory');
 
@@ -778,6 +786,7 @@ exports.Material = require('./material');
 exports.library = require('./library');
 
 exports.cache = require('./cache');
+
 
 
 },{"./cache":7,"./factory":8,"./library":10,"./material":11}],10:[function(require,module,exports){
@@ -823,6 +832,7 @@ library = function(language, snippets, load) {
 };
 
 module.exports = library;
+
 
 
 },{}],11:[function(require,module,exports){
@@ -895,6 +905,7 @@ Material = (function() {
 })();
 
 module.exports = Material;
+
 
 
 },{}],12:[function(require,module,exports){
@@ -980,11 +991,13 @@ string_compiler = function(code, placeholders) {
 module.exports = compile;
 
 
+
 },{}],13:[function(require,module,exports){
 module.exports = {
   SHADOW_ARG: '_i_n_o_u_t',
   RETURN_ARG: 'return'
 };
+
 
 
 },{}],14:[function(require,module,exports){
@@ -1178,6 +1191,7 @@ decl.copy = function(type, _name) {
     copy: copy
   };
 };
+
 
 
 },{}],15:[function(require,module,exports){
@@ -1440,6 +1454,7 @@ module.exports = _ = {
 };
 
 
+
 },{"../graph":19,"./constants":13}],16:[function(require,module,exports){
 var k, v, _i, _len, _ref;
 
@@ -1454,6 +1469,7 @@ for (v = _i = 0, _len = _ref.length; _i < _len; v = ++_i) {
   k = _ref[v];
   exports[k] = v;
 }
+
 
 
 },{"./compile":12,"./constants":13,"./generate":15,"./parse":17}],17:[function(require,module,exports){
@@ -1711,6 +1727,7 @@ module.exports = walk;
 module.exports = parse;
 
 
+
 },{"../../vendor/glsl-parser":29,"../../vendor/glsl-tokenizer":33,"./constants":13,"./decl":14}],18:[function(require,module,exports){
 
 /*
@@ -1848,6 +1865,7 @@ Graph = (function() {
 module.exports = Graph;
 
 
+
 },{}],19:[function(require,module,exports){
 exports.Graph = require('./graph');
 
@@ -1858,6 +1876,7 @@ exports.Outlet = require('./outlet');
 exports.IN = exports.Graph.IN;
 
 exports.OUT = exports.Graph.OUT;
+
 
 
 },{"./graph":18,"./node":20,"./outlet":21}],20:[function(require,module,exports){
@@ -2077,6 +2096,7 @@ Node = (function() {
 module.exports = Node;
 
 
+
 },{"./graph":18,"./outlet":21}],21:[function(require,module,exports){
 var Graph, Outlet;
 
@@ -2182,6 +2202,7 @@ Outlet = (function() {
 module.exports = Outlet;
 
 
+
 },{"./graph":18}],22:[function(require,module,exports){
 var Factory, Material, ShaderGraph, Snippet, cache, f, glsl, l, library, merge;
 
@@ -2260,6 +2281,7 @@ ShaderGraph = (function() {
 module.exports = ShaderGraph;
 
 window.ShaderGraph = ShaderGraph;
+
 
 
 },{"./block":4,"./factory":9,"./glsl":16,"./graph":19,"./linker":24}],23:[function(require,module,exports){
@@ -2399,6 +2421,7 @@ assemble = function(language, namespace, calls) {
 module.exports = assemble;
 
 
+
 },{"../graph":19}],24:[function(require,module,exports){
 exports.Snippet = require('./snippet');
 
@@ -2411,6 +2434,7 @@ exports.assemble = require('./assemble');
 exports.link = require('./link');
 
 exports.load = exports.Snippet.load;
+
 
 
 },{"./assemble":23,"./layout":25,"./link":26,"./program":27,"./snippet":28}],25:[function(require,module,exports){
@@ -2480,6 +2504,7 @@ Layout = (function() {
 })();
 
 module.exports = Layout;
+
 
 
 },{"./link":26,"./snippet":28}],26:[function(require,module,exports){
@@ -2580,6 +2605,7 @@ link = function(language, links, modules, exported) {
 module.exports = link;
 
 
+
 },{}],27:[function(require,module,exports){
 var Program, Snippet, assemble;
 
@@ -2644,6 +2670,7 @@ Program = (function() {
 })();
 
 module.exports = Program;
+
 
 
 },{"./assemble":23,"./snippet":28}],28:[function(require,module,exports){
@@ -2798,6 +2825,7 @@ Snippet = (function() {
 })();
 
 module.exports = Snippet;
+
 
 
 },{}],29:[function(require,module,exports){
@@ -4739,6 +4767,7 @@ through = function(write, end) {
 };
 
 module.exports = through;
+
 
 
 },{}]},{},[22])

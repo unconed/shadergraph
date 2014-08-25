@@ -115,7 +115,7 @@ class Factory
     block = new Block.Callback factory.graph
 
     @_tail   factory._state, factory.graph
-    @_append block
+    @_insert block
     @
 
   # Connect parallel branches to tail

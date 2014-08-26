@@ -10,7 +10,7 @@ class Outlet
 
   @hint: (name) ->
     name = name.replace /^(_io_[0-9]+_)/, ''
-    name = name.replace /(In|Out|Inout)$/, ''
+    name = name.replace /(In|Out|Inout|InOut)$/, ''
 
   constructor: (@inout, @name, @hint, @type, @meta) ->
     @hint  ?= Outlet.hint name

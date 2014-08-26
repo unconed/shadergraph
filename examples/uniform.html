@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>ShaderGraph - Fragment Shader</title>
+  <title>ShaderGraph - Fragment Shader with Uniform</title>
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
 <script type="application/x-glsl" id="getRampColor">
@@ -28,11 +28,11 @@ void setColor(vec3 color) {
 
 </head>
 <body>
-  <h4>Simple Fragment Shader</h4>
-  <p>One callback linked to a chain of two snippets.</p>
+  <h4>Fragment Shader with Uniform</h4>
+  <p>One callback linked to a chain of two snippets, with a uniform.</p>
 
-  <h6>View Source for Code</h6>
-  <h6>See Console For Full Result</h6>
+  <h5>View Source for Code</h5>
+  <h5>See Console For Full Result</h5>
 
   <pre></pre>
 
@@ -45,7 +45,7 @@ void setColor(vec3 color) {
   }
 
   // Load ShaderGraph with given fetch function
-  // (can also pass in dictionary of snippets, or pass literal code to .call() below)
+  // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
   shadergraph = ShaderGraph(fetch);
 
   // Prepare new shader
@@ -61,16 +61,16 @@ void setColor(vec3 color) {
     // Require a callback
     .require('getRampColor')
 
-    // Build a callback manually
+    // Equivalent to
     //.callback()
-    //  .call('getRampColor')
+    //  .pipe('getRampColor')
     //.join()
 
     // Build two-step chain that uses the callback and the uniform
     .pipe('getColor', uniforms)
     .pipe('setColor')
 
-  // Link entire shader to main() function
+  // Link entire shader into a main() function
   snippet = shader.link('main')
 
   // Show in document body

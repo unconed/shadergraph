@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ShaderGraph - Fanned Output</title>
+  <script type="text/javascript" src="../build/shadergraph.js"></script>
+
+<script type="application/x-glsl" id="getColor">
+uniform vec3 diffuseColor;
+vec3 getColor() {
+  return diffuseColor;
+}
+</script>
+
+<script type="application/x-glsl" id="applyFilter">
+uniform float intensity;
+vec3 applyFilter(vec3 ramp) {
+  return mix(ramp, ramp * (1.0 - ramp) * 2.0, intensity);
+}
+</script>
+
+<script type="application/x-glsl" id="combine">
+vec3 combineColor(vec3 a, vec3 b) {
+  return a * b;
+}
+</script>
+
+<script type="application/x-glsl" id="setColor">
+void setColor(vec3 color) {
+  gl_FragColor = vec4(color, 1.0);
+}
+</script>
+
+</head>
+<body>
+  <h4>Fanned Output</h4>
+  <p>One output is connected to multiple inputs.</p>
+
+  <h5>View Source for Code</h5>
+  <h5>See Console For Full Result</h5>
+
+  <pre></pre>
+
+  <script>
+
+  // Fetch snippets above
+  var fetch = function (key) {
+    element = document.getElementById(key);
+    return element.textContent || element.innerText;
+  }
+
+  // Load ShaderGraph with given fetch function
+  // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
+  shadergraph = ShaderGraph(fetch);
+
+  // Prepare new shader
+  shader = shadergraph.shader()
+
+  // Prepare uniform (three.js style)
+  uniforms1 = {
+    diffuseColor: { type: 'v3', value: { x: 0.5, y: 0.75, z: 1.0 }}
+  };
+  uniforms2 = {
+    intensity: { type: 'f', value: .5 }
+  };
+  uniforms3 = {
+    intensity: { type: 'f', value: .25 }
+  };
+
+  // Build shader graph
+  shader
+    .pipe('getColor', uniforms1)
+    .fan()
+      .pipe('applyFilter', uniforms2)
+    .next()
+      .pipe('applyFilter', uniforms3)
+    .end()
+    .pipe('combine')
+    .pipe('setColor')
+
+  // Link entire shader into a main() function
+  graph   = shader.graph()
+  snippet = graph.link('main')
+
+  // Show in document body
+  document.querySelector('pre').innerText = snippet.code;
+  console.log("shader.link('main') = ", snippet);
+
+  </script>
+  
+</body>
+</html>

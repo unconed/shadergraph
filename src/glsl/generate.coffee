@@ -87,8 +87,8 @@ module.exports = _ =
 
   # Assemble main() function from body and call reference
   build: (body, calls) ->
-    entry = body.entry
-    code  = null
+    entry   = body.entry
+    code    = null
 
     # Check if we're only calling one snippet with identical signature
     # and not building void main();
@@ -135,6 +135,9 @@ module.exports = _ =
 
     out.defs   = _.lines      out.defs
     out.bodies = _.statements out.bodies
+
+    delete out.defs   if out.defs   == ''
+    delete out.bodies if out.bodies == ''
 
     out
 
@@ -195,8 +198,12 @@ module.exports = _ =
     out.bodies.push _.build(outer).code
 
   # Remove all function prototypes to avoid redefinition errors
-  defuse: (code, prototypes) ->
+  defuse: (code) ->
+    # Don't try this at home kids
+    re = /([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg
+    strip = (code) -> code.replace re, (m) -> ''
 
+    # Split into scopes by braces
     blocks = code.split /(?=[{}])/g
     level  = 0
     for b, i in blocks
@@ -204,16 +211,40 @@ module.exports = _ =
         when '{' then level++
         when '}' then level--
 
+      # Only mess with top level scope
       if level == 0
-        # Don't try this at home kids
-        blocks[i] = b.replace /([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg, (m) ->
-          prototypes.push m
-          ''
+        # Preprocessor lines will fuck us up. Split on them.
+        hash = b.split /^[ \t]*#/m
+        for line, j in hash
+
+          if j > 0
+            # Trim off preprocessor directive
+            line = line.split /\n/
+            head = line.shift()
+            rest = line.join "\n"
+
+            # Process rest
+            hash[j] = [head, strip rest].join '\n'
+          else
+            # Process entire line
+            hash[j] = strip line
+
+        # Reassemble
+        blocks[i] = hash.join '#'
 
     code = blocks.join ''
 
-  # Move stuff around so it compiles properly
-  hoist: (code, prototypes) ->
+  # Remove duplicate uniforms / varyings / attributes
+  dedupe: (code) ->
+    map = {}
+    re  = /((attribute|uniform|varying)\s+)[A-Za-z0-9_]+\s+([A-Za-z0-9_]+)\s*(\[[^\]]*\]\s*)?;\s*/mg
+    code.replace re, (m, qual, type, name, struct) ->
+      return '' if map[name]
+      map[name] = true
+      return m
+
+  # Move definitions to top so they compile properly
+  hoist: (code) ->
 
     # Hoist symbol defines to the top so (re)definitions use the right alias
     re = /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/
@@ -225,5 +256,4 @@ module.exports = _ =
       list = if line.match re then defs else out
       list.push line
 
-    #defs.concat(prototypes).concat(out).join "\n"
     defs.concat(out).join "\n"

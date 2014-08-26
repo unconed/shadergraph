@@ -17,6 +17,7 @@ class Snippet
     @uniforms   = null
     @externals  = null
     @attributes = null
+    @varyings   = null
 
     # Tidy up object for export
     delete @language    if !@language
@@ -29,9 +30,11 @@ class Snippet
 
   bind: (config, uniforms, namespace) ->
 
+    # Alt syntax
     if uniforms == '' + uniforms
       [namespace, uniforms] = [uniforms, namespace ? {}]
 
+    # Prepare data structure
     @main       = @_signatures.main
     @namespace  = namespace ? @namespace ? Snippet.namespace()
     @entry      = @namespace + @main.name
@@ -55,12 +58,13 @@ class Snippet
     _u = if config.globalUniforms   then global else local
     _v = if config.globalVaryings   then global else local
     _a = if config.globalAttributes then global else local
+    _e = local
 
     # Build finalized properties
     x = (def)       =>       exist[def.name]           = true
     u = (def, name) =>   @uniforms[_u name ? def.name] = def
     v = (def)       =>   @varyings[_v def.name]        = def
-    e = (def)       =>  @externals[local def.name]     = def
+    e = (def)       =>  @externals[_e def.name]        = def
     a = (def)       => @attributes[_a def.name]        = def
 
     redef = (def) -> {type: def.type, name: def.name, value: def.value}
@@ -72,7 +76,7 @@ class Snippet
     a redef def for def in @_signatures.attribute
     u def, name for name, def of uniforms when exist[name]
 
-    @code       = @_compiler @namespace, exceptions
+    @body = @code = @_compiler @namespace, exceptions
 
     null
 

@@ -1,6 +1,8 @@
 Snippet  = require './snippet'
 link     = require './link'
 
+debug = false
+
 ###
   Program linkage layout
   
@@ -17,18 +19,20 @@ class Layout
     @visits   = {}
 
   # Link up a given named external to this module's entry point
-  callback: (node, module, name, external) ->
-    @links.push {node, module, name, external}
+  callback: (node, module, priority, name, external) ->
+    @links.push {node, module, priority, name, external}
 
   # Include this module of code
-  include: (node, module) ->
-    return if @modules[module.namespace]
-    @modules[module.namespace] = true
-
-    @includes.push {node, module}
+  include: (node, module, priority) ->
+    if (m = @modules[module.namespace])?
+      m.priority = Math.max priority, m.priority
+    else
+      @modules[module.namespace] = true
+      @includes.push {node, module, priority}
 
   # Visit each namespace at most once to avoid infinite recursion
   visit: (namespace) ->
+    debug && console.log 'Visit', namespace, !@visits[namespace]
     return false if @visits[namespace]
     @visits[namespace] = true
 

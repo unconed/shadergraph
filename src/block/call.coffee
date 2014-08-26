@@ -19,8 +19,10 @@ class Call extends Block
     @_call   @snippet, program, depth
     @_inputs @snippet, program, depth
 
-  export: (layout) ->
-    @_link   @snippet, layout
-    @_trace  @snippet, layout
+  export: (layout, depth) ->
+    return unless layout.visit @namespace, depth
+
+    @_link   @snippet, layout, depth
+    @_trace  @snippet, layout, depth
 
 module.exports = Call

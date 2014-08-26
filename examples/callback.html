@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ShaderGraph - Callback Graph</title>
+  <script type="text/javascript" src="../build/shadergraph.js"></script>
+
+<script type="application/x-glsl" id="squareColor">
+vec3 squareColor(vec3 rgb) {
+  return rgb * rgb;
+}
+</script>
+
+<script type="application/x-glsl" id="getColor">
+vec3 getColor() {
+  return vec3(1.0, 0.5, 0.25);
+}
+</script>
+
+<script type="application/x-glsl" id="getCallbackColor">
+vec3 getColor();
+vec3 getCallbackColor() {
+  return getColor() * 2.0;
+}
+</script>
+
+<script type="application/x-glsl" id="setColor">
+vec3 getColor1();
+vec3 getColor2();
+void setColor() {
+  vec3 color = getColor1() + getColor2();
+  gl_FragColor = vec4(color, 1.0);
+}
+</script>
+
+</head>
+<body>
+  <h4>Callback Graph</h4>
+  <p>Callback created from pipeline of nodes.</p>
+
+  <h5>View Source for Code</h5>
+  <h5>See Console For Full Result</h5>
+
+  <pre></pre>
+
+  <script>
+
+  // Fetch snippets above
+  var fetch = function (key) {
+    element = document.getElementById(key);
+    return element.textContent || element.innerText;
+  }
+
+  // Load ShaderGraph with given fetch function
+  // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
+  var shadergraph = ShaderGraph(fetch);
+
+  // Prepare pipeline of two snippets
+  var pipeline = shadergraph.shader();
+  pipeline.pipe('getColor');
+  pipeline.pipe('squareColor'); // Dangling output
+
+  // Prepare callback
+  var callback = shadergraph.shader();
+  callback.require(pipeline);        // Import pipeline as callback
+  callback.pipe('getCallbackColor'); // Connect to snippet
+
+  // Build shader graph
+  var shader = shadergraph.shader();
+  shader.require(callback);          // Import callback
+  shader.require(callback);          // Import callback
+  shader.pipe('setColor');           // Connect both to snippet
+
+  // Link entire shader into a main() function
+  snippet = shader.link('main');
+
+  // Show in document body
+  document.querySelector('pre').innerText = snippet.code;
+  console.log("shader.link('main') = ", snippet);
+
+  </script>
+  
+</body>
+</html>

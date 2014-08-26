@@ -24,8 +24,10 @@ library = (language, snippets, load) ->
   inline = (name) ->
     load language, '', name
 
+  return inline if !callback?
+
   (name) ->
-    return inline name if !callback? or name.match /[{;(#]/
+    return inline name if name.match /[{;(#]/
     callback name
 
 

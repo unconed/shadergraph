@@ -1,4 +1,4 @@
-debug = false
+debug = true
 
 tick = () ->
   now = +new Date

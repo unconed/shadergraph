@@ -522,7 +522,7 @@ describe "layout", () ->
 
     expect(code).toBe(result)
 
-  it 'de-dupes a repeated singleton (require/require/pipe)', () ->
+  it 'de-dupes a repeated isolated singleton (require/require/pipe)', () ->
 
     squareColor = """
     vec3 squareColor(vec3 rgb) {
@@ -703,3 +703,99 @@ describe "layout", () ->
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
+
+  it 'de-dupes attributes/uniforms on a material', () ->
+
+    vertex1 = """
+    uniform vec4 rgba;
+    attribute vec3 color;
+    varying vec3 vColor1;
+
+    void main() {
+      vColor1 = color * rgba;
+    }
+    """
+
+    vertex2 = """
+    uniform vec4 rgba;
+    attribute vec3 color;
+    varying vec3 vColor2;
+
+    void main() {
+      vColor2 = color2 * color2 * rgba;
+    }    """
+
+    getColor = """
+    uniform vec4 rgba;
+    varying vec3 vColor1;
+    varying vec3 vColor2;
+    vec3 getColor() {
+      return vColor1 * vColor2 * 2.0;
+    }
+    """
+
+    setColor = """
+    uniform vec4 rgba;
+    void setColor(vec3 color) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    """
+
+    snippets = {vertex1, vertex2, getColor, setColor}
+
+    vertexResult = """
+    uniform vec4 rgba;
+    attribute vec3 color;
+    varying vec3 vColor1;
+    
+    void _sn_1_main() {
+      vColor1 = color * rgba;
+    }
+    varying vec3 vColor2;
+    
+    void _sn_2_main() {
+      vColor2 = color2 * color2 * rgba;
+    }    
+    void main() {
+      _sn_1_main();
+      _sn_2_main();
+    }
+    """
+
+    fragmentResult = """
+    uniform vec4 rgba;
+    varying vec3 vColor1;
+    varying vec3 vColor2;
+    vec3 _sn_1_getColor() {
+      return vColor1 * vColor2 * 2.0;
+    }
+    void _sn_2_setColor(vec3 color) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    void main() {
+      vec3 _io_1_return;
+    
+      _io_1_return = _sn_1_getColor();
+      _sn_2_setColor(_io_1_return);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets, { globalUniforms: true }
+
+    # Prepare new material
+    material = shadergraph.material()
+
+    material.vertex
+      .pipe('vertex1')
+      .pipe('vertex2')
+
+    material.fragment
+      .pipe('getColor')
+      .pipe('setColor')
+
+    program  = material.build()
+    vertex   = normalize(program.vertexShader)
+    fragment = normalize(program.fragmentShader)
+
+    expect(vertex).toBe(vertexResult)
+    expect(fragment).toBe(fragmentResult)

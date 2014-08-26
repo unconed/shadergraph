@@ -66,9 +66,8 @@ class Isolate extends Block
                                     !externals[outlet.name]?
 
       shadow = @graph.getIn outlet.name
-      child  = shadow.node
-      block  = child.owner
-      module = block.subroutine
+      block  = shadow.node.owner
+      module = block.fetch shadow
 
       continue unless layout.visit module.namespace + '__shadow', depth
       @_link module, layout, depth

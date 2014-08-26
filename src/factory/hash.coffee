@@ -19,7 +19,7 @@ hash = (string) ->
     k  = (k << 15) | (k >>> 17)
     k  = Math.imul k, c2
 
-    h ^= v
+    h ^= k
     h  = (h << 13) | (h >>> 19)
     h  = Math.imul h, 5
     h  = (h + c3) | 0

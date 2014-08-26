@@ -14,16 +14,19 @@
     "three": ">=0.58.10"
   },
   "devDependencies": {
+    "coffeeify": "^0.7.0",
     "gulp": "~3.4.0",
-    "gulp-uglify": "~0.1.0",
+    "gulp-browserify": "^0.5.0",
     "gulp-concat": "~2.1.7",
-    "gulp-rename": "~0.2.2",
     "gulp-karma": "0.0.2",
-    "karma": "^0.10.9",
-    "run-sequence": "~0.3.1",
+    "gulp-rename": "~0.2.2",
+    "gulp-uglify": "~0.1.0",
+    "gulp-watch": "^0.6.9",
     "jison": "^0.4.13",
+    "karma": "^0.10.9",
+    "karma-browserify": "^0.1.0",
     "karma-phantomjs-launcher": "^0.1.2",
-    "karma-browserify": "^0.1.0"
+    "run-sequence": "~0.3.1"
   },
   "author": "Steven Wittens",
   "license": "MIT"

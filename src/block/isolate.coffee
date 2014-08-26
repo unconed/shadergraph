@@ -1,12 +1,18 @@
 Graph   = require '../graph'
 Block   = require './block'
 
+isCallback = (outlet) -> return outlet.type[0] == '('
+
 ###
   Isolate a subgraph as a single node
 ###
 class Isolate extends Block
   constructor: (@graph) ->
     super
+
+  refresh: () ->
+    super
+    delete @subroutine
 
   clone: () ->
     new Isolate @graph
@@ -15,43 +21,62 @@ class Isolate extends Block
     outlets = []
     names = null
 
-    isCallback = (type) -> return type[0] == '('
-
     for set in ['inputs', 'outputs']
       for outlet in @graph[set]()
         # Preserve name of 'return' outlets
-        hint = undefined
-        hint = 'return' if outlet.hint == 'return'
+        name = undefined
+        name = 'return' if outlet.hint == 'return'
 
         # Preserve name of callback outlets
-        hint = outlet.name if isCallback outlet
+        name = outlet.name if isCallback outlet
 
-        outlets.push outlet.dupe hint
+        outlets.push outlet.dupe name
 
     outlets
 
   make: () ->
     @subroutine = @graph.compile @namespace
 
-  call: (program, depth) ->
-    @make()  if !@subroutine?
-    @_call   @subroutine, program, depth
-    @_inputs @subroutine, program, depth
-
-  export: (layout) ->
-    @make()  if !@subroutine?
-    @_link   @subroutine, layout
-    @_trace  @subroutine, layout
-    @graph.export layout
-
   fetch: (outlet) ->
     # Fetch subroutine from either nested Isolate or Callback block
     outlet = @graph.getOut outlet.name
     outlet?.node.owner.fetch outlet
 
-  callback: (layout, name, external, outlet) ->
+  call: (program, depth) ->
+    @make()  if !@subroutine?
+    @_call   @subroutine, program, depth
+    @_inputs @subroutine, program, depth
+
+  export: (layout, depth) ->
+    return unless layout.visit @namespace, depth
+
+    # Link up with normal inputs
+    @make()  if !@subroutine?
+    @_link   @subroutine, layout, depth
+    @_trace  @subroutine, layout, depth
+
+    # Export callbacks needed to call the subroutine
+    @graph.export layout, depth
+
+    # Export loose callback inputs that weren't directly called
+    externals = @subroutine.externals
+    for outlet in @node.inputs when isCallback(outlet)       and
+                                    outlet.inout == Graph.IN and
+                                    outlet.input?            and
+                                    !externals[outlet.name]?
+
+      shadow = @graph.getIn outlet.name
+      child  = shadow.node
+      block  = child.owner
+      module = block.subroutine
+
+      continue unless layout.visit module.namespace + '__shadow', depth
+      @_link module, layout, depth
+
+
+  callback: (layout, depth, name, external, outlet) ->
     subroutine = @fetch outlet
-    @_include  subroutine, layout
-    @_callback subroutine, layout, name, external, outlet
+    @_include  subroutine, layout, depth
+    @_callback subroutine, layout, depth, name, external, outlet
 
 module.exports = Isolate

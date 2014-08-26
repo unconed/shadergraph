@@ -17,7 +17,6 @@ assemble = (language, namespace, calls) ->
   varyings   = {}
   attributes = {}
   library    = {}
-  includes   = []
 
   process = () ->
 
@@ -25,6 +24,8 @@ assemble = (language, namespace, calls) ->
     body.entry    = namespace if namespace?
     main          = generate.build body, calls
 
+    sorted   = (lib for ns, lib of library).sort (a, b) -> Priority.compare a.priority, b.priority
+    includes = sorted.map (x) -> x.code
     includes.push main.code
     code = generate.lines includes
 
@@ -33,8 +34,8 @@ assemble = (language, namespace, calls) ->
     library:     library     # Included library functions
     body:        main.code   # Snippet body
     code:        code        # Complete snippet (tests/debug)
-    main:        main
-    entry:       main.name
+    main:        main        # Function signature
+    entry:       main.name   # Entry point name
     externals:   externals
     uniforms:    uniforms
     varyings:    varyings
@@ -71,8 +72,6 @@ assemble = (language, namespace, calls) ->
 
   # Include snippet for a call
   include = (node, module, priority) ->
-    # Capture snippet body
-    includes.push module.code
     priority = Priority.make priority
 
     # Adopt snippet's libraries
@@ -81,6 +80,7 @@ assemble = (language, namespace, calls) ->
     # Adopt snippet body as library
     adopt module.namespace, module.body, priority
 
+    # Adopt externals
     (uniforms[key]   = def) for key, def of module.uniforms
     (varyings[key]   = def) for key, def of module.varyings
     (attributes[key] = def) for key, def of module.attributes

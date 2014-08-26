@@ -68,9 +68,9 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .call('code1')
-              .call('code2')
-              .call('code3')
+              .pipe('code1')
+              .pipe('code2')
+              .pipe('code3')
               .graph()
 
     snippet = graph.compile()
@@ -126,9 +126,9 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .call('code1')
-              .call('code2')
-              .call('code3')
+              .pipe('code1')
+              .pipe('code2')
+              .pipe('code3')
               .graph()
 
     snippet = graph.compile()
@@ -190,13 +190,13 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .call('code1')
+              .pipe('code1')
               .split()
-                .call('code2')
+                .pipe('code2')
               .next()
-                .call('code2')
+                .pipe('code2')
               .end()
-              .call('code3')
+              .pipe('code3')
               .graph()
 
     snippet = graph.compile()
@@ -259,13 +259,13 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .call('code1')
+              .pipe('code1')
               .split()
-                .call('code2')
+                .pipe('code2')
               .next()
-                .call('code2')
+                .pipe('code2')
               .pass()
-              .call('code3')
+              .pipe('code3')
               .graph()
 
     snippet = graph.compile()
@@ -275,7 +275,7 @@ describe "program", () ->
 
 
 
-  it 'links fanned diamond split/join graph (fan/next/join)', () ->
+  it 'links fanned diamond split/join graph (fan/next/end)', () ->
 
     code1 = """
     void split(out vec3 color) {
@@ -330,13 +330,13 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .call('code1')
+              .pipe('code1')
               .fan()
-                .call('code2')
+                .pipe('code2')
               .next()
-                .call('code2')
+                .pipe('code2')
               .end()
-              .call('code3')
+              .pipe('code3')
               .graph()
 
     snippet = graph.compile()
@@ -391,8 +391,8 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .call('code1')
-              .call('code2')
+              .pipe('code1')
+              .pipe('code2')
               .graph()
 
     snippet = graph.compile()
@@ -416,7 +416,7 @@ describe "program", () ->
 
 
 
-  it 'exports dangling inputs/outputs (split/next/join)', () ->
+  it 'exports dangling inputs/outputs (split/next/end)', () ->
 
     code1 = """
     attribute vec2 att1;
@@ -475,13 +475,13 @@ describe "program", () ->
 
     shader  = shadergraph.shader()
     graph   = shader
-              .call('code1')
+              .pipe('code1')
               .split()
-                .call('code2')
+                .pipe('code2')
               .next()
-                .call('code2')
+                .pipe('code2')
               .end()
-              .call('code3')
+              .pipe('code3')
               .graph()
 
     snippet = graph.compile()

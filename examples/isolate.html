@@ -2,31 +2,34 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>ShaderGraph - Singleton</title>
+  <title>ShaderGraph - Isolate</title>
   <script type="text/javascript" src="../build/shadergraph.js"></script>
-
-<script type="application/x-glsl" id="squareColor">
-vec3 squareColor(vec3 rgb) {
-  return rgb * rgb;
-}
-</script>
 
 <script type="application/x-glsl" id="getColor">
 vec3 getColor() {
-  return vec3(1.0, 0.5, 0.25);
+  return vec3(0.2, 0.3, 0.4);
+}
+</script>
+
+<script type="application/x-glsl" id="getColorSum">
+vec3 getColor1();
+vec3 getColor2();
+vec3 getColorSum() {
+  return getColor1() + getColor2();
 }
 </script>
 
 <script type="application/x-glsl" id="setColor">
-void setColor(vec3 color) {
-  gl_FragColor = vec4(color, 1.0);
+vec3 getColor();
+void main() {
+  gl_FragColor = vec4(getColor(), 1.0);
 }
 </script>
 
 </head>
 <body>
-  <h4>Singleton</h4>
-  <p>One snippet instance used multiple places.</p>
+  <h4>Isolate</h4>
+  <p>Create subgraphs inline.</p>
 
   <h6>View Source for Code</h6>
   <h6>See Console For Full Result</h6>
@@ -45,19 +48,18 @@ void setColor(vec3 color) {
   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
   var shadergraph = ShaderGraph(fetch);
 
-  // Prepare instanced snippet
-  var instance = shadergraph.shader();
-  instance.pipe('squareColor');
-
   // Build shader graph
   var shader = shadergraph.shader();
-  shader.pipe('getColor');
-  shader.pipe(instance);
-  shader.pipe(instance);
-  shader.pipe('setColor');
+  shader.require('getColor');        // Require two instances of callback
+  shader.require('getColor');        //
+  shader.isolate()
+    shader.require('getColorSum');   // Define callback with two open callback inputs
+  shader.end()                       // Hook up both callbacks
+  shader.pipe('setColor');           // Connect to main snippet
 
   // Link entire shader into a main() function
-  snippet = shader.link('main');
+  graph   = shader.graph();
+  snippet = graph.link('main');
 
   // Show in document body
   document.querySelector('pre').innerText = snippet.code;

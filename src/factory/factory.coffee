@@ -191,8 +191,8 @@ class Factory
     graph.link    = (namespace) =>
       graph.tail.owner.link    @language, namespace
 
-    graph.export  = (layout) =>
-      graph.tail.owner.export  layout
+    graph.export  = (layout, depth) =>
+      graph.tail.owner.export  layout, depth
 
   # Create group for branches or callbacks
   _group: (op, empty) ->

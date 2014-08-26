@@ -54,9 +54,9 @@ describe "layout", () ->
     shader  = shadergraph.shader()
     graph   = shader
               .callback()
-                .call('code1')
+                .pipe('code1')
               .end()
-              .call('code2')
+              .pipe('code2')
               .graph()
 
     snippet = graph.link('main')
@@ -103,7 +103,7 @@ describe "layout", () ->
     shader  = shadergraph.shader()
     graph   = shader
               .require('code1')
-              .call('code2')
+              .pipe('code2')
               .graph()
 
     snippet = graph.link('main')
@@ -163,11 +163,11 @@ describe "layout", () ->
     graph   = shader
               .callback()
                 .callback()
-                  .call('code1')
+                  .pipe('code1')
                 .end()
-                .call('code2')
+                .pipe('code2')
               .end()
-              .call('code3')
+              .pipe('code3')
               .graph()
 
     snippet = graph.link('main')
@@ -237,10 +237,10 @@ describe "layout", () ->
     shader  = shadergraph.shader()
     graph   = shader
               .callback()
-                .call('code1')
-                .call('code2')
+                .pipe('code1')
+                .pipe('code2')
               .end()
-              .call('code3')
+              .pipe('code3')
               .graph()
 
     snippet = graph.link('main')
@@ -287,9 +287,9 @@ describe "layout", () ->
     shader  = shadergraph.shader()
     graph   = shader
               .isolate()
-                .call('code1')
+                .pipe('code1')
               .end()
-              .call('code2')
+              .pipe('code2')
               .graph()
 
     snippet = graph.link('main')
@@ -297,7 +297,7 @@ describe "layout", () ->
 
     expect(code).toBe(result)
 
-  it 'handles piped requires (require/require/call)', () ->
+  it 'handles piped requires (require/require/pipe)', () ->
 
     code1 = """
     vec3 getColor() {
@@ -330,8 +330,8 @@ describe "layout", () ->
     #define _sn_1_getColor _pg_1_
     #define _sn_2_getColor1 _pg_2_
     #define _sn_3_getColor2 _pg_3_
-    #define _pg_3_ _sn_4_getColor
-    #define _pg_2_ _sn_5_getColor
+    #define _pg_2_ _sn_4_getColor
+    #define _pg_3_ _sn_5_getColor
     #define _pg_1_ _sn_6_getColorSum
     vec3 _sn_4_getColor() {
       return vec3(0.2, 0.3, 0.4);
@@ -357,7 +357,7 @@ describe "layout", () ->
               .require('code1')
               .require('code1')
               .require('code2')
-              .call('code3')
+              .pipe('code3')
               .graph()
 
     snippet = graph.link('main')
@@ -365,7 +365,7 @@ describe "layout", () ->
 
     expect(code).toBe(result)
 
-  it 'handles piped requires with deep nesting (require/isolate/require/end/call)', () ->
+  it 'handles piped requires with deep nesting (require/isolate/require/end/pipe)', () ->
 
     code1 = """
     vec3 getColor() {
@@ -395,7 +395,27 @@ describe "layout", () ->
     }
 
     result = """
-
+    #define _sn_1_getColor _pg_1_
+    #define _sn_2_getColor1 _pg_2_
+    #define _sn_3_getColor2 _pg_3_
+    #define _pg_2_ _sn_4_getColor
+    #define _pg_3_ _sn_5_getColor
+    #define _pg_1_ _sn_6_getColorSum
+    vec3 _sn_4_getColor() {
+      return vec3(0.2, 0.3, 0.4);
+    }
+    vec3 _sn_5_getColor() {
+      return vec3(0.2, 0.3, 0.4);
+    }
+    vec3 _sn_6_getColorSum() {
+      return _sn_2_getColor1() + _sn_3_getColor2();
+    }
+    void _sn_7_main() {
+      gl_FragColor = vec4(_sn_1_getColor(), 1.0);
+    }
+    void main() {
+      _sn_7_main();
+    }
     """
 
     shadergraph = ShaderGraph snippets
@@ -407,10 +427,279 @@ describe "layout", () ->
               .isolate()
                 .require('code2')
               .end()
-              .call('code3')
+              .pipe('code3')
               .graph()
 
     snippet = graph.link('main')
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+
+  it 'de-dupes a repeated singleton (require/require/pipe)', () ->
+
+    squareColor = """
+    vec3 squareColor(vec3 rgb) {
+      return rgb * rgb;
+    }
+    """
+
+    getColor = """
+    vec3 getColor() {
+      return vec3(1.0, 0.5, 0.25);
+    }
+    """
+
+    getCallbackColor = """
+    vec3 getColor();
+    vec3 getCallbackColor() {
+      return getColor() * 2.0;
+    }
+    """
+
+    setColor = """
+    vec3 getColor1();
+    vec3 getColor2();
+    void setColor() {
+      vec3 color = getColor1() + getColor2();
+      gl_FragColor = vec4(color, 1.0);
+    }
+    """
+
+    snippets = {squareColor, getColor, getCallbackColor, setColor}
+
+    result = """
+    #define _sn_1_getColor1 _pg_1_
+    #define _sn_2_getColor _pg_2_
+    #define _sn_3_getColor2 _pg_3_
+    #define _pg_1_ _sn_4_getCallbackColor
+    #define _pg_3_ _sn_4_getCallbackColor
+    vec3 _sn_5_getColor() {
+      return vec3(1.0, 0.5, 0.25);
+    }
+    vec3 _sn_6_squareColor(vec3 rgb) {
+      return rgb * rgb;
+    }
+    vec3 _pg_2_() {
+      vec3 _io_1_return;
+      vec3 _io_2_return;
+
+      _io_1_return = _sn_5_getColor();
+      _io_2_return = _sn_6_squareColor(_io_1_return);
+      return _io_2_return;
+    }
+    vec3 _sn_4_getCallbackColor() {
+      return _sn_2_getColor() * 2.0;
+    }
+    void _sn_7_setColor() {
+      vec3 color = _sn_1_getColor1() + _sn_3_getColor2();
+      gl_FragColor = vec4(color, 1.0);
+    }
+    void main() {
+      _sn_7_setColor();
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    # Prepare pipeline of two snippets
+    pipeline = shadergraph.shader()
+    pipeline.pipe 'getColor'
+    pipeline.pipe 'squareColor'
+
+    # Prepare callback
+    callback = shadergraph.shader()
+    callback.require pipeline
+    callback.pipe 'getCallbackColor'
+
+    # Build shader graph
+    shader = shadergraph.shader();
+    shader.require callback
+    shader.require callback
+    shader.pipe 'setColor'
+
+    snippet = shader.link('main');
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+
+  it 'de-dupes a repeated singleton (require/require/pipe)', () ->
+
+    squareColor = """
+    vec3 squareColor(vec3 rgb) {
+      return rgb * rgb;
+    }
+    """
+
+    getColor = """
+    vec3 getColor() {
+      return vec3(1.0, 0.5, 0.25);
+    }
+    """
+
+    setColor = """
+    vec3 mapColor1(vec3 color);
+    vec3 mapColor2(vec3 color);
+    void setColor(vec3 color) {
+      color = mapColor1(color);
+      color = mapColor2(color);
+      gl_FragColor = vec4(color, 1.0);
+    }
+    """
+
+    snippets = {squareColor, getColor, setColor}
+
+    result = """
+    #define _sn_1_mapColor1 _pg_1_
+    #define _sn_2_mapColor2 _pg_2_
+    #define _pg_3_ _sn_3_squareColor
+    #define _pg_4_ _sn_3_squareColor
+    #define _pg_1_ _pg_5_
+    #define _pg_2_ _pg_5_
+    vec3 _sn_3_squareColor(vec3 rgb) {
+      return rgb * rgb;
+    }
+    vec3 _pg_5_(vec3 _io_1_rgb) {
+      vec3 _io_2_return;
+      vec3 _io_3_return;
+    
+      _io_2_return = _pg_3_(_io_1_rgb);
+      _io_3_return = _pg_4_(_io_2_return);
+      return _io_3_return;
+    }
+    vec3 _sn_4_getColor() {
+      return vec3(1.0, 0.5, 0.25);
+    }
+    void _sn_5_setColor(vec3 color) {
+      color = _sn_1_mapColor1(color);
+      color = _sn_2_mapColor2(color);
+      gl_FragColor = vec4(color, 1.0);
+    }
+    void main() {
+      vec3 _io_4_return;
+    
+      _io_4_return = _sn_4_getColor();
+      _sn_5_setColor(_io_4_return);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    # Prepare instanced snippet
+    instance = shadergraph.shader()
+    instance.pipe 'squareColor'
+
+    # Build callback graph
+    callback = shadergraph.shader()
+    callback.pipe instance
+    callback.pipe instance
+
+    # Wrap into single node graph
+    isolate = shadergraph.shader()
+    isolate.pipe callback
+
+    # Build shader graph
+    shader = shadergraph.shader()
+    shader.pipe 'getColor'
+    shader.require isolate
+    shader.require isolate
+    shader.pipe 'setColor'
+
+    # Link entire shader into a main() function
+    snippet = shader.link('main');
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+
+  it 'impedance matches a singleton (require/require/pipe)', () ->
+
+    squareColor = """
+    vec3 squareColor(vec3 rgb) {
+      return rgb * rgb;
+    }
+    """
+
+    getColor = """
+    vec3 getColor() {
+      return vec3(1.0, 0.5, 0.25);
+    }
+    """
+
+    getCallbackColor = """
+    void getColor(out vec3 color);
+    vec3 getCallbackColor() {
+      vec3 c;
+      getColor(c);
+      return c * 2.0;
+    }
+    """
+
+    setColor = """
+    vec3 getColor1();
+    vec3 getColor2();
+    void setColor() {
+      vec3 color = getColor1() + getColor2();
+      gl_FragColor = vec4(color, 1.0);
+    }
+    """
+
+    snippets = {squareColor, getColor, getCallbackColor, setColor}
+
+    result = """
+    #define _sn_1_getColor1 _pg_1_
+    #define _sn_2_getColor2 _pg_2_
+    #define _pg_1_ _sn_3_getCallbackColor
+    #define _pg_2_ _sn_3_getCallbackColor
+    vec3 _pg_3_();
+    void _sn_4_getColor(out vec3 color) {
+      color = _pg_3_();
+    }
+    vec3 _sn_5_getColor() {
+      return vec3(1.0, 0.5, 0.25);
+    }
+    vec3 _sn_6_squareColor(vec3 rgb) {
+      return rgb * rgb;
+    }
+    vec3 _pg_3_() {
+      vec3 _io_1_return;
+      vec3 _io_2_return;
+    
+      _io_1_return = _sn_5_getColor();
+      _io_2_return = _sn_6_squareColor(_io_1_return);
+      return _io_2_return;
+    }
+    vec3 _sn_3_getCallbackColor() {
+      vec3 c;
+      _sn_4_getColor(c);
+      return c * 2.0;
+    }
+    void _sn_7_setColor() {
+      vec3 color = _sn_1_getColor1() + _sn_2_getColor2();
+      gl_FragColor = vec4(color, 1.0);
+    }
+    void main() {
+      _sn_7_setColor();
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    # Prepare pipeline of two snippets
+    pipeline = shadergraph.shader()
+    pipeline.pipe 'getColor'
+    pipeline.pipe 'squareColor'
+
+    # Prepare callback
+    callback = shadergraph.shader()
+    callback.require pipeline
+    callback.pipe 'getCallbackColor'
+
+    # Build shader graph
+    shader = shadergraph.shader();
+    shader.require callback
+    shader.require callback
+    shader.pipe 'setColor'
+
+    snippet = shader.link('main');
     code = normalize(snippet.code)
 
     expect(code).toBe(result)

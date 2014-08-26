@@ -20,6 +20,6 @@ class Join extends Block
   export: (layout) ->
     for node in @nodes
       block = node.owner
-      block._export layout
+      block.export layout
 
 module.exports = Join

@@ -2,21 +2,27 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>ShaderGraph - Fragment Shader with Uniform</title>
+  <title>ShaderGraph - Split Outputs</title>
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
-<script type="application/x-glsl" id="getRampColor">
-vec3 getRampColor(float ramp) {
-  return vec3(ramp, ramp * ramp, ramp * ramp * ramp);
+<script type="application/x-glsl" id="getColors">
+uniform vec3 diffuseColor;
+void getColors(out vec3 color1, out vec3 color2) {
+  color1 = diffuseColor;
+  color2 = diffuseColor.zyx;
 }
 </script>
 
-<script type="application/x-glsl" id="getColor">
-uniform vec3 diffuseColor;
-vec3 getRampColor(float ramp);
+<script type="application/x-glsl" id="applyFilter">
+uniform float intensity;
+vec3 applyFilter(vec3 ramp) {
+  return mix(ramp, ramp * (1.0 - ramp) * 2.0, intensity);
+}
+</script>
 
-vec3 getColor() {
-  return diffuseColor * getRampColor(length(diffuseColor));
+<script type="application/x-glsl" id="combine">
+vec3 combineColor(vec3 a, vec3 b) {
+  return a * b;
 }
 </script>
 
@@ -28,8 +34,8 @@ void setColor(vec3 color) {
 
 </head>
 <body>
-  <h4>Fragment Shader with Uniform</h4>
-  <p>One callback linked to a chain of two snippets, with a uniform.</p>
+  <h4>Split Outputs</h4>
+  <p>A node's outputs are spread across multiple blocks.</p>
 
   <h5>View Source for Code</h5>
   <h5>See Console For Full Result</h5>
@@ -52,26 +58,30 @@ void setColor(vec3 color) {
   shader = shadergraph.shader()
 
   // Prepare uniform (three.js style)
-  uniforms = {
+  uniforms1 = {
     diffuseColor: { type: 'v3', value: { x: 0.5, y: 0.75, z: 1.0 }}
+  };
+  uniforms2 = {
+    intensity: { type: 'f', value: .5 }
+  };
+  uniforms3 = {
+    intensity: { type: 'f', value: .25 }
   };
 
   // Build shader graph
   shader
-    // Require a callback
-    .require('getRampColor')
-
-    // Equivalent to
-    //.callback()
-    //  .pipe('getRampColor')
-    //.join()
-
-    // Build two-step chain that uses the callback and the uniform
-    .pipe('getColor', uniforms)
+    .pipe('getColors', uniforms1)
+    .split()
+      .pipe('applyFilter', uniforms2)
+    .next()
+      .pipe('applyFilter', uniforms3)
+    .end()
+    .pipe('combine')
     .pipe('setColor')
 
   // Link entire shader into a main() function
-  snippet = shader.link('main')
+  graph   = shader.graph()
+  snippet = graph.link('main')
 
   // Show in document body
   document.querySelector('pre').innerText = snippet.code;

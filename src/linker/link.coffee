@@ -41,8 +41,6 @@ link = (language, links, modules, exported) ->
     # Export module's externals
     e = exported
     namespace:   e.main.name
-    library:     {}            # Included library functions
-    body:        code          # Snippet body
     code:        code          # Complete snippet (tests/debug)
     main:        e.main        # Function signature
     entry:       e.main.name   # Entry point name

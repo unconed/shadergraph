@@ -2,21 +2,26 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>ShaderGraph - Fragment Shader with Uniform</title>
+  <title>ShaderGraph - Fanned Output</title>
   <script type="text/javascript" src="../build/shadergraph.js"></script>
-
-<script type="application/x-glsl" id="getRampColor">
-vec3 getRampColor(float ramp) {
-  return vec3(ramp, ramp * ramp, ramp * ramp * ramp);
-}
-</script>
 
 <script type="application/x-glsl" id="getColor">
 uniform vec3 diffuseColor;
-vec3 getRampColor(float ramp);
-
 vec3 getColor() {
-  return diffuseColor * getRampColor(length(diffuseColor));
+  return diffuseColor;
+}
+</script>
+
+<script type="application/x-glsl" id="applyFilter">
+uniform float intensity;
+vec3 applyFilter(vec3 ramp) {
+  return mix(ramp, ramp * (1.0 - ramp) * 2.0, intensity);
+}
+</script>
+
+<script type="application/x-glsl" id="combine">
+vec3 combineColor(vec3 a, vec3 b) {
+  return a * b;
 }
 </script>
 
@@ -28,8 +33,8 @@ void setColor(vec3 color) {
 
 </head>
 <body>
-  <h4>Fragment Shader with Uniform</h4>
-  <p>One callback linked to a chain of two snippets, with a uniform.</p>
+  <h4>Fanned Output</h4>
+  <p>One output is connected to multiple inputs.</p>
 
   <h5>View Source for Code</h5>
   <h5>See Console For Full Result</h5>
@@ -52,26 +57,30 @@ void setColor(vec3 color) {
   shader = shadergraph.shader()
 
   // Prepare uniform (three.js style)
-  uniforms = {
+  uniforms1 = {
     diffuseColor: { type: 'v3', value: { x: 0.5, y: 0.75, z: 1.0 }}
+  };
+  uniforms2 = {
+    intensity: { type: 'f', value: .5 }
+  };
+  uniforms3 = {
+    intensity: { type: 'f', value: .25 }
   };
 
   // Build shader graph
   shader
-    // Require a callback
-    .require('getRampColor')
-
-    // Equivalent to
-    //.callback()
-    //  .pipe('getRampColor')
-    //.join()
-
-    // Build two-step chain that uses the callback and the uniform
-    .pipe('getColor', uniforms)
+    .pipe('getColor', uniforms1)
+    .fan()
+      .pipe('applyFilter', uniforms2)
+    .next()
+      .pipe('applyFilter', uniforms3)
+    .end()
+    .pipe('combine')
     .pipe('setColor')
 
   // Link entire shader into a main() function
-  snippet = shader.link('main')
+  graph   = shader.graph()
+  snippet = graph.link('main')
 
   // Show in document body
   document.querySelector('pre').innerText = snippet.code;

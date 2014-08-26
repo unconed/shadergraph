@@ -927,8 +927,11 @@ library = function(language, snippets, load) {
   inline = function(name) {
     return load(language, '', name);
   };
+  if (callback == null) {
+    return inline;
+  }
   return function(name) {
-    if ((callback == null) || name.match(/[{;(#]/)) {
+    if (name.match(/[{;(#]/)) {
       return inline(name);
     }
     return callback(name);
@@ -2804,8 +2807,6 @@ link = function(language, links, modules, exported) {
     e = exported;
     return {
       namespace: e.main.name,
-      library: {},
-      body: code,
       code: code,
       main: e.main,
       entry: e.main.name,
@@ -3021,9 +3022,6 @@ Snippet = (function() {
     this._name = _name;
     this.namespace = null;
     this.code = null;
-    this.body = null;
-    this.library = null;
-    this.defines = null;
     this.main = null;
     this.entry = null;
     this.uniforms = null;
@@ -3146,8 +3144,6 @@ Snippet = (function() {
       }
     }
     this.body = this.code = this._compiler(this.namespace, exceptions);
-    this.library = [];
-    this.defines = {};
     return null;
   };
 

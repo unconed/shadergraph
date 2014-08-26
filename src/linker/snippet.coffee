@@ -10,9 +10,6 @@ class Snippet
   constructor: (@language, @_signatures, @_compiler, @_name) ->
     @namespace  = null
     @code       = null
-    @body       = null
-    @library    = null
-    @defines    = null
 
     @main       = null
     @entry      = null
@@ -80,10 +77,6 @@ class Snippet
     u def, name for name, def of uniforms when exist[name]
 
     @body = @code = @_compiler @namespace, exceptions
-
-    # These are for generated snippets
-    @library      = []
-    @defines      = {}
 
     null
 

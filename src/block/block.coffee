@@ -48,8 +48,8 @@ class Block
       Block.previous(outlet)?.call program, depth + 1
 
   # Insert callback to this module in the given layout
-  _callback: (module, layout, depth, name, external) ->
-    layout.callback @node, module, depth, name, external
+  _callback: (module, layout, depth, name, external, outlet) ->
+    layout.callback @node, module, depth, name, external, outlet
 
   # Include this module in the given layout
   _include: (module, layout, depth) ->

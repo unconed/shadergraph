@@ -70,8 +70,8 @@ Block = (function() {
     return _results;
   };
 
-  Block.prototype._callback = function(module, layout, depth, name, external) {
-    return layout.callback(this.node, module, depth, name, external);
+  Block.prototype._callback = function(module, layout, depth, name, external, outlet) {
+    return layout.callback(this.node, module, depth, name, external, outlet);
   };
 
   Block.prototype._include = function(module, layout, depth) {
@@ -359,7 +359,7 @@ Isolate = (function(_super) {
   };
 
   Isolate.prototype["export"] = function(layout, depth) {
-    var block, child, externals, module, outlet, shadow, _i, _len, _ref, _results;
+    var block, externals, module, outlet, shadow, _i, _len, _ref, _results;
     if (!layout.visit(this.namespace, depth)) {
       return;
     }
@@ -378,9 +378,8 @@ Isolate = (function(_super) {
         continue;
       }
       shadow = this.graph.getIn(outlet.name);
-      child = shadow.node;
-      block = child.owner;
-      module = block.subroutine;
+      block = shadow.node.owner;
+      module = block.fetch(shadow);
       if (!layout.visit(module.namespace + '__shadow', depth)) {
         continue;
       }
@@ -443,14 +442,14 @@ Join = (function(_super) {
     return _results;
   };
 
-  Join.prototype["export"] = function(layout) {
+  Join.prototype["export"] = function(layout, depth) {
     var block, node, _i, _len, _ref, _results;
     _ref = this.nodes;
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       node = _ref[_i];
       block = node.owner;
-      _results.push(block["export"](layout));
+      _results.push(block["export"](layout, depth));
     }
     return _results;
   };
@@ -858,7 +857,7 @@ hash = function(string) {
     k = Math.imul(k, c1);
     k = (k << 15) | (k >>> 17);
     k = Math.imul(k, c2);
-    h ^= v;
+    h ^= k;
     h = (h << 13) | (h >>> 19);
     h = Math.imul(h, 5);
     return h = (h + c3) | 0;

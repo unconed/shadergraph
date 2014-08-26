@@ -17,9 +17,9 @@ class Join extends Block
       block = node.owner
       block.call program, depth
 
-  export: (layout) ->
+  export: (layout, depth) ->
     for node in @nodes
       block = node.owner
-      block.export layout
+      block.export layout, depth
 
 module.exports = Join

@@ -15,11 +15,16 @@ class Isolate extends Block
     outlets = []
     names = null
 
+    isCallback = (type) -> return type[0] == '('
+
     for set in ['inputs', 'outputs']
       for outlet in @graph[set]()
         # Preserve name of 'return' outlets
         hint = undefined
         hint = 'return' if outlet.hint == 'return'
+
+        # Preserve name of callback outlets
+        hint = outlet.name if isCallback outlet
 
         outlets.push outlet.dupe hint
 

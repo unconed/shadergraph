@@ -1,3 +1,5 @@
+Graph      = require '../graph'
+
 ###
  Callback linker
  

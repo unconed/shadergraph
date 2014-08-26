@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ShaderGraph - Singleton Shader</title>
+  <script type="text/javascript" src="../build/shadergraph.js"></script>
+
+<script type="application/x-glsl" id="squareColor">
+vec3 squareColor(vec3 rgb) {
+  return rgb * rgb;
+}
+</script>
+
+<script type="application/x-glsl" id="getColor">
+vec3 getColor() {
+  return vec3(1.0, 0.5, 0.25);
+}
+</script>
+
+<script type="application/x-glsl" id="setColor">
+void setColor(vec3 color) {
+  gl_FragColor = vec4(color, 1.0);
+}
+</script>
+
+</head>
+<body>
+  <h4>Singleton Shader</h4>
+  <p>One snippet instance used multiple places.</p>
+
+  <h6>View Source for Code</h6>
+  <h6>See Console For Full Result</h6>
+
+  <pre></pre>
+
+  <script>
+
+  // Fetch snippets above
+  var fetch = function (key) {
+    element = document.getElementById(key);
+    return element.textContent || element.innerText;
+  }
+
+  // Load ShaderGraph with given fetch function
+  // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
+  var shadergraph = ShaderGraph(fetch);
+
+  // Prepare instanced snippet
+  var instance = shadergraph.shader();
+  instance.pipe('squareColor');
+
+  // Build shader graph
+  var shader = shadergraph.shader();
+  shader.pipe('getColor');
+  shader.pipe(instance);
+  shader.pipe(instance);
+  shader.pipe('setColor');
+
+  // Link entire shader into a main() function
+  snippet = shader.link('main');
+
+  // Show in document body
+  document.querySelector('pre').innerText = snippet.code;
+  console.log("shader.link('main') = ", snippet);
+
+  </script>
+  
+</body>
+</html>

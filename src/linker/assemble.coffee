@@ -1,4 +1,5 @@
 Graph      = require '../graph'
+Priority   = require './priority'
 
 ###
   Program assembler
@@ -15,6 +16,7 @@ assemble = (language, namespace, calls) ->
   uniforms   = {}
   varyings   = {}
   attributes = {}
+  library    = {}
   includes   = []
 
   process = () ->
@@ -24,11 +26,13 @@ assemble = (language, namespace, calls) ->
     main          = generate.build body, calls
 
     includes.push main.code
-
     code = generate.lines includes
 
+    # Build new virtual snippet
     namespace:   main.name
-    code:        code
+    library:     library     # Included library functions
+    body:        main.code   # Snippet body
+    code:        code        # Complete snippet (tests/debug)
     main:        main
     entry:       main.name
     externals:   externals
@@ -43,8 +47,8 @@ assemble = (language, namespace, calls) ->
     calls.sort (a, b) -> b.priority - a.priority
 
     # Call module in DAG chain
-    call = (node, module) =>
-      include     node, module
+    call = (node, module, priority) =>
+      include     node, module, priority
       main      = module.main
       entry     = module.entry
 
@@ -53,13 +57,29 @@ assemble = (language, namespace, calls) ->
       generate.call _lookup, _dangling, entry, main.signature, body
 
     body = generate.body()
-    call c.node, c.module for c in calls
+    call c.node, c.module, c.priority for c in calls
 
     [body, calls]
 
-  # Include piece of code
-  include = (node, module) ->
+  # Adopt given code as a library at given priority
+  adopt = (namespace, code, priority) ->
+    record = library[namespace]
+    if record?
+      record.priority = Priority.max record.priority, priority
+    else
+      library[namespace] = {code, priority}
+
+  # Include snippet for a call
+  include = (node, module, priority) ->
+    # Capture snippet body
     includes.push module.code
+    priority = Priority.make priority
+
+    # Adopt snippet's libraries
+    adopt ns, lib.code, Priority.nest priority, lib.priority for ns, lib of module.library
+
+    # Adopt snippet body as library
+    adopt module.namespace, module.body, priority
 
     (uniforms[key]   = def) for key, def of module.uniforms
     (varyings[key]   = def) for key, def of module.varyings

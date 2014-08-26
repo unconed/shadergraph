@@ -8,7 +8,7 @@ Block   = require '../block'
 ###
 class Factory
   constructor: (@language, @fetch, @config) ->
-    @end()
+    @graph()
 
   # Combined call/concat shortcut
   pipe: (name, uniforms, namespace) ->
@@ -18,6 +18,7 @@ class Factory
       @_call name, uniforms, namespace
     @
 
+  # Old name
   call: (name, uniforms, namespace) ->
     @pipe name, uniforms, namespace
 
@@ -31,15 +32,18 @@ class Factory
       @join()
     @
 
+  # Old name
   import: (name, uniforms, namespace) ->
     @require name, uniforms, namespace
 
   # Create parallel branches that connect as one block to the end
+  # (one outgoing connection per outlet)
   split: () ->
     @_group '_combine', true
     @
 
-  # Create parallel branches that fan out from the end (multiple outgoing connections per outlet)
+  # Create parallel branches that fan out from the end
+  # (multiple outgoing connections per outlet)
   fan: () ->
     @_group '_combine', false
     @
@@ -68,54 +72,58 @@ class Factory
 
   # Leave nested branches and join up with main graph,
   # applying stored op along the way
-  join: () ->
+  end: () ->
     [sub, main] = @_exit()
     op = sub.op
     if @[op]
       @[op] sub, main
     @
 
+  # Old name
+  join: () ->
+    @end()
+
   # Return finalized graph / reset factory
-  end: () ->
+  graph: () ->
     # Pop remaining stack
     @join() while @_stack?.length > 1
 
     # Remember terminating node(s) of graph
-    if @graph
-      @_tail @_state, @graph
+    if @_graph
+      @_tail @_state, @_graph
 
-    graph = @graph
+    graph = @_graph
 
-    @graph  = new Graph
+    @_graph = new Graph
     @_state = new State
     @_stack = [@_state]
 
     graph
 
-  # Compile shortcut
+  # Compile shortcut (graph is thrown away)
   compile: (namespace) ->
-    @end().compile namespace
+    @graph().compile namespace
 
-  # Link shortcut
+  # Link shortcut (graph is thrown away)
   link: (namespace) ->
-    @end().link namespace
+    @graph().link namespace
 
   # Concatenate existing factory onto tail
   # Retains original factory
   _concat: (factory) ->
-    block = new Block.Isolate factory.graph
+    block = new Block.Isolate factory._graph
 
-    @_tail   factory._state, factory.graph
-    @_append block
+    @_tail factory._state, factory._graph
+    @_auto block
     @
 
   # Add existing factory as callback
   # Retains original factory
   _import: (factory) ->
-    block = new Block.Callback factory.graph
+    block = new Block.Callback factory._graph
 
-    @_tail   factory._state, factory.graph
-    @_insert block
+    @_tail   factory._state, factory._graph
+    @_auto block
     @
 
   # Connect parallel branches to tail
@@ -132,8 +140,8 @@ class Factory
       subgraph = @_subgraph sub
       block = new Block.Isolate subgraph
 
-      @_tail   sub, subgraph
-      @_append block
+      @_tail sub, subgraph
+      @_auto block
 
   # Convert to callback and connect to tail
   _callback: (sub, main) ->
@@ -141,18 +149,15 @@ class Factory
       subgraph = @_subgraph sub
       block = new Block.Callback subgraph
 
-      @_tail   sub, subgraph
-      @_insert block
+      @_tail sub, subgraph
+      @_auto block
 
   # Create next call block
   _call: (name, uniforms, namespace) ->
     snippet = @fetch name
     snippet.bind @config, uniforms, namespace
     block = new Block.Call snippet
-    if block.node.inputs.length
-      @_append block
-    else
-      @_insert block
+    @_auto block
 
   # Move current state into subgraph
   _subgraph: (sub) ->
@@ -163,9 +168,9 @@ class Factory
   # Finalize graph tail
   _tail: (state, graph) ->
 
-    # Merge terminating ends into single tail node if needed
+    # Merge (unique) terminating ends into single tail node if needed
     tail = state.end.concat state.tail
-    tail.filter (node, i) -> tail.indexOf(node) == i
+    tail = tail.filter (node, i) -> tail.indexOf(node) == i
 
     if tail.length > 1
       tail = new Block.Join tail
@@ -222,10 +227,17 @@ class Factory
     @_state ?= new State
     @_stack.shift() ? new State
 
+  # Auto append or insert depending on whether we have inputs
+  _auto: (block) ->
+    if block.node.inputs.length
+      @_append block
+    else
+      @_insert block
+
   # Add block and connect to end
   _append: (block) ->
     node = block.node
-    @graph.add node
+    @_graph.add node
 
     end.connect node for end in @_state.end
 
@@ -238,7 +250,7 @@ class Factory
   # Add block and connect to start
   _prepend: (block) ->
     node = block.node
-    @graph.add node
+    @_graph.add node
 
     node.connect start for start in @_state.start
 
@@ -251,7 +263,7 @@ class Factory
   # Insert loose block
   _insert: (block) ->
     node = block.node
-    @graph.add node
+    @_graph.add node
 
     @_state.start.push node
     @_state.end  .push node

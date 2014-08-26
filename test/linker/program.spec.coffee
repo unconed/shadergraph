@@ -71,7 +71,7 @@ describe "program", () ->
               .call('code1')
               .call('code2')
               .call('code3')
-              .end()
+              .graph()
 
     snippet = graph.compile()
     code = normalize(snippet.code)
@@ -129,7 +129,7 @@ describe "program", () ->
               .call('code1')
               .call('code2')
               .call('code3')
-              .end()
+              .graph()
 
     snippet = graph.compile()
     code = normalize(snippet.code)
@@ -139,7 +139,7 @@ describe "program", () ->
 
 
 
-  it 'links diamond split/join graph (split/next/join)', () ->
+  it 'links diamond split/join graph (split/next/end)', () ->
 
     code1 = """
     void split(out vec3 color1, out vec3 color2) {
@@ -195,9 +195,9 @@ describe "program", () ->
                 .call('code2')
               .next()
                 .call('code2')
-              .join()
-              .call('code3')
               .end()
+              .call('code3')
+              .graph()
 
     snippet = graph.compile()
     code = normalize(snippet.code)
@@ -266,7 +266,7 @@ describe "program", () ->
                 .call('code2')
               .pass()
               .call('code3')
-              .end()
+              .graph()
 
     snippet = graph.compile()
     code = normalize(snippet.code)
@@ -335,9 +335,9 @@ describe "program", () ->
                 .call('code2')
               .next()
                 .call('code2')
-              .join()
-              .call('code3')
               .end()
+              .call('code3')
+              .graph()
 
     snippet = graph.compile()
     code = normalize(snippet.code)
@@ -393,7 +393,7 @@ describe "program", () ->
     graph   = shader
               .call('code1')
               .call('code2')
-              .end()
+              .graph()
 
     snippet = graph.compile()
 
@@ -480,9 +480,9 @@ describe "program", () ->
                 .call('code2')
               .next()
                 .call('code2')
-              .join()
-              .call('code3')
               .end()
+              .call('code3')
+              .graph()
 
     snippet = graph.compile()
 

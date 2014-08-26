@@ -5,9 +5,10 @@ assemble = require './assemble'
   Program assembly model
   
   Snippets are added to its queue, registering calls and code includes.
+  Calls are de-duped and scheduled at the earliest point required for correct data flow.
   
   When assemble() is called, it builds a main() function to
-  execute all calls in order.
+  execute all calls in final order.
   
   The result is a new instance of Snippet that acts as if it
   was parsed from the combined source of the component
@@ -25,6 +26,7 @@ class Program
   call: (node, module, priority) ->
     ns = module.namespace
 
+    # Merge all calls down into one with the right priority
     if exists = @calls[ns]
       exists.priority = Math.max exists.priority, priority
     else

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>ShaderGraph - Configuration</title>
+  <title>ShaderGraph - Custom Configuration</title>
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
 <script type="application/x-glsl" id="vertex">
@@ -30,7 +30,7 @@ void setColor(vec3 color) {
 
 </head>
 <body>
-  <h4>Configuration</h4>
+  <h4>Custom Configuration</h4>
   <p>Local attributes and varyings, but global uniforms</p>
 
   <h6>View Source for Code</h6>
@@ -51,7 +51,7 @@ void setColor(vec3 color) {
   }
 
   // Load ShaderGraph with given fetch function
-  // (can also pass in dictionary of snippets, or pass literal code to .call() below)
+  // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
   shadergraph = ShaderGraph(fetch, {
     // Flip all global / local toggles from the default
     globalAttributes: false,

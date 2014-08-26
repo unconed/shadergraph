@@ -10,6 +10,8 @@ class Snippet
   constructor: (@language, @_signatures, @_compiler, @_name) ->
     @namespace  = null
     @code       = null
+    @body       = null
+    @library    = null
 
     @main       = null
     @entry      = null
@@ -17,6 +19,7 @@ class Snippet
     @uniforms   = null
     @externals  = null
     @attributes = null
+    @varyings   = null
 
     # Tidy up object for export
     delete @language    if !@language
@@ -72,7 +75,8 @@ class Snippet
     a redef def for def in @_signatures.attribute
     u def, name for name, def of uniforms when exist[name]
 
-    @code       = @_compiler @namespace, exceptions
+    @library      = []
+    @body = @code = @_compiler @namespace, exceptions
 
     null
 

@@ -57,7 +57,7 @@ describe "program", () ->
     graph  = shadergraph.shader()
               .require(shader)
               .pipe('code2')
-              .end()
+              .graph()
 
     snippet = graph.link('main')
     code = normalize(snippet.code)
@@ -104,7 +104,7 @@ describe "program", () ->
     graph  = shader
               .import('code1')
               .pipe('code2')
-              .end()
+              .graph()
 
     snippet = graph.link('main')
     code = normalize(snippet.code)
@@ -165,7 +165,7 @@ describe "program", () ->
               .pipe('code3')
               .import('code1')
               .pipe('code2')
-              .end()
+              .graph()
 
     snippet = graph.link('main')
     code = normalize(snippet.code)
@@ -206,7 +206,7 @@ describe "program", () ->
               .pipe('code1')
               .pipe('code1')
               .pipe('code1')
-              .end()
+              .graph()
 
     snippet = graph.link('main')
     code = normalize(snippet.code)

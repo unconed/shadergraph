@@ -17,9 +17,7 @@ describe "layout", () ->
     code = code.replace /\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g, (match, name) ->
       map[match] ? map[match] = "_pg_#{++p}_#{name ? ''}"
 
-
-
-  it 'links a callback (callback/join)', () ->
+  it 'links a callback (callback/end)', () ->
 
     code1 = """
     float foobar(vec3 color) {
@@ -57,9 +55,9 @@ describe "layout", () ->
     graph   = shader
               .callback()
                 .call('code1')
-              .join()
-              .call('code2')
               .end()
+              .call('code2')
+              .graph()
 
     snippet = graph.link('main')
     code = normalize(snippet.code)
@@ -106,7 +104,7 @@ describe "layout", () ->
     graph   = shader
               .require('code1')
               .call('code2')
-              .end()
+              .graph()
 
     snippet = graph.link('main')
     code = normalize(snippet.code)
@@ -115,7 +113,7 @@ describe "layout", () ->
     expect(snippet.entry.match /^_pg_[0-9]+_$/).toBeTruthy
 
 
-  it 'links a callback recursively (callback/join)', () ->
+  it 'links a callback recursively (callback/end)', () ->
 
     code1 = """
     float foobar(vec3 color) {
@@ -166,11 +164,11 @@ describe "layout", () ->
               .callback()
                 .callback()
                   .call('code1')
-                .join()
+                .end()
                 .call('code2')
-              .join()
-              .call('code3')
               .end()
+              .call('code3')
+              .graph()
 
     snippet = graph.link('main')
     code = normalize(snippet.code)
@@ -179,7 +177,7 @@ describe "layout", () ->
 
 
 
-  it 'creates linkages for subgraphs and signature mismatches (callback/join)', () ->
+  it 'creates linkages for subgraphs and signature mismatches (callback/end)', () ->
 
     code1 = """
     float foobar(vec3 color) {
@@ -241,9 +239,9 @@ describe "layout", () ->
               .callback()
                 .call('code1')
                 .call('code2')
-              .join()
-              .call('code3')
               .end()
+              .call('code3')
+              .graph()
 
     snippet = graph.link('main')
     code = normalize(snippet.code)
@@ -251,7 +249,7 @@ describe "layout", () ->
     expect(code).toBe(result)
 
 
-  it 'links nested graphs (isolate/join)', () ->
+  it 'links nested graphs (isolate/end)', () ->
 
     code1 = """
     float foobar(vec3 color) {
@@ -290,9 +288,127 @@ describe "layout", () ->
     graph   = shader
               .isolate()
                 .call('code1')
-              .join()
-              .call('code2')
               .end()
+              .call('code2')
+              .graph()
+
+    snippet = graph.link('main')
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+
+  it 'handles piped requires (require/require/call)', () ->
+
+    code1 = """
+    vec3 getColor() {
+      return vec3(0.2, 0.3, 0.4);
+    }
+    """
+
+    code2 = """
+    vec3 getColor1();
+    vec3 getColor2();
+    vec3 getColorSum() {
+      return getColor1() + getColor2();
+    }
+    """
+
+    code3 = """
+    vec3 getColor();
+    void main() {
+      gl_FragColor = vec4(getColor(), 1.0);
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+      'code3': code3
+    }
+
+    result = """
+    #define _sn_1_getColor _pg_1_
+    #define _sn_2_getColor1 _pg_2_
+    #define _sn_3_getColor2 _pg_3_
+    #define _pg_3_ _sn_4_getColor
+    #define _pg_2_ _sn_5_getColor
+    #define _pg_1_ _sn_6_getColorSum
+    vec3 _sn_4_getColor() {
+      return vec3(0.2, 0.3, 0.4);
+    }
+    vec3 _sn_5_getColor() {
+      return vec3(0.2, 0.3, 0.4);
+    }
+    vec3 _sn_6_getColorSum() {
+      return _sn_2_getColor1() + _sn_3_getColor2();
+    }
+    void _sn_7_main() {
+      gl_FragColor = vec4(_sn_1_getColor(), 1.0);
+    }
+    void main() {
+      _sn_7_main();
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .require('code1')
+              .require('code1')
+              .require('code2')
+              .call('code3')
+              .graph()
+
+    snippet = graph.link('main')
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+
+  it 'handles piped requires with deep nesting (require/isolate/require/end/call)', () ->
+
+    code1 = """
+    vec3 getColor() {
+      return vec3(0.2, 0.3, 0.4);
+    }
+    """
+
+    code2 = """
+    vec3 getColor1();
+    vec3 getColor2();
+    vec3 getColorSum() {
+      return getColor1() + getColor2();
+    }
+    """
+
+    code3 = """
+    vec3 getColor();
+    void main() {
+      gl_FragColor = vec4(getColor(), 1.0);
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+      'code3': code3
+    }
+
+    result = """
+
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .require('code1')
+              .require('code1')
+              .isolate()
+                .require('code2')
+              .end()
+              .call('code3')
+              .graph()
 
     snippet = graph.link('main')
     code = normalize(snippet.code)

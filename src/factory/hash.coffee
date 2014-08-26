@@ -7,11 +7,11 @@ c5 = 0xc2b2ae35
 
 # Fix imul in old/broken browsers
 imul = (a, b) ->
-  ah  = (a >>> 16) & 0xffff
+  ah = (a >>> 16) & 0xffff
   al = a & 0xffff
-  bh  = (b >>> 16) & 0xffff
+  bh = (b >>> 16) & 0xffff
   bl = b & 0xffff
-  (al * bl) + (((ah * bl + al * bh) << 16) >>> 0)|0
+  (al * bl) + (((ah * bl + al * bh) << 16) >>> 0) | 0
 
 if Math.imul?
   test = Math.imul 0xffffffff, 5

@@ -210,7 +210,9 @@ Callback = (function(_super) {
     handle = (function(_this) {
       return function(outlet, list) {
         if (isCallback(outlet)) {
-          return outlets.push(outlet.dupe(outlet.name));
+          if (outlet.inout === Graph.IN) {
+            return outlets.push(outlet.dupe(outlet.name));
+          }
         } else {
           return list.push(outlet.type);
         }

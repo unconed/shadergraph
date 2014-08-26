@@ -26,8 +26,9 @@ class Callback extends Block
     # Collect open inputs/outputs
     handle = (outlet, list) =>
       if isCallback outlet
-        # Preserve name of callback outlets
-        outlets.push outlet.dupe outlet.name
+        if outlet.inout == Graph.IN
+          # Export open callback inputs
+          outlets.push outlet.dupe outlet.name
       else
         list.push outlet.type
 

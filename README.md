@@ -5,9 +5,9 @@ shadergraph
 
 ![Shader Graph](https://raw.github.com/unconed/shadergraph/master/docs/images/require.png)
 
-ShaderGraph is a library for linking together GLSL snippets into stand-alone shaders. It is mainly designed to build complicated shaders programmatically, but can also act as the back-end to a live graph-based shader editor.
+ShaderGraph is a library for linking together GLSL snippets into stand-alone shaders. It was mainly meant to build complicated shaders programmatically. It can also act as the back-end to a live graph-based shader editor.
 
-ShaderGraph is designed to play well with Three.js, but it does not depend on it. It merely follows the same code/object conventions.
+ShaderGraph is designed to play well with Three.js, but does not depend on it. It merely follows the same code/object conventions.
 
 * * *
 
@@ -71,7 +71,9 @@ var shader
 var program = shader.link('main');
 ```
 
-Instead of referencing snippets by name, you can also pass in GLSL code directly to `.pipe()` and `.require()`, regardless of whether you defined a fetch function.
+Instancing behavior can be configured globally or per shader (see below).
+
+Instead of including snippets by name, you can also pass in GLSL code directly to `.pipe(…)` and `.require(…)` regardless of whether you are using a fetch function/library or not.
 
 Materials
 ---
@@ -107,7 +109,7 @@ Reference
 *Constructor*
 
 ```javascript
-var fetch = function (name) { };
+var fetch = function (name) { return … };
 var fetch = { name: "...", name: "..." };
 var config = {
   globalUniforms:   false, // Make uniforms   global
@@ -130,26 +132,26 @@ shadergraph = ShaderGraph(fetch, config);
 *Factory*
 
  * `.pipe(name/code/factory)`
-   Call the given code/snippet/factory at this stage and connect it to what came before.
+   Include the given code/snippet/factory and connect it to what came before.  
    ![Pipe example](https://raw.github.com/unconed/shadergraph/master/docs/images/pipe.png)
 
  * `.require(name/code/factory)`
-   Include the given code/snippet/factory as a callback for what comes next.
+   Include the given code/snippet/factory as a callback for what comes next.  
    ![Require example](https://raw.github.com/unconed/shadergraph/master/docs/images/require.png)
 
- * `.isolate().….end()` - Create an isolated subgraph and call it
+ * `.isolate().….end()` - Create an isolated subgraph and call it.  
    ![Isolate example](https://raw.github.com/unconed/shadergraph/master/docs/images/isolate.png)
 
- * `.callback().….end()` - Create an isolated subgraph and use as a callback
+ * `.callback().….end()` - Create an isolated subgraph and use as a callback.  
    ![Callback example](https://raw.github.com/unconed/shadergraph/master/docs/images/callback.png)
 
- * `.split().….next().….end()` - Create two or more branches and split connections across them 1-to-1
+ * `.split().….next().….end()` - Create two or more branches and split connections across them 1-to-1.  
    ![Split example](https://raw.github.com/unconed/shadergraph/master/docs/images/split.png)
  
- * `.fan().….next().….end()` - Create two or more branches and fan connections across them 1-to-N
+ * `.fan().….next().….end()` - Create two or more branches and fan connections across them 1-to-N.  
    ![Fan example](https://raw.github.com/unconed/shadergraph/master/docs/images/fan.png)
 
- * `.pass()` - Use this instead of .end() to add an additional passthrough connection that skips the entire block.
+ * `.pass()` - Use this instead of .end() to make additional passthrough connections that skip the entire block.  
    ![Pass example](https://raw.github.com/unconed/shadergraph/master/docs/images/pass.png)
 
  * `.graph()`
@@ -159,17 +161,24 @@ shadergraph = ShaderGraph(fetch, config);
    Finalize the graph and compile it immediately (no callbacks). The graph is discarded.
 
  * `.link(name)`
-   Finalize the graph and link it immediately (with callbacks). The graph is discarded.
+   Finalize the graph and link it with its subgraphs immediately (with callbacks). The graph is discarded.
 
 *Graph*
 
  * `.compile(name)`
     Compile the graph (no callbacks). The graph is discarded.
 
-  * `.link(name)`
+ * `.link(name)`
     Compile and link the graph and its subgraphs (with callbacks). The graph is discarded.
 
-If you want to build graphs by hand instead of with factories, the underlying namespaces are exposed as `ShaderGraph.Graph`, `ShaderGraph.Block`, etc. `Block` and its subclasses are the logical pieces of the graph. Each has a `Node` associated with it that contains a set of `Outlets`. Connections can be made from node to node (auto-matching), or outlet to outlet (manual).
+Manual Use
+---
+
+If you want to build graphs by hand instead of with factories, this is possible, but not as nice. You will need to construct objects and inject a few dependencies. Use the Factory API as a guide.
+
+The underlying namespaces are exposed as `ShaderGraph.Graph`, `ShaderGraph.Block`, … `Block` and its subclasses are the logical pieces of the shader. Each block has a `Node` associated with it that lives in the `Graph` and contains a set of `Outlets`. Connections can be made node-to-node with `node.connect(node)` (auto-matching by name and type), or outlet-to-outlet with `outlet.connect(outlet)`.
+
+To compile Graphs created without a factory, you will need to call `.compile()` or `.link()` on the graph's tail block directly.
 
 * * *
 

@@ -5,14 +5,17 @@ shadergraph
 
 ![Shader Graph](https://raw.github.com/unconed/shadergraph/master/docs/images/require.png)
 
-ShaderGraph is a library for linking together GLSL snippets into stand-alone shaders. It was mainly meant to build complicated shaders programmatically. It can also act as the back-end to a live graph-based shader editor.
+ShaderGraph is a library for linking together GLSL snippets into stand-alone shaders. It is mainly meant to build complicated shaders 100% programmatically. But it can also act as the back-end to a live graph-based shader editor, as its graph model is persistent.
 
 ShaderGraph is designed to play well with Three.js, but does not depend on it. It merely follows the same code/object conventions.
+
+There is no editing UI included, only a way to display a graph as an HTML/CSS/SVG diagram.
 
 * * *
 
 Live Examples
 ---
+ShaderGraph
  * [Require](http://acko.net/files/shadergraph2/examples/require.html)
  * [Combined Vertex/Fragment Material](http://acko.net/files/shadergraph2/examples/material.html)
  * [Instanced Uniform](http://acko.net/files/shadergraph2/examples/uniform.html)
@@ -23,6 +26,10 @@ Live Examples
  * [Isolate Subgraphs](http://acko.net/files/shadergraph2/examples/isolate.html)
  * [Deep Nesting](http://acko.net/files/shadergraph2/examples/deep.html)
  * [Isolated require](http://acko.net/files/shadergraph2/examples/wrap.html)
+
+ShaderGraph 2 drives all shaders in MathBox² (in development). Demos: [Vertex Colors](http://acko.net/files/dump/mathbox2/vertexcolor.html), [Volume of Vectors](http://acko.net/files/dump/mathbox2/volume.html), [Waves of Quads](http://acko.net/files/dump/mathbox2/face.html)
+
+![http://acko.net/files/dump/mathbox2/volume.html](http://acko.net/files/dump/mathbox2/volume.jpg)
 
 Basic Use
 ---
@@ -55,6 +62,8 @@ var shadergraph = ShaderGraph(fetch);
 
 You can use the chainable Factory API to build graphs. It's a smart wrapper around a partially built graph. It allows you to make splits and joins, hook up callbacks via requires, import other factories, etc.
 
+Instead of including snippets by name, you can also pass in GLSL code directly to `.pipe(…)` and `.require(…)` regardless of whether you are using a fetch function/library or not.
+
 Snippets are instanced by default, letting you bind unique uniforms to specific snippets in the chain:
 
 ![Uniform example](https://raw.github.com/unconed/shadergraph/master/docs/images/uniform.png)
@@ -81,8 +90,6 @@ var program = shader.link('main');
 ```
 
 Instancing behavior can be configured globally or per shader (see below).
-
-Instead of including snippets by name, you can also pass in GLSL code directly to `.pipe(…)` and `.require(…)` regardless of whether you are using a fetch function/library or not.
 
 Materials
 ---

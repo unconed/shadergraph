@@ -3886,20 +3886,20 @@ sqr = function(x) {
 };
 
 path = function(x1, y1, x2, y2) {
-  var d, dx, dy, f, h, mx, my, stiffness;
+  var d, dx, dy, f, h, mx, my, vert;
   dx = x2 - x1;
   dy = y2 - y1;
   d = Math.sqrt(sqr(dx) + sqr(dy));
-  if (Math.abs(dy) > Math.abs(dx)) {
-    stiffness = .3;
+  vert = Math.abs(dy) > Math.abs(dx);
+  if (vert) {
     mx = (x1 + x2) / 2;
     my = (y1 + y2) / 2;
-    f = dy > 0 ? 1 : -1;
-    h = 15 + d / 16;
-    return ['M', x1, y1, 'C', x1 + h, y1 + ',', mx, my - d * stiffness * f, mx, my, 'C', mx, my + d * stiffness * f, x2 - h, y2 + ',', x2, y2].join(' ');
+    f = dy > 0 ? .3 : -.3;
+    h = Math.min(Math.abs(dx) / 2, 20 + d / 8);
+    return ['M', x1, y1, 'C', x1 + h, y1 + ',', mx, my - d * f, mx, my, 'C', mx, my + d * f, x2 - h, y2 + ',', x2, y2].join(' ');
   } else {
-    stiffness = .5;
-    return ['M', x1, y1, 'C', x1 + d * stiffness, y1 + ',', x2 - d * stiffness, y2 + ',', x2, y2].join(' ');
+    h = Math.min(Math.abs(dx) / 2.5, 20 + d / 4);
+    return ['M', x1, y1, 'C', x1 + h, y1 + ',', x2 - h, y2 + ',', x2, y2].join(' ');
   }
 };
 

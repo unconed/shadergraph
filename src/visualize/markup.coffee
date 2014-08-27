@@ -126,31 +126,30 @@ path   = (x1, y1, x2, y2) ->
   dy = y2 - y1
   d = Math.sqrt sqr(dx) + sqr(dy)
 
-  if Math.abs(dy) > Math.abs(dx)
-    stiffness = .3
-
+  vert = Math.abs(dy) > Math.abs(dx)
+  if vert
     mx = (x1 + x2) / 2
     my = (y1 + y2) / 2
 
-    f = if dy > 0 then 1 else -1
-    h = 15 + d / 16
+    f = if dy > 0 then .3 else -.3
+    h = Math.min Math.abs(dx) / 2, 20 + d / 8
 
     return [
       'M', x1, y1,
       'C', x1 + h, y1 + ',',
-           mx, my - d * stiffness * f,
+           mx, my - d * f,
            mx, my,
-      'C', mx, my + d * stiffness * f,
+      'C', mx, my + d * f,
            x2 - h, y2 + ',',
            x2, y2,
     ].join ' '
   else
-    stiffness = .5
+    h = Math.min Math.abs(dx) / 2.5, 20 + d / 4
 
     return [
       'M', x1, y1,
-      'C', x1 + d * stiffness, y1 + ',',
-           x2 - d * stiffness, y2 + ',',
+      'C', x1 + h, y1 + ',',
+           x2 - h, y2 + ',',
            x2, y2,
     ].join ' '
 

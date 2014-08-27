@@ -54,4 +54,4 @@ class ShaderGraph
       visualize shader
 
 module.exports = ShaderGraph
-window.ShaderGraph = ShaderGraph
+window.ShaderGraph = ShaderGraph if typeof window != 'undefined'

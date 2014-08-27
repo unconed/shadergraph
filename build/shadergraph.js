@@ -3020,7 +3020,9 @@ ShaderGraph = (function() {
 
 module.exports = ShaderGraph;
 
-window.ShaderGraph = ShaderGraph;
+if (typeof window !== 'undefined') {
+  window.ShaderGraph = ShaderGraph;
+}
 
 
 },{"./block":8,"./factory":14,"./glsl":22,"./graph":25,"./linker":30,"./visualize":36}],29:[function(require,module,exports){

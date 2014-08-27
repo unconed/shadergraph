@@ -1,5 +1,6 @@
-Graph   = require('../graph').Graph
-Block   = require '../block'
+Graph     = require('../graph').Graph
+Block     = require '../block'
+Visualize = require '../visualize'
 
 ###
   Chainable factory
@@ -107,6 +108,10 @@ class Factory
   # Link shortcut (graph is thrown away)
   link: (namespace) ->
     @graph().link namespace
+
+  # Serialize for debug
+  serialize: () ->
+    Visualize.serialize @_graph
 
   # Concatenate existing factory onto tail
   # Retains original factory

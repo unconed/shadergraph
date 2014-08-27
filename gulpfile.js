@@ -8,8 +8,9 @@ var browserify = require('gulp-browserify');
 var watch = require('gulp-watch');
 
 var builds = {
-  core: 'build/shadergraph-core.js',
+  core:   'build/shadergraph-core.js',
   bundle: 'build/shadergraph.js',
+  css:    'build/shadergraph.css',
 };
 
 var products = [
@@ -18,6 +19,10 @@ var products = [
 ];
 
 var vendor = [
+];
+
+var css = [
+  'src/**/*.css',
 ];
 
 var core = [
@@ -49,6 +54,12 @@ gulp.task('browserify', function () {
         ext: ".js"
       }))
       .pipe(gulp.dest('.tmp/'))
+});
+
+gulp.task('css', function () {
+  return gulp.src(css)
+    .pipe(concat(builds.css))
+    .pipe(gulp.dest(''));
 });
 
 gulp.task('core', function () {
@@ -88,8 +99,8 @@ gulp.task('watch-karma', function() {
     }));
 });
 
-gulp.task('watch-build', function () {
-  gulp.src(coffees)
+gulp.task('watch-build-watch', function () {
+  gulp.src(coffees.concat(css))
     .pipe(
       watch(function(files) {
         return gulp.start('build');
@@ -100,7 +111,7 @@ gulp.task('watch-build', function () {
 // Main tasks
 
 gulp.task('build', function (callback) {
-  runSequence('browserify', ['core', 'bundle'], callback);
+  runSequence('browserify', ['css', 'core', 'bundle'], callback);
 })
 
 gulp.task('default', function (callback) {
@@ -110,6 +121,10 @@ gulp.task('default', function (callback) {
 gulp.task('test', function (callback) {
   runSequence('build', 'karma', callback);
 });
+
+gulp.task('watch-build', function (callback) {
+  runSequence('build', 'watch-build-watch', callback);
+})
 
 gulp.task('watch', function (callback) {
   runSequence('watch-build', 'watch-karma', callback);

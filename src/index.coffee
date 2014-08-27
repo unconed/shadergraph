@@ -1,13 +1,15 @@
-glsl     = require './glsl'
-f        = require './factory'
-l        = require './linker'
+Block     = require './block'
+Factory   = require './factory'
+GLSL      = require './glsl'
+Graph     = require './graph'
+Linker    = require './linker'
+Visualize = require './visualize'
 
-Factory  = f.Factory
-Material = f.Material
-library  = f.library
-cache    = f.cache
+library   = Factory.library
+cache     = Factory.cache
+visualize = Visualize.visualize
 
-Snippet  = l.Snippet
+Snippet   = Linker.Snippet
 
 merge = (a, b = {}) ->
   out = {}
@@ -25,21 +27,31 @@ class ShaderGraph
       globals:          []
 
     @config = merge defaults, config
-    @fetch  = cache library glsl, snippets, Snippet.load
+    @fetch  = cache library GLSL, snippets, Snippet.load
 
   shader: (config = {}) ->
     _config = merge @config, config
-    new Factory glsl, @fetch, _config
+    new Factory.Factory GLSL, @fetch, _config
 
   material: (config) ->
-    new Material @shader(config), @shader(config)
+    new Factory.Material @shader(config), @shader(config)
+
+  visualize: (shader) -> ShaderGraph.visualize shader
 
   # Expose class hierarchy
-  @Block:   require './block'
-  @Factory: require './factory'
-  @GLSL:    require './glsl'
-  @Graph:   require './graph'
-  @Linker:  require './linker'
+  @Block:     Block
+  @Factory:   Factory
+  @GLSL:      GLSL
+  @Graph:     Graph
+  @Linker:    Linker
+  @Visualize: Visualize
+
+  # Static visualization method
+  @visualize = (shader) ->
+    if shader instanceof Factory.Material
+      visualize shader.vertex, shader.fragment
+    else
+      visualize shader
 
 module.exports = ShaderGraph
 window.ShaderGraph = ShaderGraph

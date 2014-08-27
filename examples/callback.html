@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>ShaderGraph - Callback Graph</title>
+  <link rel="stylesheet" href="../build/shadergraph.css" />
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
 <script type="application/x-glsl" id="squareColor">
@@ -38,8 +39,8 @@ void setColor() {
   <h4>Callback Graph</h4>
   <p>Callback created from pipeline of nodes.</p>
 
+  <div class="graph"></div>
   <h5>View Source for Code</h5>
-  <h5>See Console For Full Result</h5>
 
   <pre></pre>
 
@@ -48,7 +49,7 @@ void setColor() {
   // Fetch snippets above
   var fetch = function (key) {
     element = document.getElementById(key);
-    return element.textContent || element.innerText;
+    return element.textContent || element.textContent;
   }
 
   // Load ShaderGraph with given fetch function
@@ -71,11 +72,21 @@ void setColor() {
   shader.require(callback);          // Import callback
   shader.pipe('setColor');           // Connect both to snippet
 
+  // Finalize graph (optional, can call shader.link())
+  graph   = shader.graph();
+
   // Link entire shader into a main() function
-  snippet = shader.link('main');
+  snippet = graph.link('main');
 
   // Show in document body
-  document.querySelector('pre').innerText = snippet.code;
+  pre = document.querySelector('pre')
+  pre.innerText = snippet.code;
+
+  // Generate visualization of graph
+  visualize = shadergraph.visualize(graph);
+  document.querySelector('.graph').appendChild(visualize);
+  visualize.update();
+
   console.log("shader.link('main') = ", snippet);
 
   </script>

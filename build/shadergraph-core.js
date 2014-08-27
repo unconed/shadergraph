@@ -1,4 +1,489 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+
+/*
+  Graph of nodes with outlets
+ */
+var Graph;
+
+Graph = (function() {
+  Graph.index = 0;
+
+  Graph.id = function(name) {
+    return ++Graph.index;
+  };
+
+  Graph.IN = 0;
+
+  Graph.OUT = 1;
+
+  function Graph(nodes, parent) {
+    this.parent = parent != null ? parent : null;
+    this.id = Graph.id();
+    this.nodes = [];
+    nodes && this.add(nodes);
+  }
+
+  Graph.prototype.inputs = function() {
+    var inputs, node, outlet, _i, _j, _len, _len1, _ref, _ref1;
+    inputs = [];
+    _ref = this.nodes;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      node = _ref[_i];
+      _ref1 = node.inputs;
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        outlet = _ref1[_j];
+        if (outlet.input === null) {
+          inputs.push(outlet);
+        }
+      }
+    }
+    return inputs;
+  };
+
+  Graph.prototype.outputs = function() {
+    var node, outlet, outputs, _i, _j, _len, _len1, _ref, _ref1;
+    outputs = [];
+    _ref = this.nodes;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      node = _ref[_i];
+      _ref1 = node.outputs;
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        outlet = _ref1[_j];
+        if (outlet.output.length === 0) {
+          outputs.push(outlet);
+        }
+      }
+    }
+    return outputs;
+  };
+
+  Graph.prototype.getIn = function(name) {
+    var outlet;
+    return ((function() {
+      var _i, _len, _ref, _results;
+      _ref = this.inputs();
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        outlet = _ref[_i];
+        if (outlet.name === name) {
+          _results.push(outlet);
+        }
+      }
+      return _results;
+    }).call(this))[0];
+  };
+
+  Graph.prototype.getOut = function(name) {
+    var outlet;
+    return ((function() {
+      var _i, _len, _ref, _results;
+      _ref = this.outputs();
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        outlet = _ref[_i];
+        if (outlet.name === name) {
+          _results.push(outlet);
+        }
+      }
+      return _results;
+    }).call(this))[0];
+  };
+
+  Graph.prototype.add = function(node, ignore) {
+    var _i, _len, _node;
+    if (node.length) {
+      for (_i = 0, _len = node.length; _i < _len; _i++) {
+        _node = node[_i];
+        this.add(_node);
+      }
+      return;
+    }
+    if (node.graph && !ignore) {
+      throw "Adding node to two graphs at once";
+    }
+    node.graph = this;
+    return this.nodes.push(node);
+  };
+
+  Graph.prototype.remove = function(node, ignore) {
+    var _i, _len, _node;
+    if (node.length) {
+      for (_i = 0, _len = node.length; _i < _len; _i++) {
+        _node = node[_i];
+        this.remove(_node);
+      }
+      return;
+    }
+    if (node.graph !== this) {
+      throw "Removing node from wrong graph.";
+    }
+    ignore || node.disconnect();
+    this.nodes.splice(this.nodes.indexOf(node), 1);
+    return node.graph = null;
+  };
+
+  Graph.prototype.adopt = function(node) {
+    var _i, _len, _node;
+    if (node.length) {
+      for (_i = 0, _len = node.length; _i < _len; _i++) {
+        _node = node[_i];
+        this.adopt(_node);
+      }
+      return;
+    }
+    node.graph.remove(node, true);
+    return this.add(node, true);
+  };
+
+  return Graph;
+
+})();
+
+module.exports = Graph;
+
+
+},{}],2:[function(require,module,exports){
+exports.Graph = require('./graph');
+
+exports.Node = require('./node');
+
+exports.Outlet = require('./outlet');
+
+exports.IN = exports.Graph.IN;
+
+exports.OUT = exports.Graph.OUT;
+
+
+},{"./graph":1,"./node":3,"./outlet":4}],3:[function(require,module,exports){
+var Graph, Node, Outlet;
+
+Graph = require('./graph');
+
+Outlet = require('./outlet');
+
+
+/*
+ Node in graph.
+ */
+
+Node = (function() {
+  Node.index = 0;
+
+  Node.id = function(name) {
+    return ++Node.index;
+  };
+
+  function Node(owner, outlets) {
+    this.owner = owner;
+    this.graph = null;
+    this.inputs = [];
+    this.outputs = [];
+    this.outlets = null;
+    this.id = Node.id();
+    this.setOutlets(outlets);
+  }
+
+  Node.prototype.getIn = function(name) {
+    var outlet;
+    return ((function() {
+      var _i, _len, _ref, _results;
+      _ref = this.inputs;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        outlet = _ref[_i];
+        if (outlet.name === name) {
+          _results.push(outlet);
+        }
+      }
+      return _results;
+    }).call(this))[0];
+  };
+
+  Node.prototype.getOut = function(name) {
+    var outlet;
+    return ((function() {
+      var _i, _len, _ref, _results;
+      _ref = this.outputs;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        outlet = _ref[_i];
+        if (outlet.name === name) {
+          _results.push(outlet);
+        }
+      }
+      return _results;
+    }).call(this))[0];
+  };
+
+  Node.prototype.get = function(name) {
+    return this.getIn(name) || this.getOut(name);
+  };
+
+  Node.prototype.setOutlets = function(outlets) {
+    var existing, hash, key, make, match, outlet, _i, _j, _k, _len, _len1, _len2, _ref;
+    make = function(outlet) {
+      return new Outlet(outlet.inout, outlet.name, outlet.hint, outlet.type, outlet.meta);
+    };
+    if (outlets != null) {
+      if (this.outlets == null) {
+        this.outlets = {};
+        for (_i = 0, _len = outlets.length; _i < _len; _i++) {
+          outlet = outlets[_i];
+          this._add(make(outlet));
+        }
+        return;
+      }
+      hash = function(outlet) {
+        return [outlet.name, outlet.inout, outlet.type].join('-');
+      };
+      match = {};
+      for (_j = 0, _len1 = outlets.length; _j < _len1; _j++) {
+        outlet = outlets[_j];
+        match[hash(outlet)] = true;
+      }
+      _ref = this.outlets;
+      for (key in _ref) {
+        outlet = _ref[key];
+        key = hash(outlet);
+        if (match[key]) {
+          match[key] = outlet;
+        } else {
+          this._remove(outlet);
+        }
+      }
+      for (_k = 0, _len2 = outlets.length; _k < _len2; _k++) {
+        outlet = outlets[_k];
+        existing = match[hash(outlet)];
+        if (existing instanceof Outlet) {
+          this._morph(existing, outlet);
+        } else {
+          this._add(make(outlet));
+        }
+      }
+      this;
+    }
+    return this.outlets;
+  };
+
+  Node.prototype.connect = function(node, empty, force) {
+    var hint, hints, others, outlet, outlets, type, _i, _j, _len, _len1, _ref, _ref1;
+    outlets = {};
+    hints = {};
+    _ref = node.inputs;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      outlet = _ref[_i];
+      if (!force && outlet.input) {
+        continue;
+      }
+      type = outlet.type;
+      hint = [type, outlet.hint].join('-');
+      if (!hints[hint]) {
+        hints[hint] = outlet;
+      }
+      outlets[type] = outlets[type] || [];
+      outlets[type].push(outlet);
+    }
+    _ref1 = this.outputs;
+    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+      outlet = _ref1[_j];
+      if (empty && outlet.output.length) {
+        continue;
+      }
+      type = outlet.type;
+      hint = [type, outlet.hint].join('-');
+      others = outlets[type];
+      if (hints[hint]) {
+        hints[hint].connect(outlet);
+        delete hints[hint];
+        others.splice(others.indexOf(outlet), 1);
+        continue;
+      }
+      if (others && others.length) {
+        others.shift().connect(outlet);
+      }
+    }
+    return this;
+  };
+
+  Node.prototype.disconnect = function(node) {
+    var outlet, _i, _j, _len, _len1, _ref, _ref1;
+    _ref = this.inputs;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      outlet = _ref[_i];
+      outlet.disconnect();
+    }
+    _ref1 = this.outputs;
+    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+      outlet = _ref1[_j];
+      outlet.disconnect();
+    }
+    return this;
+  };
+
+  Node.prototype._key = function(outlet) {
+    return [outlet.name, outlet.inout].join('-');
+  };
+
+  Node.prototype._add = function(outlet) {
+    var key;
+    key = this._key(outlet);
+    if (outlet.node) {
+      throw "Adding outlet to two nodes at once.";
+    }
+    if (this.outlets[key]) {
+      throw "Adding two identical outlets to same node. (" + key + ")";
+    }
+    outlet.node = this;
+    if (outlet.inout === Graph.IN) {
+      this.inputs.push(outlet);
+    }
+    if (outlet.inout === Graph.OUT) {
+      this.outputs.push(outlet);
+    }
+    return this.outlets[key] = outlet;
+  };
+
+  Node.prototype._morph = function(existing, outlet) {
+    var key;
+    key = this._key(outlet);
+    delete this.outlets[key];
+    existing.morph(outlet);
+    key = this._key(outlet);
+    return this.outlets[key] = outlet;
+  };
+
+  Node.prototype._remove = function(outlet) {
+    var inout, key;
+    key = this._key(outlet);
+    inout = outlet.inout;
+    if (outlet.node !== this) {
+      throw "Removing outlet from wrong node.";
+    }
+    outlet.disconnect();
+    outlet.node = null;
+    delete this.outlets[key];
+    if (outlet.inout === Graph.IN) {
+      this.inputs.splice(this.inputs.indexOf(outlet), 1);
+    }
+    if (outlet.inout === Graph.OUT) {
+      this.outputs.splice(this.outputs.indexOf(outlet), 1);
+    }
+    return this;
+  };
+
+  return Node;
+
+})();
+
+module.exports = Node;
+
+
+},{"./graph":1,"./outlet":4}],4:[function(require,module,exports){
+var Graph, Outlet;
+
+Graph = require('./graph');
+
+
+/*
+  In/out outlet on node
+ */
+
+Outlet = (function() {
+  Outlet.index = 0;
+
+  Outlet.id = function(name) {
+    return "_io_" + (++Outlet.index) + "_" + name;
+  };
+
+  Outlet.hint = function(name) {
+    name = name.replace(/^(_io_[0-9]+_)/, '');
+    return name = name.replace(/(In|Out|Inout|InOut)$/, '');
+  };
+
+  function Outlet(inout, name, hint, type, meta) {
+    this.inout = inout;
+    this.name = name;
+    this.hint = hint;
+    this.type = type;
+    this.meta = meta;
+    if (this.hint == null) {
+      this.hint = Outlet.hint(name);
+    }
+    this.node = null;
+    this.input = null;
+    this.output = [];
+    this.id = Outlet.id(this.hint);
+  }
+
+  Outlet.prototype.morph = function(outlet) {
+    this.inout = outlet.inout;
+    this.name = outlet.name;
+    this.hint = outlet.hint;
+    this.type = outlet.type;
+    return this.meta = outlet.meta;
+  };
+
+  Outlet.prototype.dupe = function(name) {
+    var hint, inout, meta, type;
+    if (name == null) {
+      name = this.id;
+    }
+    inout = this.inout, hint = this.hint, type = this.type, meta = this.meta;
+    return {
+      inout: inout,
+      hint: hint,
+      type: type,
+      meta: meta,
+      name: name
+    };
+  };
+
+  Outlet.prototype.connect = function(outlet) {
+    if (this.inout === Graph.IN && outlet.inout === Graph.OUT) {
+      return outlet.connect(this);
+    }
+    if (this.inout !== Graph.OUT || outlet.inout !== Graph.IN) {
+      throw "Can only connect out to in.";
+    }
+    if (outlet.input === this) {
+      return;
+    }
+    outlet.disconnect();
+    outlet.input = this;
+    return this.output.push(outlet);
+  };
+
+  Outlet.prototype.disconnect = function(outlet) {
+    var index, _i, _len, _ref;
+    if (this.input) {
+      this.input.disconnect(this);
+    }
+    if (this.output.length) {
+      if (outlet) {
+        index = this.output.indexOf(outlet);
+        if (index >= 0) {
+          this.output.splice(index, 1);
+          return outlet.input = null;
+        }
+      } else {
+        _ref = this.output;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          outlet = _ref[_i];
+          outlet.input = null;
+        }
+        return this.output = [];
+      }
+    }
+  };
+
+  return Outlet;
+
+})();
+
+module.exports = Outlet;
+
+
+},{"./graph":1}],5:[function(require,module,exports){
 var Block, Graph, Layout, Program, debug;
 
 Graph = require('../graph');
@@ -115,7 +600,7 @@ Block = (function() {
 module.exports = Block;
 
 
-},{"../graph":21,"../linker":26}],2:[function(require,module,exports){
+},{"../graph":25,"../linker":30}],6:[function(require,module,exports){
 var Block, Call,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -167,7 +652,7 @@ Call = (function(_super) {
 module.exports = Call;
 
 
-},{"./block":1}],3:[function(require,module,exports){
+},{"./block":5}],7:[function(require,module,exports){
 var Block, Callback, Graph, isCallback,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -273,7 +758,7 @@ Callback = (function(_super) {
 module.exports = Callback;
 
 
-},{"../graph":21,"./block":1}],4:[function(require,module,exports){
+},{"../graph":25,"./block":5}],8:[function(require,module,exports){
 exports.Block = require('./block');
 
 exports.Call = require('./call');
@@ -285,7 +770,7 @@ exports.Isolate = require('./isolate');
 exports.Join = require('./join');
 
 
-},{"./block":1,"./call":2,"./callback":3,"./isolate":5,"./join":6}],5:[function(require,module,exports){
+},{"./block":5,"./call":6,"./callback":7,"./isolate":9,"./join":10}],9:[function(require,module,exports){
 var Block, Graph, Isolate, isCallback,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -404,7 +889,7 @@ Isolate = (function(_super) {
 module.exports = Isolate;
 
 
-},{"../graph":21,"./block":1}],6:[function(require,module,exports){
+},{"../graph":25,"./block":5}],10:[function(require,module,exports){
 var Block, Join,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -463,7 +948,7 @@ Join = (function(_super) {
 module.exports = Join;
 
 
-},{"./block":1}],7:[function(require,module,exports){
+},{"./block":5}],11:[function(require,module,exports){
 
 /*
   Cache decorator  
@@ -497,12 +982,14 @@ cache = function(fetch) {
 module.exports = cache;
 
 
-},{"./hash":9,"./queue":13}],8:[function(require,module,exports){
-var Block, Factory, Graph, State;
+},{"./hash":13,"./queue":17}],12:[function(require,module,exports){
+var Block, Factory, Graph, State, Visualize;
 
 Graph = require('../graph').Graph;
 
 Block = require('../block');
+
+Visualize = require('../visualize');
 
 
 /*
@@ -615,6 +1102,10 @@ Factory = (function() {
 
   Factory.prototype.link = function(namespace) {
     return this.graph().link(namespace);
+  };
+
+  Factory.prototype.serialize = function() {
+    return Visualize.serialize(this._graph);
   };
 
   Factory.prototype._concat = function(factory) {
@@ -831,7 +1322,7 @@ State = (function() {
 module.exports = Factory;
 
 
-},{"../block":4,"../graph":21}],9:[function(require,module,exports){
+},{"../block":8,"../graph":25,"../visualize":36}],13:[function(require,module,exports){
 var c1, c2, c3, c4, c5, hash, imul, test;
 
 c1 = 0xcc9e2d51;
@@ -897,7 +1388,7 @@ hash = function(string) {
 module.exports = hash;
 
 
-},{}],10:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 exports.Factory = require('./factory');
 
 exports.Material = require('./material');
@@ -911,7 +1402,7 @@ exports.queue = require('./queue');
 exports.hash = require('./hash');
 
 
-},{"./cache":7,"./factory":8,"./hash":9,"./library":11,"./material":12,"./queue":13}],11:[function(require,module,exports){
+},{"./cache":11,"./factory":12,"./hash":13,"./library":15,"./material":16,"./queue":17}],15:[function(require,module,exports){
 
 /*
   Snippet library
@@ -959,7 +1450,7 @@ library = function(language, snippets, load) {
 module.exports = library;
 
 
-},{}],12:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var Material, debug, tick;
 
 debug = false;
@@ -1031,7 +1522,7 @@ Material = (function() {
 module.exports = Material;
 
 
-},{}],13:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var queue;
 
 queue = function(limit) {
@@ -1099,7 +1590,7 @@ queue = function(limit) {
 module.exports = queue;
 
 
-},{}],14:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 
 /*
   Compile snippet back into GLSL, but with certain symbols replaced by prefixes / placeholders
@@ -1182,14 +1673,14 @@ string_compiler = function(code, placeholders) {
 module.exports = compile;
 
 
-},{}],15:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 module.exports = {
   SHADOW_ARG: '_i_n_o_u_t',
   RETURN_ARG: 'return'
 };
 
 
-},{}],16:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var decl, get;
 
 module.exports = decl = {};
@@ -1382,7 +1873,7 @@ decl.copy = function(type, _name) {
 };
 
 
-},{}],17:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var $, Graph, _;
 
 Graph = require('../graph');
@@ -1675,7 +2166,7 @@ module.exports = _ = {
 };
 
 
-},{"../graph":21,"./constants":15}],18:[function(require,module,exports){
+},{"../graph":25,"./constants":19}],22:[function(require,module,exports){
 var k, v, _i, _len, _ref;
 
 exports.compile = require('./compile');
@@ -1691,7 +2182,7 @@ for (v = _i = 0, _len = _ref.length; _i < _len; v = ++_i) {
 }
 
 
-},{"./compile":14,"./constants":15,"./generate":17,"./parse":19}],19:[function(require,module,exports){
+},{"./compile":18,"./constants":19,"./generate":21,"./parse":23}],23:[function(require,module,exports){
 var $, collect, debug, decl, extractSignatures, mapSymbols, parse, parseGLSL, parser, processAST, sortSymbols, tick, tokenizer, walk;
 
 tokenizer = require('../../vendor/glsl-tokenizer');
@@ -1946,7 +2437,7 @@ module.exports = walk;
 module.exports = parse;
 
 
-},{"../../vendor/glsl-parser":32,"../../vendor/glsl-tokenizer":36,"./constants":15,"./decl":16}],20:[function(require,module,exports){
+},{"../../vendor/glsl-parser":39,"../../vendor/glsl-tokenizer":43,"./constants":19,"./decl":20}],24:[function(require,module,exports){
 
 /*
   Graph of nodes with outlets
@@ -1954,12 +2445,19 @@ module.exports = parse;
 var Graph;
 
 Graph = (function() {
+  Graph.index = 0;
+
+  Graph.id = function(name) {
+    return ++Graph.index;
+  };
+
   Graph.IN = 0;
 
   Graph.OUT = 1;
 
   function Graph(nodes, parent) {
     this.parent = parent != null ? parent : null;
+    this.id = Graph.id();
     this.nodes = [];
     nodes && this.add(nodes);
   }
@@ -2083,7 +2581,7 @@ Graph = (function() {
 module.exports = Graph;
 
 
-},{}],21:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 exports.Graph = require('./graph');
 
 exports.Node = require('./node');
@@ -2095,7 +2593,7 @@ exports.IN = exports.Graph.IN;
 exports.OUT = exports.Graph.OUT;
 
 
-},{"./graph":20,"./node":22,"./outlet":23}],22:[function(require,module,exports){
+},{"./graph":24,"./node":26,"./outlet":27}],26:[function(require,module,exports){
 var Graph, Node, Outlet;
 
 Graph = require('./graph');
@@ -2108,12 +2606,19 @@ Outlet = require('./outlet');
  */
 
 Node = (function() {
+  Node.index = 0;
+
+  Node.id = function(name) {
+    return ++Node.index;
+  };
+
   function Node(owner, outlets) {
     this.owner = owner;
     this.graph = null;
     this.inputs = [];
     this.outputs = [];
     this.outlets = null;
+    this.id = Node.id();
     this.setOutlets(outlets);
   }
 
@@ -2312,7 +2817,7 @@ Node = (function() {
 module.exports = Node;
 
 
-},{"./graph":20,"./outlet":23}],23:[function(require,module,exports){
+},{"./graph":24,"./outlet":27}],27:[function(require,module,exports){
 var Graph, Outlet;
 
 Graph = require('./graph');
@@ -2417,24 +2922,28 @@ Outlet = (function() {
 module.exports = Outlet;
 
 
-},{"./graph":20}],24:[function(require,module,exports){
-var Factory, Material, ShaderGraph, Snippet, cache, f, glsl, l, library, merge;
+},{"./graph":24}],28:[function(require,module,exports){
+var Block, Factory, GLSL, Graph, Linker, ShaderGraph, Snippet, Visualize, cache, library, merge, visualize;
 
-glsl = require('./glsl');
+Block = require('./block');
 
-f = require('./factory');
+Factory = require('./factory');
 
-l = require('./linker');
+GLSL = require('./glsl');
 
-Factory = f.Factory;
+Graph = require('./graph');
 
-Material = f.Material;
+Linker = require('./linker');
 
-library = f.library;
+Visualize = require('./visualize');
 
-cache = f.cache;
+library = Factory.library;
 
-Snippet = l.Snippet;
+cache = Factory.cache;
+
+visualize = Visualize.visualize;
+
+Snippet = Linker.Snippet;
 
 merge = function(a, b) {
   var key, out, value, _ref;
@@ -2462,7 +2971,7 @@ ShaderGraph = (function() {
       globals: []
     };
     this.config = merge(defaults, config);
-    this.fetch = cache(library(glsl, snippets, Snippet.load));
+    this.fetch = cache(library(GLSL, snippets, Snippet.load));
   }
 
   ShaderGraph.prototype.shader = function(config) {
@@ -2471,22 +2980,36 @@ ShaderGraph = (function() {
       config = {};
     }
     _config = merge(this.config, config);
-    return new Factory(glsl, this.fetch, _config);
+    return new Factory.Factory(GLSL, this.fetch, _config);
   };
 
   ShaderGraph.prototype.material = function(config) {
-    return new Material(this.shader(config), this.shader(config));
+    return new Factory.Material(this.shader(config), this.shader(config));
   };
 
-  ShaderGraph.Block = require('./block');
+  ShaderGraph.prototype.visualize = function(shader) {
+    return ShaderGraph.visualize(shader);
+  };
 
-  ShaderGraph.Factory = require('./factory');
+  ShaderGraph.Block = Block;
 
-  ShaderGraph.GLSL = require('./glsl');
+  ShaderGraph.Factory = Factory;
 
-  ShaderGraph.Graph = require('./graph');
+  ShaderGraph.GLSL = GLSL;
 
-  ShaderGraph.Linker = require('./linker');
+  ShaderGraph.Graph = Graph;
+
+  ShaderGraph.Linker = Linker;
+
+  ShaderGraph.Visualize = Visualize;
+
+  ShaderGraph.visualize = function(shader) {
+    if (shader instanceof Factory.Material) {
+      return visualize(shader.vertex, shader.fragment);
+    } else {
+      return visualize(shader);
+    }
+  };
 
   return ShaderGraph;
 
@@ -2497,7 +3020,7 @@ module.exports = ShaderGraph;
 window.ShaderGraph = ShaderGraph;
 
 
-},{"./block":4,"./factory":10,"./glsl":18,"./graph":21,"./linker":26}],25:[function(require,module,exports){
+},{"./block":8,"./factory":14,"./glsl":22,"./graph":25,"./linker":30,"./visualize":36}],29:[function(require,module,exports){
 var Graph, Priority, assemble;
 
 Graph = require('../graph');
@@ -2670,7 +3193,7 @@ assemble = function(language, namespace, calls) {
 module.exports = assemble;
 
 
-},{"../graph":21,"./priority":29}],26:[function(require,module,exports){
+},{"../graph":25,"./priority":33}],30:[function(require,module,exports){
 exports.Snippet = require('./snippet');
 
 exports.Program = require('./program');
@@ -2686,7 +3209,7 @@ exports.priority = require('./priority');
 exports.load = exports.Snippet.load;
 
 
-},{"./assemble":25,"./layout":27,"./link":28,"./priority":29,"./program":30,"./snippet":31}],27:[function(require,module,exports){
+},{"./assemble":29,"./layout":31,"./link":32,"./priority":33,"./program":34,"./snippet":35}],31:[function(require,module,exports){
 var Layout, Snippet, debug, link;
 
 Snippet = require('./snippet');
@@ -2762,7 +3285,7 @@ Layout = (function() {
 module.exports = Layout;
 
 
-},{"./link":28,"./snippet":31}],28:[function(require,module,exports){
+},{"./link":32,"./snippet":35}],32:[function(require,module,exports){
 var Graph, Priority, link;
 
 Graph = require('../graph');
@@ -2901,7 +3424,7 @@ link = function(language, links, modules, exported) {
 module.exports = link;
 
 
-},{"../graph":21,"./priority":29}],29:[function(require,module,exports){
+},{"../graph":25,"./priority":33}],33:[function(require,module,exports){
 exports.make = function(x) {
   if (x == null) {
     x = [];
@@ -2949,7 +3472,7 @@ exports.max = function(a, b) {
 };
 
 
-},{}],30:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 var Program, Snippet, assemble;
 
 Snippet = require('./snippet');
@@ -3016,7 +3539,7 @@ Program = (function() {
 module.exports = Program;
 
 
-},{"./assemble":25,"./snippet":31}],31:[function(require,module,exports){
+},{"./assemble":29,"./snippet":35}],35:[function(require,module,exports){
 var Snippet;
 
 Snippet = (function() {
@@ -3172,10 +3695,375 @@ Snippet = (function() {
 module.exports = Snippet;
 
 
-},{}],32:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
+var Graph, markup, serialize, visualize;
+
+Graph = require('../Graph').Graph;
+
+exports.serialize = serialize = require('./serialize');
+
+exports.markup = markup = require('./markup');
+
+visualize = function(graph) {
+  var data;
+  if (graph._graph != null) {
+    graph = graph._graph;
+  }
+  data = serialize(graph);
+  return markup.process(data);
+};
+
+exports.visualize = function() {
+  var graph;
+  return markup.merge((function() {
+    var _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = arguments.length; _i < _len; _i++) {
+      graph = arguments[_i];
+      _results.push(visualize(graph));
+    }
+    return _results;
+  }).apply(this, arguments));
+};
+
+
+},{"../Graph":2,"./markup":37,"./serialize":38}],37:[function(require,module,exports){
+var connect, cssColor, escapeText, hash, hashColor, makeSVG, merge, path, process, sqr, _markup, _order;
+
+hash = require('../factory/hash');
+
+cssColor = function(r, g, b, alpha) {
+  return 'rgba(' + [r, g, b, 1].join(', ') + ')';
+};
+
+hashColor = function(string, alpha) {
+  var b, color, g, max, min, norm, r;
+  if (alpha == null) {
+    alpha = 1;
+  }
+  color = hash(string) ^ 0x123456;
+  r = color & 0xFF;
+  g = (color >>> 8) & 0xFF;
+  b = (color >>> 16) & 0xFF;
+  max = Math.max(r, g, b);
+  norm = 140 / max;
+  min = Math.round(max / 3);
+  r = Math.min(255, Math.round(norm * Math.max(r, min)));
+  g = Math.min(255, Math.round(norm * Math.max(g, min)));
+  b = Math.min(255, Math.round(norm * Math.max(b, min)));
+  return cssColor(r, g, b, alpha);
+};
+
+escapeText = function(string) {
+  return string.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+};
+
+process = function(data) {
+  var el, links;
+  links = [];
+  el = _markup(data, links);
+  el.update = function() {
+    return connect(el, links);
+  };
+  return el;
+};
+
+_order = function(data) {
+  var link, linkMap, node, nodeMap, recurse, _i, _j, _k, _len, _len1, _len2, _name, _ref, _ref1, _ref2;
+  nodeMap = {};
+  linkMap = {};
+  _ref = data.nodes;
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    node = _ref[_i];
+    nodeMap[node.id] = node;
+  }
+  _ref1 = data.links;
+  for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+    link = _ref1[_j];
+    if (linkMap[_name = link.from] == null) {
+      linkMap[_name] = [];
+    }
+    linkMap[link.from].push(link);
+  }
+  recurse = function(node, depth) {
+    var next, _k, _len2, _ref2;
+    if (depth == null) {
+      depth = 0;
+    }
+    node.depth = Math.max((_ref2 = node.depth) != null ? _ref2 : 0, depth);
+    if (next = linkMap[node.id]) {
+      for (_k = 0, _len2 = next.length; _k < _len2; _k++) {
+        link = next[_k];
+        recurse(nodeMap[link.to], depth + 1);
+      }
+    }
+    return null;
+  };
+  _ref2 = data.nodes;
+  for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+    node = _ref2[_k];
+    if (node.depth == null) {
+      recurse(node);
+    }
+  }
+  return null;
+};
+
+_markup = function(data, links) {
+  var addOutlet, block, clear, color, column, columns, link, node, outlet, outlets, wrapper, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
+  _order(data);
+  wrapper = document.createElement('div');
+  wrapper.classList.add('shadergraph-graph');
+  columns = [];
+  outlets = {};
+  _ref = data.nodes;
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    node = _ref[_i];
+    block = document.createElement('div');
+    block.classList.add("shadergraph-node");
+    block.classList.add("shadergraph-node-" + node.type);
+    block.innerHTML = "<div class=\"shadergraph-header\">" + (escapeText(node.name)) + "</div>";
+    addOutlet = function(outlet, inout) {
+      var color, div;
+      color = hashColor(outlet.type);
+      console.log('outlet.type', outlet.type, color);
+      div = document.createElement('div');
+      div.classList.add('shadergraph-outlet');
+      div.classList.add("shadergraph-outlet-" + inout);
+      div.innerHTML = "<div class=\"shadergraph-point\" style=\"background: " + color + "\"></div>\n<div class=\"shadergraph-type\" style=\"color: " + color + "\">" + (escapeText(outlet.type)) + "</div>\n<div class=\"shadergraph-name\">" + (escapeText(outlet.name)) + "</div>";
+      block.appendChild(div);
+      return outlets[outlet.id] = div.querySelector('.shadergraph-point');
+    };
+    _ref1 = node.inputs;
+    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+      outlet = _ref1[_j];
+      addOutlet(outlet, 'in');
+    }
+    _ref2 = node.outputs;
+    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+      outlet = _ref2[_k];
+      addOutlet(outlet, 'out');
+    }
+    if (node.graph != null) {
+      block.appendChild(_markup(node.graph, links));
+    } else {
+      clear = document.createElement('div');
+      clear.classList.add('shadergraph-clear');
+      block.appendChild(clear);
+    }
+    column = columns[node.depth];
+    if (column == null) {
+      column = document.createElement('div');
+      column.classList.add('shadergraph-column');
+      columns[node.depth] = column;
+    }
+    column.appendChild(block);
+  }
+  for (_l = 0, _len3 = columns.length; _l < _len3; _l++) {
+    column = columns[_l];
+    if (column != null) {
+      wrapper.appendChild(column);
+    }
+  }
+  _ref3 = data.links;
+  for (_m = 0, _len4 = _ref3.length; _m < _len4; _m++) {
+    link = _ref3[_m];
+    color = hashColor(link.type);
+    console.log('link.type', link.type, color);
+    links.push({
+      color: color,
+      out: outlets[link.out],
+      "in": outlets[link["in"]]
+    });
+  }
+  return wrapper;
+};
+
+sqr = function(x) {
+  return x * x;
+};
+
+path = function(x1, y1, x2, y2) {
+  var d, dx, dy, f, mx, my, stiffness;
+  dx = x2 - x1;
+  dy = y2 - y1;
+  d = Math.sqrt(sqr(dx) + sqr(dy));
+  stiffness = 1 / 3;
+  if (Math.abs(dy) > Math.abs(dx)) {
+    mx = (x1 + x2) / 2;
+    my = (y1 + y2) / 2;
+    f = dy > 0 ? 1 : -1;
+    return ['M', x1, y1, 'C', x1 + d / 10, y1 + ',', mx, my - d * stiffness * f, mx, my, 'C', mx, my + d * stiffness * f, x2 - d / 10, y2 + ',', x2, y2].join(' ');
+  } else {
+    return ['M', x1, y1, 'C', x1 + d * stiffness, y1 + ',', x2 - d * stiffness, y2 + ',', x2, y2].join(' ');
+  }
+};
+
+makeSVG = function(tag) {
+  if (tag == null) {
+    tag = 'svg';
+  }
+  return document.createElementNS('http://www.w3.org/2000/svg', tag);
+};
+
+connect = function(element, links) {
+  var a, b, c, line, link, ref, svg, _i, _j, _len, _len1;
+  if (element.parentNode == null) {
+    return;
+  }
+  ref = element.getBoundingClientRect();
+  for (_i = 0, _len = links.length; _i < _len; _i++) {
+    link = links[_i];
+    a = link.out.getBoundingClientRect();
+    b = link["in"].getBoundingClientRect();
+    link.coords = {
+      x1: (a.left + a.right) / 2 - ref.left,
+      y1: (a.top + a.bottom) / 2 - ref.top,
+      x2: (b.left + b.right) / 2 - ref.left,
+      y2: (b.top + b.bottom) / 2 - ref.top
+    };
+  }
+  svg = element.querySelector('svg');
+  if (svg != null) {
+    element.removeChild(svg);
+  }
+  svg = makeSVG();
+  svg.setAttribute('width', element.offsetWidth);
+  svg.setAttribute('height', element.offsetHeight);
+  for (_j = 0, _len1 = links.length; _j < _len1; _j++) {
+    link = links[_j];
+    c = link.coords;
+    line = makeSVG('path');
+    line.setAttribute('d', path(c.x1, c.y1, c.x2, c.y2));
+    line.setAttribute('stroke', link.color);
+    line.setAttribute('stroke-width', 3);
+    line.setAttribute('fill', 'transparent');
+    svg.appendChild(line);
+  }
+  return element.appendChild(svg);
+};
+
+merge = function(markup) {
+  var div, el, _i, _len;
+  if (markup.length !== 1) {
+    div = document.createElement('div');
+    for (_i = 0, _len = markup.length; _i < _len; _i++) {
+      el = markup[_i];
+      div.appendChild(el);
+    }
+    div.update = function() {
+      var _j, _len1, _results;
+      _results = [];
+      for (_j = 0, _len1 = markup.length; _j < _len1; _j++) {
+        el = markup[_j];
+        _results.push(el.update());
+      }
+      return _results;
+    };
+    return div;
+  } else {
+    return markup[0];
+  }
+};
+
+exports.process = process;
+
+exports.merge = merge;
+
+
+},{"../factory/hash":13}],38:[function(require,module,exports){
+var Block, isCallback, serialize;
+
+Block = require('../block');
+
+isCallback = function(outlet) {
+  return outlet.type[0] === '(';
+};
+
+serialize = function(graph) {
+  var block, format, inputs, links, node, nodes, other, outlet, outputs, record, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
+  nodes = [];
+  links = [];
+  _ref = graph.nodes;
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    node = _ref[_i];
+    record = {
+      id: node.id,
+      name: null,
+      type: null,
+      depth: null,
+      graph: null,
+      inputs: [],
+      outputs: []
+    };
+    nodes.push(record);
+    inputs = record.inputs;
+    outputs = record.outputs;
+    block = node.owner;
+    if (block instanceof Block.Call) {
+      record.name = block.snippet._name;
+      record.type = 'call';
+    } else if (block instanceof Block.Callback) {
+      record.name = "Callback " + block.graph.id;
+      record.type = 'callback';
+      record.graph = serialize(block.graph);
+    } else if (block instanceof Block.Isolate) {
+      record.name = 'Isolate';
+      record.type = 'isolate';
+      record.graph = serialize(block.graph);
+    } else if (block instanceof Block.Join) {
+      record.name = 'Join';
+      record.type = 'join';
+    }
+    format = function(type) {
+      type = type.replace(")(", ")→(");
+      return type = type.replace("()", "");
+    };
+    _ref1 = node.inputs;
+    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+      outlet = _ref1[_j];
+      inputs.push({
+        id: outlet.id,
+        name: outlet.name,
+        type: format(outlet.type),
+        open: outlet.input == null
+      });
+    }
+    _ref2 = node.outputs;
+    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+      outlet = _ref2[_k];
+      outputs.push({
+        id: outlet.id,
+        name: outlet.name,
+        type: format(outlet.type),
+        open: !outlet.output.length
+      });
+      _ref3 = outlet.output;
+      for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+        other = _ref3[_l];
+        links.push({
+          from: node.id,
+          out: outlet.id,
+          to: other.node.id,
+          "in": other.id,
+          type: format(outlet.type)
+        });
+      }
+    }
+  }
+  return {
+    nodes: nodes,
+    links: links
+  };
+};
+
+module.exports = serialize;
+
+
+},{"../block":8}],39:[function(require,module,exports){
 module.exports = require('./lib/index')
 
-},{"./lib/index":34}],33:[function(require,module,exports){
+},{"./lib/index":41}],40:[function(require,module,exports){
 var state
   , token
   , tokens
@@ -3442,7 +4330,7 @@ function fail(message) {
   return function() { return state.unexpected(message) }
 }
 
-},{}],34:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 module.exports = parser
 
 var through = require('../../through')
@@ -4403,7 +5291,7 @@ function is_precision(token) {
          token.data === 'lowp'
 }
 
-},{"../../through":40,"./expr":33,"./scope":35}],35:[function(require,module,exports){
+},{"../../through":47,"./expr":40,"./scope":42}],42:[function(require,module,exports){
 module.exports = scope
 
 function scope(state) {
@@ -4443,7 +5331,7 @@ proto.find = function(name, fail) {
   return null
 }
 
-},{}],36:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 module.exports = tokenize
 
 var through = require('../through')
@@ -4780,7 +5668,7 @@ function tokenize() {
   }
 }
 
-},{"../through":40,"./lib/builtins":37,"./lib/literals":38,"./lib/operators":39}],37:[function(require,module,exports){
+},{"../through":47,"./lib/builtins":44,"./lib/literals":45,"./lib/operators":46}],44:[function(require,module,exports){
 module.exports = [
     'gl_Position'
   , 'gl_PointSize'
@@ -4926,7 +5814,7 @@ module.exports = [
   , 'textureCubeLod'
 ]
 
-},{}],38:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 module.exports = [
   // current
     'precision'
@@ -5021,7 +5909,7 @@ module.exports = [
   , 'using'
 ]
 
-},{}],39:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 module.exports = [
     '<<='
   , '>>='
@@ -5069,7 +5957,7 @@ module.exports = [
   , '}'
 ]
 
-},{}],40:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 var through;
 
 through = function(write, end) {
@@ -5113,4 +6001,4 @@ through = function(write, end) {
 module.exports = through;
 
 
-},{}]},{},[24])
+},{}]},{},[28])

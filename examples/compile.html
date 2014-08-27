@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>ShaderGraph - Compilation Only</title>
+  <link rel="stylesheet" href="../build/shadergraph.css" />
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
 <script type="application/x-glsl" id="squareColor">
@@ -26,10 +27,10 @@ void setColor(vec3 color) {
 </head>
 <body>
   <h4>Compilation Only</h4>
-  <p>No linking of callbacks. This is more for internal use than anything else, but it's there if you want it.</p>
+  <p>Skip linking of callbacks. This is more for internal use than anything else, but it's there if you want it.</p>
 
+  <div class="graph"></div>
   <h5>View Source for Code</h5>
-  <h5>See Console For Full Result</h5>
 
   <pre></pre>
 
@@ -38,7 +39,7 @@ void setColor(vec3 color) {
   // Fetch snippets above
   var fetch = function (key) {
     element = document.getElementById(key);
-    return element.textContent || element.innerText;
+    return element.textContent || element.textContent;
   }
 
   // Load ShaderGraph with given fetch function
@@ -55,11 +56,21 @@ void setColor(vec3 color) {
   shader.pipe('squareColor');
   shader.pipe('setColor');
 
+  // Finalize graph (optional, can call shader.link())
+  graph   = shader.graph();
+
   // Compile shader to main() function (no linking of callbacks, unlike .link())
-  snippet = shader.compile('main')
+  snippet = graph.compile('main');
 
   // Show in document body
-  document.querySelector('pre').innerText = snippet.code;
+  pre = document.querySelector('pre')
+  pre.innerText = snippet.code;
+
+  // Generate visualization of graph
+  visualize = shadergraph.visualize(graph);
+  document.querySelector('.graph').appendChild(visualize);
+  visualize.update();
+
   console.log("shader.link('main') = ", snippet);
 
   </script>

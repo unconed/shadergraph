@@ -2,11 +2,14 @@
   Graph of nodes with outlets
 ###
 class Graph
+  @index: 0
+  @id: (name) -> ++Graph.index
 
   @IN: 0
   @OUT: 1
 
   constructor: (nodes, @parent = null) ->
+    @id    = Graph.id()
     @nodes = []
     nodes && @add nodes
 

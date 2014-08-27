@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>ShaderGraph - Fragment Shader with Uniform</title>
+  <link rel="stylesheet" href="../build/shadergraph.css" />
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
 <script type="application/x-glsl" id="getRampColor">
@@ -31,8 +32,8 @@ void setColor(vec3 color) {
   <h4>Fragment Shader with Uniform</h4>
   <p>One callback linked to a chain of two snippets, with a uniform.</p>
 
+  <div class="graph"></div>
   <h5>View Source for Code</h5>
-  <h5>See Console For Full Result</h5>
 
   <pre></pre>
 
@@ -41,7 +42,7 @@ void setColor(vec3 color) {
   // Fetch snippets above
   var fetch = function (key) {
     element = document.getElementById(key);
-    return element.textContent || element.innerText;
+    return element.textContent || element.textContent;
   }
 
   // Load ShaderGraph with given fetch function
@@ -70,11 +71,20 @@ void setColor(vec3 color) {
     .pipe('getColor', uniforms)
     .pipe('setColor')
 
+  // Finalize graph (optional, can call shader.link())
+  graph   = shader.graph();
+
   // Link entire shader into a main() function
-  snippet = shader.link('main')
+  snippet = graph.link('main');
 
   // Show in document body
   document.querySelector('pre').innerText = snippet.code;
+
+  // Generate visualization of graph
+  visualize = shadergraph.visualize(graph);
+  document.querySelector('.graph').appendChild(visualize);
+  visualize.update();
+
   console.log("shader.link('main') = ", snippet);
 
   </script>

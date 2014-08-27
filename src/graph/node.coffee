@@ -5,11 +5,15 @@ Outlet = require './outlet'
  Node in graph.
 ###
 class Node
+  @index: 0
+  @id: (name) -> ++Node.index
+
   constructor: (@owner, outlets) ->
     @graph   = null
     @inputs  = []
     @outputs = []
     @outlets = null
+    @id      = Node.id()
 
     @setOutlets outlets
 

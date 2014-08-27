@@ -13,6 +13,15 @@ ShaderGraph is designed to play well with Three.js, but it does not depend on it
 
 Live Examples
 ---
+ * [Require](http://acko.net/files/shadergraph2/examples/require.html)
+ * [Combined Vertex/Fragment Material](http://acko.net/files/shadergraph2/examples/material.html)
+ * [Instanced Uniform](http://acko.net/files/shadergraph2/examples/uniform.html)
+ * [De-duped Attributes](http://acko.net/files/shadergraph2/examples/dedupe.html)
+ * [Isolate Subgraphs](http://acko.net/files/shadergraph2/examples/isolate.html)
+ * [Deep Nesting](http://acko.net/files/shadergraph2/examples/deep.html)
+ * [Split Outputs](http://acko.net/files/shadergraph2/examples/split.html)
+ * [Fanned Outputs](http://acko.net/files/shadergraph2/examples/fan.html)
+ * [Passed Outputs](http://acko.net/files/shadergraph2/examples/pass.html)
 
 Basic Use
 ---
@@ -143,8 +152,24 @@ shadergraph = ShaderGraph(fetch, config);
  * `.pass()` - Use this instead of .end() to add an additional passthrough connection that skips the entire block.
    ![Pass example](https://raw.github.com/unconed/shadergraph/master/docs/images/pass.png)
 
+ * `.graph()`
+   Finalize the graph and return it. The factory is reset to an empty state.
 
-If you want to build graphs by hand instead of with factories, the underlying namespaces are exposed as `ShaderGraph.Graph`, `ShaderGraph.Block`, etc.
+ * `.compile(name)`
+   Finalize the graph and compile it immediately (no callbacks). The graph is discarded.
+
+ * `.link(name)`
+   Finalize the graph and link it immediately (with callbacks). The graph is discarded.
+
+*Graph*
+
+ * `.compile(name)`
+    Compile the graph (no callbacks). The graph is discarded.
+
+  * `.link(name)`
+    Compile and link the graph and its subgraphs (with callbacks). The graph is discarded.
+
+If you want to build graphs by hand instead of with factories, the underlying namespaces are exposed as `ShaderGraph.Graph`, `ShaderGraph.Block`, etc. `Block` and its subclasses are the logical pieces of the graph. Each has a `Node` associated with it that contains a set of `Outlets`. Connections can be made from node to node (auto-matching), or outlet to outlet (manual).
 
 * * *
 

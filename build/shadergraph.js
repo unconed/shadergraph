@@ -3826,7 +3826,6 @@ _markup = function(data, links) {
     addOutlet = function(outlet, inout) {
       var color, div;
       color = hashColor(outlet.type);
-      console.log('outlet.type', outlet.type, color);
       div = document.createElement('div');
       div.classList.add('shadergraph-outlet');
       div.classList.add("shadergraph-outlet-" + inout);
@@ -3869,7 +3868,6 @@ _markup = function(data, links) {
   for (_m = 0, _len4 = _ref3.length; _m < _len4; _m++) {
     link = _ref3[_m];
     color = hashColor(link.type);
-    console.log('link.type', link.type, color);
     links.push({
       color: color,
       out: outlets[link.out],
@@ -3884,17 +3882,19 @@ sqr = function(x) {
 };
 
 path = function(x1, y1, x2, y2) {
-  var d, dx, dy, f, mx, my, stiffness;
+  var d, dx, dy, f, h, mx, my, stiffness;
   dx = x2 - x1;
   dy = y2 - y1;
   d = Math.sqrt(sqr(dx) + sqr(dy));
-  stiffness = 1 / 3;
   if (Math.abs(dy) > Math.abs(dx)) {
+    stiffness = .3;
     mx = (x1 + x2) / 2;
     my = (y1 + y2) / 2;
     f = dy > 0 ? 1 : -1;
-    return ['M', x1, y1, 'C', x1 + d / 10, y1 + ',', mx, my - d * stiffness * f, mx, my, 'C', mx, my + d * stiffness * f, x2 - d / 10, y2 + ',', x2, y2].join(' ');
+    h = 15 + d / 16;
+    return ['M', x1, y1, 'C', x1 + h, y1 + ',', mx, my - d * stiffness * f, mx, my, 'C', mx, my + d * stiffness * f, x2 - h, y2 + ',', x2, y2].join(' ');
   } else {
+    stiffness = .5;
     return ['M', x1, y1, 'C', x1 + d * stiffness, y1 + ',', x2 - d * stiffness, y2 + ',', x2, y2].join(' ');
   }
 };
@@ -4004,7 +4004,7 @@ serialize = function(graph) {
       record.name = block.snippet._name;
       record.type = 'call';
     } else if (block instanceof Block.Callback) {
-      record.name = "Callback " + block.graph.id;
+      record.name = "Callback";
       record.type = 'callback';
       record.graph = serialize(block.graph);
     } else if (block instanceof Block.Isolate) {

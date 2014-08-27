@@ -31,7 +31,7 @@ serialize = (graph) ->
       record.type  = 'call'
 
     else if block instanceof Block.Callback
-      record.name  = "Callback #{block.graph.id}"
+      record.name  = "Callback"
       record.type  = 'callback'
       record.graph = serialize block.graph
 

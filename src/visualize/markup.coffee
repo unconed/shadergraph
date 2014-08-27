@@ -76,7 +76,7 @@ _markup = (data, links) ->
 
     addOutlet = (outlet, inout) ->
       color = hashColor outlet.type
-      console.log 'outlet.type', outlet.type, color
+
       div = document.createElement 'div'
       div.classList.add 'shadergraph-outlet'
       div.classList.add "shadergraph-outlet-#{inout}"
@@ -110,7 +110,7 @@ _markup = (data, links) ->
 
   for link in data.links
     color = hashColor(link.type)
-    console.log 'link.type', link.type, color
+
     links.push
       color: color,
       out: outlets[link.out]
@@ -125,23 +125,27 @@ path   = (x1, y1, x2, y2) ->
   dy = y2 - y1
   d = Math.sqrt sqr(dx) + sqr(dy)
 
-  stiffness = 1/3
-
   if Math.abs(dy) > Math.abs(dx)
+    stiffness = .3
+
     mx = (x1 + x2) / 2
     my = (y1 + y2) / 2
+
     f = if dy > 0 then 1 else -1
+    h = 15 + d / 16
 
     return [
       'M', x1, y1,
-      'C', x1 + d / 10, y1 + ',',
+      'C', x1 + h, y1 + ',',
            mx, my - d * stiffness * f,
            mx, my,
       'C', mx, my + d * stiffness * f,
-           x2 - d / 10, y2 + ',',
+           x2 - h, y2 + ',',
            x2, y2,
     ].join ' '
   else
+    stiffness = .5
+
     return [
       'M', x1, y1,
       'C', x1 + d * stiffness, y1 + ',',

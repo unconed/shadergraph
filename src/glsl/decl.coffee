@@ -41,6 +41,7 @@ decl.external = (node) ->
         type: type
         ident: ident
         quant: !!quant
+        count: quant
 
   out
 
@@ -80,14 +81,17 @@ decl.argument = (node) ->
   ident   = get list.children[0]
   quant   = list.children[1]
 
+  count   = if quant then quant.children[0].token.data
+
   decl: 'argument'
   storage: storage
   inout: inout
   type: type
   ident: ident
   quant: !!quant
+  count: count
 
-decl.param = (dir, storage, spec, quant) ->
+decl.param = (dir, storage, spec, quant, count) ->
   prefix = []
   prefix.push storage if storage?
   prefix.push spec if spec?
@@ -95,14 +99,14 @@ decl.param = (dir, storage, spec, quant) ->
 
   prefix = prefix.join ' '
 
-  suffix = if quant then '[' + quant + ']' else ''
+  suffix = if quant then '[' + count + ']' else ''
 
   dir += ' ' if dir != ''
 
   (name, long) ->
     (if long then dir else '') + "#{prefix}#{name}#{suffix}"
 
-decl.type = (name, spec, quant, dir, storage) ->
+decl.type = (name, spec, quant, count, dir, storage) ->
   three =
     float:       'f'
     vec2:        'v2'
@@ -136,7 +140,7 @@ decl.type = (name, spec, quant, dir, storage) ->
   inout   = dirs[dir] ? dirs.in
   storage = storages[storage]
 
-  param   = decl.param dir, storage, spec, quant
+  param   = decl.param dir, storage, spec, quant, count
 
   {name, type, spec, param, value, inout, copy: (name) -> decl.copy @, name}
 

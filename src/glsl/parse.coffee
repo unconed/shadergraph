@@ -108,7 +108,7 @@ extractSignatures = (main, internals, externals) ->
     main:      null
 
   defn = (symbol) ->
-    decl.type symbol.ident, symbol.type, symbol.quant, symbol.inout, symbol.storage
+    decl.type symbol.ident, symbol.type, symbol.quant, symbol.count, symbol.inout, symbol.storage
 
   func = (symbol, inout) ->
     signature = (defn arg for arg in symbol.args)
@@ -126,7 +126,7 @@ extractSignatures = (main, internals, externals) ->
 
     # Add output for return type
     if symbol.type != 'void'
-      signature.push decl.type $.RETURN_ARG, symbol.type, false, 'out'
+      signature.push decl.type $.RETURN_ARG, symbol.type, false, '', 'out'
 
     # Make type string
     ins = (d.type for d in signature when d.inout == decl.in).join ','

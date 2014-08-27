@@ -1727,7 +1727,8 @@ decl.external = function(node) {
         storage: storage,
         type: type,
         ident: ident,
-        quant: !!quant
+        quant: !!quant,
+        count: quant
       });
     }
   }
@@ -1767,7 +1768,7 @@ decl["function"] = function(node) {
 };
 
 decl.argument = function(node) {
-  var c, ident, inout, list, quant, storage, type;
+  var c, count, ident, inout, list, quant, storage, type;
   c = node.children;
   storage = get(c[1]);
   inout = get(c[2]);
@@ -1775,17 +1776,19 @@ decl.argument = function(node) {
   list = c[5];
   ident = get(list.children[0]);
   quant = list.children[1];
+  count = quant ? quant.children[0].token.data : void 0;
   return {
     decl: 'argument',
     storage: storage,
     inout: inout,
     type: type,
     ident: ident,
-    quant: !!quant
+    quant: !!quant,
+    count: count
   };
 };
 
-decl.param = function(dir, storage, spec, quant) {
+decl.param = function(dir, storage, spec, quant, count) {
   var prefix, suffix;
   prefix = [];
   if (storage != null) {
@@ -1796,7 +1799,7 @@ decl.param = function(dir, storage, spec, quant) {
   }
   prefix.push('');
   prefix = prefix.join(' ');
-  suffix = quant ? '[' + quant + ']' : '';
+  suffix = quant ? '[' + count + ']' : '';
   if (dir !== '') {
     dir += ' ';
   }
@@ -1805,7 +1808,7 @@ decl.param = function(dir, storage, spec, quant) {
   };
 };
 
-decl.type = function(name, spec, quant, dir, storage) {
+decl.type = function(name, spec, quant, count, dir, storage) {
   var defaults, dirs, inout, param, storages, three, type, value, _ref;
   three = {
     float: 'f',
@@ -1841,7 +1844,7 @@ decl.type = function(name, spec, quant, dir, storage) {
   value = defaults[type];
   inout = (_ref = dirs[dir]) != null ? _ref : dirs["in"];
   storage = storages[storage];
-  param = decl.param(dir, storage, spec, quant);
+  param = decl.param(dir, storage, spec, quant, count);
   return {
     name: name,
     type: type,
@@ -2323,7 +2326,7 @@ extractSignatures = function(main, internals, externals) {
     main: null
   };
   defn = function(symbol) {
-    return decl.type(symbol.ident, symbol.type, symbol.quant, symbol.inout, symbol.storage);
+    return decl.type(symbol.ident, symbol.type, symbol.quant, symbol.count, symbol.inout, symbol.storage);
   };
   func = function(symbol, inout) {
     var a, arg, b, d, def, ins, outs, signature, type, _i, _len;
@@ -2350,7 +2353,7 @@ extractSignatures = function(main, internals, externals) {
       signature.push(b);
     }
     if (symbol.type !== 'void') {
-      signature.push(decl.type($.RETURN_ARG, symbol.type, false, 'out'));
+      signature.push(decl.type($.RETURN_ARG, symbol.type, false, '', 'out'));
     }
     ins = ((function() {
       var _j, _len1, _results;

@@ -171,6 +171,12 @@ shadergraph = ShaderGraph(fetch, config);
  * `.link(name)`
     Compile and link the graph and its subgraphs (with callbacks). The graph is discarded.
 
+Caveats
+---
+
+ * Preprocessing directives like `#ifdef` and `#define` are ignored, but do pass through. Be careful when using them. Consider using snippets and/or callbacks instead.
+ * Structs are untested, as I don't really need them.
+
 Manual Use
 ---
 

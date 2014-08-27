@@ -5,9 +5,11 @@ shadergraph
 
 ![Shader Graph](https://raw.github.com/unconed/shadergraph/master/docs/images/require.png)
 
-ShaderGraph is a library for linking together GLSL snippets into stand-alone shaders. It was mainly meant to build complicated shaders programmatically. It can also act as the back-end to a live graph-based shader editor.
+ShaderGraph is a library for linking together GLSL snippets into stand-alone shaders. It is mainly meant to build complicated shaders 100% programmatically. But it can also act as the back-end to a live graph-based shader editor, as its graph model is persistent.
 
 ShaderGraph is designed to play well with Three.js, but does not depend on it. It merely follows the same code/object conventions.
+
+There is no editing UI included, only a way to display a graph as an HTML/CSS/SVG diagram.
 
 * * *
 

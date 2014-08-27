@@ -55,6 +55,8 @@ var shadergraph = ShaderGraph(fetch);
 
 You can use the chainable Factory API to build graphs. It's a smart wrapper around a partially built graph. It allows you to make splits and joins, hook up callbacks via requires, import other factories, etc.
 
+Instead of including snippets by name, you can also pass in GLSL code directly to `.pipe(…)` and `.require(…)` regardless of whether you are using a fetch function/library or not.
+
 Snippets are instanced by default, letting you bind unique uniforms to specific snippets in the chain:
 
 ![Uniform example](https://raw.github.com/unconed/shadergraph/master/docs/images/uniform.png)
@@ -81,8 +83,6 @@ var program = shader.link('main');
 ```
 
 Instancing behavior can be configured globally or per shader (see below).
-
-Instead of including snippets by name, you can also pass in GLSL code directly to `.pipe(…)` and `.require(…)` regardless of whether you are using a fetch function/library or not.
 
 Materials
 ---

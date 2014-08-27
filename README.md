@@ -29,6 +29,8 @@ ShaderGraph
 
 ShaderGraph 2 drives all shaders in MathBox² (in development). Demos: [Vertex Colors](http://acko.net/files/dump/mathbox2/vertexcolor.html), [Volume of Vectors](http://acko.net/files/dump/mathbox2/volume.html), [Waves of Quads](http://acko.net/files/dump/mathbox2/face.html)
 
+![http://acko.net/files/dump/mathbox2/volume.html](http://acko.net/files/dump/mathbox2/volume.jpg)
+
 Basic Use
 ---
 

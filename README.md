@@ -17,14 +17,23 @@ Live Examples
  * [Combined Vertex/Fragment Material](http://acko.net/files/shadergraph2/examples/material.html)
  * [Instanced Uniform](http://acko.net/files/shadergraph2/examples/uniform.html)
  * [De-duped Attributes](http://acko.net/files/shadergraph2/examples/dedupe.html)
- * [Isolate Subgraphs](http://acko.net/files/shadergraph2/examples/isolate.html)
- * [Deep Nesting](http://acko.net/files/shadergraph2/examples/deep.html)
  * [Split Outputs](http://acko.net/files/shadergraph2/examples/split.html)
  * [Fanned Outputs](http://acko.net/files/shadergraph2/examples/fan.html)
  * [Passed Outputs](http://acko.net/files/shadergraph2/examples/pass.html)
+ * [Isolate Subgraphs](http://acko.net/files/shadergraph2/examples/isolate.html)
+ * [Deep Nesting](http://acko.net/files/shadergraph2/examples/deep.html)
+ * [Isolated require](http://acko.net/files/shadergraph2/examples/wrap.html)
 
 Basic Use
 ---
+
+Install via bower:
+
+```
+bower install shadergraph
+```
+
+Include `build/shadergraph.js`.
 
 To use ShaderGraph, you initialize it once with a given snippet library. A snippet library is either a dictionary of named snippets, or a fetch function.
 
@@ -174,8 +183,9 @@ shadergraph = ShaderGraph(fetch, config);
 Caveats
 ---
 
+ * Use `shadergraph.visualize(…)` to inspect broken graphs and find missing/wrongg connections.
  * Preprocessing directives like `#ifdef` and `#define` are ignored, but do pass through. Be careful when using them. Consider using snippets and/or callbacks instead.
- * Structs are untested, as I don't really need them.
+ * Structs are not supported, `glsl-parser` seems to choke on them. Array types are probably a bit buggy still.
 
 Manual Use
 ---

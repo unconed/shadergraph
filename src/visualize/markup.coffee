@@ -21,6 +21,7 @@ hashColor = (string, alpha = 1) ->
   cssColor r, g, b, alpha
 
 escapeText = (string) ->
+  string = string ? ""
   string
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

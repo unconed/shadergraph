@@ -1412,7 +1412,7 @@ exports.hash = require('./hash');
     - (name) -> getter: dynamic lookup
     - nothing:          no library, only pass in inline source code
   
-  If 'name' contains any of "{;(" it is assumed to be direct GLSL code.
+  If 'name' contains any of "{;(#" it is assumed to be direct GLSL code.
  */
 var library;
 
@@ -3758,6 +3758,7 @@ hashColor = function(string, alpha) {
 };
 
 escapeText = function(string) {
+  string = string != null ? string : "";
   return string.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
 };
 

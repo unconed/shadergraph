@@ -6,7 +6,7 @@
     - (name) -> getter: dynamic lookup
     - nothing:          no library, only pass in inline source code
   
-  If 'name' contains any of "{;(" it is assumed to be direct GLSL code.
+  If 'name' contains any of "{;(#" it is assumed to be direct GLSL code.
 ###
 library = (language, snippets, load) ->
 

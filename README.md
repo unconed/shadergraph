@@ -29,7 +29,11 @@ ShaderGraph
 
 ShaderGraph 2 drives all shaders in MathBox² (in development). Demos: [Vertex Colors](http://acko.net/files/dump/mathbox2/vertexcolor.html), [Volume of Vectors](http://acko.net/files/dump/mathbox2/volume.html), [Waves of Quads](http://acko.net/files/dump/mathbox2/face.html)
 
-<a href="http://acko.net/files/dump/mathbox2/volume.html"><img src="http://acko.net/files/dump/mathbox2/volume.jpg" alt="MathBox 2 - Volume example"></a>
+Here's a real-world vertex shader for a line primitive, sampling color and position from two textures:
+
+<a href="http://acko.net/files/shadergraph2/vertex-color-shader-tidy.png"><img src="http://acko.net/files/shadergraph2/vertex-color-shader-tidy.png"></a>
+
+<a href="http://acko.net/files/dump/mathbox2/vertexcolor.html"><img src="http://acko.net/files/dump/mathbox2/vertexcolor.jpg" alt="MathBox 2 - Vertex color example"></a>
 
 Basic Use
 ---

@@ -142,11 +142,11 @@ shadergraph = ShaderGraph(fetch, config);
 
 *ShaderGraph*
 
- * `.shader(config = {})`
+ * `.shader(config = {})`  
    Returns an empty `shader` graph wrapped in a factory. Override global `config` options.
- * `.material(config = {})`
+ * `.material(config = {})`  
    Returns an empty `material` wrapping two factories: `material.vertex` and `material.fragment`. Override global `config` options.
- * `.visualize(graph/factory/material)`
+ * `.visualize(graph/factory/material)`  
    Draw the given graph(s), returns an HTML `element`. Call `element.update()` after inserting.
  
 *Factory*
@@ -157,8 +157,8 @@ shadergraph = ShaderGraph(fetch, config);
    Include the given code/snippet/factory and connect it to what came before. Binds dictionary of `uniforms`. Set the `namespace`.  
    ![Pipe example](https://raw.github.com/unconed/shadergraph/master/docs/images/pipe.png)
 
- * `.require(name/code/factory, uniforms = {}, namespace = null)`  
-   `.require(name/code/factory, namespace = null, uniforms = {})`  
+ * `.require(name/code, uniforms = {}, namespace = null)`  
+   `.require(name/code, namespace = null, uniforms = {})`  
    `.require(factory)`  
    Include the given code/snippet/factory as a callback for what comes next. Binds dictionary of `uniforms`. Set the `namespace`.  
    ![Require example](https://raw.github.com/unconed/shadergraph/master/docs/images/require.png)

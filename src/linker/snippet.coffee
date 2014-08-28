@@ -23,7 +23,9 @@ class Snippet
     delete @language    if !@language
     delete @_signatures if !@_signatures
     delete @_compiler   if !@_compiler
-    delete @_name       if !@_name
+
+    # Insert snippet name if not provided
+    @_name = @_signatures?.main.name if !@_name
 
   clone: () ->
     new Snippet @language, @_signatures, @_compiler, @_name

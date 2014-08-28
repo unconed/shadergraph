@@ -182,10 +182,10 @@ shadergraph = ShaderGraph(fetch, config);
 *Graph*
 
  * `.compile(name)`
-    Compile the graph (no callbacks). The graph is discarded.
+    Compile the graph (no callbacks). The graph is retained.
 
  * `.link(name)`
-    Compile and link the graph and its subgraphs (with callbacks). The graph is discarded.
+    Compile and link the graph and its subgraphs (with callbacks). The graph is retained.
 
 Caveats
 ---

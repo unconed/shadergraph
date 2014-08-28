@@ -102,11 +102,11 @@ class Factory
     graph
 
   # Compile shortcut (graph is thrown away)
-  compile: (namespace) ->
+  compile: (namespace = 'main') ->
     @graph().compile namespace
 
   # Link shortcut (graph is thrown away)
-  link: (namespace) ->
+  link: (namespace = 'main') ->
     @graph().link namespace
 
   # Serialize for debug
@@ -190,10 +190,10 @@ class Factory
       throw "Cannot finalize empty graph"
 
     # Add compile/link/export shortcut methods
-    graph.compile = (namespace) =>
+    graph.compile = (namespace = 'main') =>
       graph.tail.owner.compile @language, namespace
 
-    graph.link    = (namespace) =>
+    graph.link    = (namespace = 'main') =>
       graph.tail.owner.link    @language, namespace
 
     graph.export  = (layout, depth) =>

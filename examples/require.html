@@ -60,7 +60,7 @@ void main() {
   graph   = shader.graph();
 
   // Link entire shader into a main() function
-  snippet = graph.link('main');
+  snippet = graph.link();
 
   // Show in document body
   document.querySelector('pre').innerText = snippet.code;
@@ -70,7 +70,7 @@ void main() {
   document.querySelector('.graph').appendChild(visualize);
   visualize.update();
 
-  console.log("shader.link('main') = ", snippet);
+  console.log("shader.link() = ", snippet);
 
   </script>
   

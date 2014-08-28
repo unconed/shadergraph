@@ -1097,10 +1097,16 @@ Factory = (function() {
   };
 
   Factory.prototype.compile = function(namespace) {
+    if (namespace == null) {
+      namespace = 'main';
+    }
     return this.graph().compile(namespace);
   };
 
   Factory.prototype.link = function(namespace) {
+    if (namespace == null) {
+      namespace = 'main';
+    }
     return this.graph().link(namespace);
   };
 
@@ -1192,11 +1198,17 @@ Factory = (function() {
     }
     graph.compile = (function(_this) {
       return function(namespace) {
+        if (namespace == null) {
+          namespace = 'main';
+        }
         return graph.tail.owner.compile(_this.language, namespace);
       };
     })(this);
     graph.link = (function(_this) {
       return function(namespace) {
+        if (namespace == null) {
+          namespace = 'main';
+        }
         return graph.tail.owner.link(_this.language, namespace);
       };
     })(this);

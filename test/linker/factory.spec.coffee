@@ -59,7 +59,7 @@ describe "program", () ->
               .pipe('code2')
               .graph()
 
-    snippet = graph.link('main')
+    snippet = graph.link()
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -106,7 +106,7 @@ describe "program", () ->
               .pipe('code2')
               .graph()
 
-    snippet = graph.link('main')
+    snippet = graph.link()
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -167,7 +167,7 @@ describe "program", () ->
               .pipe('code2')
               .graph()
 
-    snippet = graph.link('main')
+    snippet = graph.link()
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -208,7 +208,7 @@ describe "program", () ->
               .pipe('code1')
               .graph()
 
-    snippet = graph.link('main')
+    snippet = graph.link()
     code = normalize(snippet.code)
 
     expect(code).toBe(result)

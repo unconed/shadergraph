@@ -86,7 +86,7 @@ var shader
   .pipe('getColor', uniforms)
   .pipe('setColor')
 
-var program = shader.link('main');
+var program = shader.link();
 ```
 
 Instancing behavior can be configured globally or per shader (see below).

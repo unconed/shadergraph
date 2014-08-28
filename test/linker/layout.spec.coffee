@@ -59,7 +59,7 @@ describe "layout", () ->
               .pipe('code2')
               .graph()
 
-    snippet = graph.link('main')
+    snippet = graph.link()
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -106,7 +106,7 @@ describe "layout", () ->
               .pipe('code2')
               .graph()
 
-    snippet = graph.link('main')
+    snippet = graph.link()
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -170,7 +170,7 @@ describe "layout", () ->
               .pipe('code3')
               .graph()
 
-    snippet = graph.link('main')
+    snippet = graph.link()
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -243,7 +243,7 @@ describe "layout", () ->
               .pipe('code3')
               .graph()
 
-    snippet = graph.link('main')
+    snippet = graph.link()
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -292,7 +292,7 @@ describe "layout", () ->
               .pipe('code2')
               .graph()
 
-    snippet = graph.link('main')
+    snippet = graph.link()
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -360,7 +360,7 @@ describe "layout", () ->
               .pipe('code3')
               .graph()
 
-    snippet = graph.link('main')
+    snippet = graph.link()
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -430,7 +430,7 @@ describe "layout", () ->
               .pipe('code3')
               .graph()
 
-    snippet = graph.link('main')
+    snippet = graph.link()
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -517,7 +517,7 @@ describe "layout", () ->
     shader.require callback
     shader.pipe 'setColor'
 
-    snippet = shader.link('main');
+    snippet = shader.link();
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -605,7 +605,7 @@ describe "layout", () ->
     shader.pipe 'setColor'
 
     # Link entire shader into a main() function
-    snippet = shader.link('main');
+    snippet = shader.link();
     code = normalize(snippet.code)
 
     expect(code).toBe(result)
@@ -699,7 +699,7 @@ describe "layout", () ->
     shader.require callback
     shader.pipe 'setColor'
 
-    snippet = shader.link('main');
+    snippet = shader.link();
     code = normalize(snippet.code)
 
     expect(code).toBe(result)

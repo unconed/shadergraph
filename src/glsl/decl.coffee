@@ -119,7 +119,7 @@ decl.type = (name, spec, quant, count, dir, storage) ->
     sampler2D:   't'
     samplerCube: 't'
 
-  win = typeof window != undefined
+  win = typeof window != 'undefined'
   threejs = win && !!window.THREE
 
   defaults =

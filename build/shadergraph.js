@@ -1834,7 +1834,7 @@ decl.type = function(name, spec, quant, count, dir, storage) {
     sampler2D: 't',
     samplerCube: 't'
   };
-  win = typeof window !== void 0;
+  win = typeof window !== 'undefined';
   threejs = win && !!window.THREE;
   defaults = {
     int: 0,
@@ -3581,6 +3581,7 @@ Snippet = (function() {
   };
 
   function Snippet(language, _signatures, _compiler, _name) {
+    var _ref;
     this.language = language;
     this._signatures = _signatures;
     this._compiler = _compiler;
@@ -3603,7 +3604,7 @@ Snippet = (function() {
       delete this._compiler;
     }
     if (!this._name) {
-      delete this._name;
+      this._name = (_ref = this._signatures) != null ? _ref.main.name : void 0;
     }
   }
 

@@ -1834,7 +1834,7 @@ decl.type = function(name, spec, quant, count, dir, storage) {
     sampler2D: 't',
     samplerCube: 't'
   };
-  win = typeof window !== void 0;
+  win = typeof window !== 'undefined';
   threejs = win && !!window.THREE;
   defaults = {
     int: 0,

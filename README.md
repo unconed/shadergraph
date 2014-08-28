@@ -142,10 +142,10 @@ shadergraph = ShaderGraph(fetch, config);
 
 *ShaderGraph*
 
- * `.shader()`
-   Returns an empty `shader` graph wrapped in a factory
- * `.material()`
-   Returns an empty `material` wrapping two factories: `material.vertex` and `material.fragment`
+ * `.shader(config = {})`
+   Returns an empty `shader` graph wrapped in a factory. Override global `config` options.
+ * `.material(config = {})`
+   Returns an empty `material` wrapping two factories: `material.vertex` and `material.fragment`. Override global `config` options.
  * `.visualize(graph/factory/material)`
    Draw the given graph(s), returns an HTML `element`. Call `element.update()` after inserting.
  

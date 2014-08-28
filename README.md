@@ -190,7 +190,7 @@ shadergraph = ShaderGraph(fetch, config);
 Caveats
 ---
 
- * Use `shadergraph.visualize(…)` to inspect broken graphs and find missing/wrongg connections.
+ * Use `shadergraph.visualize(…)` to inspect broken graphs and find missing/wrong connections.
  * Preprocessing directives like `#ifdef` and `#define` are ignored, but do pass through. Be careful when using them. Consider using snippets and/or callbacks instead.
  * Structs are not supported, `glsl-parser` seems to choke on them. Array types are probably a bit buggy still.
 

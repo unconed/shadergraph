@@ -108,21 +108,29 @@ decl.param = (dir, storage, spec, quant, count) ->
 
 decl.type = (name, spec, quant, count, dir, storage) ->
   three =
+    int:         'i'
     float:       'f'
     vec2:        'v2'
     vec3:        'v3'
     vec4:        'v4'
+    mat2:        'm2'
     mat3:        'm3'
     mat4:        'm4'
     sampler2D:   't'
     samplerCube: 't'
 
+  win = typeof window != undefined
+  threejs = win && !!window.THREE
+
   defaults =
+    int:         0
     float:       0
-    vec2:        if window.THREE then new THREE.Vector3() else null
-    vec3:        if window.THREE then new THREE.Vector3() else null
-    vec4:        if window.THREE then new THREE.Vector4() else null
-    mat4:        if window.THREE then new THREE.Matrix4() else null
+    vec2:        if threejs then new THREE.Vector2() else null
+    vec3:        if threejs then new THREE.Vector3() else null
+    vec4:        if threejs then new THREE.Vector4() else null
+    mat2:        null
+    mat3:        if threejs then new THREE.Matrix3() else null
+    mat4:        if threejs then new THREE.Matrix4() else null
     sampler2D:   0
     samplerCube: 0
 

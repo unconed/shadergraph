@@ -1809,23 +1809,30 @@ decl.param = function(dir, storage, spec, quant, count) {
 };
 
 decl.type = function(name, spec, quant, count, dir, storage) {
-  var defaults, dirs, inout, param, storages, three, type, value, _ref;
+  var defaults, dirs, inout, param, storages, three, threejs, type, value, win, _ref;
   three = {
+    int: 'i',
     float: 'f',
     vec2: 'v2',
     vec3: 'v3',
     vec4: 'v4',
+    mat2: 'm2',
     mat3: 'm3',
     mat4: 'm4',
     sampler2D: 't',
     samplerCube: 't'
   };
+  win = typeof window !== void 0;
+  threejs = win && !!window.THREE;
   defaults = {
+    int: 0,
     float: 0,
-    vec2: window.THREE ? new THREE.Vector3() : null,
-    vec3: window.THREE ? new THREE.Vector3() : null,
-    vec4: window.THREE ? new THREE.Vector4() : null,
-    mat4: window.THREE ? new THREE.Matrix4() : null,
+    vec2: threejs ? new THREE.Vector2() : null,
+    vec3: threejs ? new THREE.Vector3() : null,
+    vec4: threejs ? new THREE.Vector4() : null,
+    mat2: null,
+    mat3: threejs ? new THREE.Matrix3() : null,
+    mat4: threejs ? new THREE.Matrix4() : null,
     sampler2D: 0,
     samplerCube: 0
   };

@@ -151,44 +151,51 @@ shadergraph = ShaderGraph(fetch, config);
  
 *Factory*
 
- * `.pipe(name/code/factory)`
-   Include the given code/snippet/factory and connect it to what came before.  
+ * `.pipe(name/code/factory, uniforms = {}, namespace = null)`  
+   `.pipe(name/code/factory, namespace = null, uniforms = {})`  
+   Include the given code/snippet/factory and connect it to what came before. Binds dictionary of `uniforms`. Set the `namespace`.  
    ![Pipe example](https://raw.github.com/unconed/shadergraph/master/docs/images/pipe.png)
 
- * `.require(name/code/factory)`
-   Include the given code/snippet/factory as a callback for what comes next.  
+ * `.require(name/code/factory, uniforms = {}, namespace = null)`  
+   `.require(name/code/factory, namespace = null, uniforms = {})`  
+   Include the given code/snippet/factory as a callback for what comes next. Uniform/namespace binding like `.pipe()`.  
    ![Require example](https://raw.github.com/unconed/shadergraph/master/docs/images/require.png)
 
- * `.isolate().….end()` - Create an isolated subgraph and call it.  
+ * `.isolate().….end()`  
+   Create an isolated subgraph and call it.  
    ![Isolate example](https://raw.github.com/unconed/shadergraph/master/docs/images/isolate.png)
 
- * `.callback().….end()` - Create an isolated subgraph and use as a callback.  
+ * `.callback().….end()`  
+   Create an isolated subgraph and use as a callback.  
    ![Callback example](https://raw.github.com/unconed/shadergraph/master/docs/images/callback.png)
 
- * `.split().….next().….end()` - Create two or more branches and split connections across them 1-to-1.  
+ * `.split().….next().….end()`  
+   Create two or more branches and split connections across them 1-to-1.  
    ![Split example](https://raw.github.com/unconed/shadergraph/master/docs/images/split.png)
  
- * `.fan().….next().….end()` - Create two or more branches and fan connections across them 1-to-N.  
+ * `.fan().….next().….end()`  
+   Create two or more branches and fan connections across them 1-to-N.  
    ![Fan example](https://raw.github.com/unconed/shadergraph/master/docs/images/fan.png)
 
- * `.pass()` - Use this instead of .end() to make additional passthrough connections that skip the entire block.  
+ * `.pass()`  
+   Use this instead of .end() to make additional passthrough connections that skip the entire block.  
    ![Pass example](https://raw.github.com/unconed/shadergraph/master/docs/images/pass.png)
 
- * `.graph()`
+ * `.graph()`  
    Finalize the graph and return it. The factory is reset to an empty state.
 
- * `.compile(name)`
+ * `.compile(name)`  
    Finalize the graph and compile it immediately (no callbacks). The graph is discarded.
 
- * `.link(name)`
+ * `.link(name)`  
    Finalize the graph and link it with its subgraphs immediately (with callbacks). The graph is discarded.
 
 *Graph*
 
- * `.compile(name)`
+ * `.compile(name)`  
     Compile the graph (no callbacks). The graph is retained.
 
- * `.link(name)`
+ * `.link(name)`  
     Compile and link the graph and its subgraphs (with callbacks). The graph is retained.
 
 Caveats

@@ -91,7 +91,7 @@ var uniforms = {
 };
 
 // Build shader graph
-var shader
+shader
   // Require a callback
   .require('getRampColor')
 
@@ -116,11 +116,11 @@ ShaderGraph also includes a material helper, to build a vertex/fragment shader s
 var material = shadergraph.material()
 
 // Build vertex shader graph
-var material.vertex
+material.vertex
   .pipe('vertex')
 
 // Build fragment shader graph
-var material.fragment
+material.fragment
   .pipe('getColor')
   .pipe('setColor')
 

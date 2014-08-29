@@ -799,3 +799,86 @@ describe "layout", () ->
 
     expect(vertex).toBe(vertexResult)
     expect(fragment).toBe(fragmentResult)
+
+  it 'handles multiple merged returns (callback/pipe/next/pipe/end/require)', () ->
+
+    getColor1 = """
+    vec3 getColor1() {
+      return vec3(0.1, 0.1, 0.1);
+    }
+    """
+
+    getColor2 = """
+    vec3 getColor2() {
+      return vec3(0.1, 0.1, 0.1);
+    }
+    """
+
+    getColorSum = """
+    void getColors(out vec3 color1, out vec3 color2);
+    vec3 getColorSum() {
+      vec3 a, b;
+      getColors(a, b);
+      return a + b;
+    }
+    """
+
+    setColor = """
+    vec3 getColor();
+    void main() {
+      gl_FragColor = vec4(getColor(), 1.0);
+    }
+    """
+
+    result = """
+    #define _sn_1_getColor _pg_1_
+    #define _pg_1_ _sn_2_getColorSum
+    vec3 _pg_2_(out vec3 color2);
+    void _sn_3_getColors(out vec3 color1, out vec3 color2) {
+      color1 = _pg_2_(color2);
+    }
+    vec3 _sn_4_getColor1() {
+      return vec3(0.1, 0.1, 0.1);
+    }
+    vec3 _sn_5_getColor2() {
+      return vec3(0.1, 0.1, 0.1);
+    }
+    vec3 _pg_2_(out vec3 _io_1_return) {
+      vec3 _io_2_return;
+      vec3 _io_1_return;
+    
+      _io_2_return = _sn_4_getColor1();
+      _io_1_return = _sn_5_getColor2();
+      return _io_2_return;
+    }
+    vec3 _sn_2_getColorSum() {
+      vec3 a, b;
+      _sn_3_getColors(a, b);
+      return a + b;
+    }
+    void _sn_6_main() {
+      gl_FragColor = vec4(_sn_1_getColor(), 1.0);
+    }
+    void main() {
+      _sn_6_main();
+    }
+    """
+
+    shadergraph = ShaderGraph()
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .callback()
+                .pipe(getColor1)
+              .next()
+                .pipe(getColor2)
+              .end()
+              .require(getColorSum)
+              .pipe(setColor)
+              .graph()
+
+    snippet = graph.link()
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+

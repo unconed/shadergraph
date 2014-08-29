@@ -20,26 +20,27 @@ vec3 getColor() {
 
 <script type="application/x-glsl" id="getCallbackColor">
 void getColor(out vec3 color);
-vec3 getCallbackColor() {
-  vec3 c;
-  getColor(c);
-  return c * 2.0;
+void getCallbackColor(out vec3 color) {
+  getColor(color);
+  color *= 2.0;
 }
 </script>
 
 <script type="application/x-glsl" id="setColor">
-vec3 getColor1();
-vec3 getColor2();
+void getColor1(out vec3 color);
+void getColor2(out vec3 color);
 void setColor() {
-  vec3 color = getColor1() + getColor2();
-  gl_FragColor = vec4(color, 1.0);
+  vec3 a, b;
+  getColor1(a);
+  getColor2(b);
+  gl_FragColor = vec4(a + b, 1.0);
 }
 </script>
 
 </head>
 <body>
   <h4>Impedance Matching</h4>
-  <p>Generate linkage function to connect compatible call signatures.</p>
+  <p>Generate linkage function to connect compatible but different call signatures (i.e. <code>return</code> vs <code>in</code>/<code>out</code>).</p>
 
   <div class="graph"></div>
   <h5>View Source for Code</h5>

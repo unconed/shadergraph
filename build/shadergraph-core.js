@@ -1966,9 +1966,10 @@ module.exports = _ = {
     return true;
   },
   call: function(lookup, dangling, entry, signature, body) {
-    var arg, args, id, name, param, ret, _i, _len;
+    var arg, args, id, name, param, ret, rets, _i, _len;
     args = [];
     ret = '';
+    rets = 1;
     for (_i = 0, _len = signature.length; _i < _len; _i++) {
       arg = signature[_i];
       param = arg.param;
@@ -1985,13 +1986,16 @@ module.exports = _ = {
       if (body) {
         if (dangling(name)) {
           if (name === $.RETURN_ARG) {
-            if (body["return"] !== '') {
-              throw "Error: two unconnected return values within same graph";
+            if (body["return"] === '') {
+              body.type = arg.spec;
+              body["return"] = "  return " + id;
+              body.vars[id] = "  " + param(id);
+              body.signature.push(arg);
+            } else {
+              body.vars[id] = "  " + param(id);
+              body.params.push(param(id, true));
+              body.signature.push(arg.copy(id));
             }
-            body.type = arg.spec;
-            body["return"] = "  return " + id;
-            body.vars[id] = "  " + param(id);
-            body.signature.push(arg);
           } else {
             body.params.push(param(id, true));
             body.signature.push(arg.copy(id));

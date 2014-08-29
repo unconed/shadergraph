@@ -1693,7 +1693,7 @@ module.exports = {
 
 
 },{}],20:[function(require,module,exports){
-var decl, get;
+var decl, defaults, get, three, threejs, win;
 
 module.exports = decl = {};
 
@@ -1820,34 +1820,38 @@ decl.param = function(dir, storage, spec, quant, count) {
   };
 };
 
+win = typeof window !== 'undefined';
+
+threejs = win && !!window.THREE;
+
+defaults = {
+  int: 0,
+  float: 0,
+  vec2: threejs ? THREE.Vector2 : null,
+  vec3: threejs ? THREE.Vector3 : null,
+  vec4: threejs ? THREE.Vector4 : null,
+  mat2: null,
+  mat3: threejs ? THREE.Matrix3 : null,
+  mat4: threejs ? THREE.Matrix4 : null,
+  sampler2D: 0,
+  samplerCube: 0
+};
+
+three = {
+  int: 'i',
+  float: 'f',
+  vec2: 'v2',
+  vec3: 'v3',
+  vec4: 'v4',
+  mat2: 'm2',
+  mat3: 'm3',
+  mat4: 'm4',
+  sampler2D: 't',
+  samplerCube: 't'
+};
+
 decl.type = function(name, spec, quant, count, dir, storage) {
-  var defaults, dirs, inout, param, storages, three, threejs, type, value, win, _ref;
-  three = {
-    int: 'i',
-    float: 'f',
-    vec2: 'v2',
-    vec3: 'v3',
-    vec4: 'v4',
-    mat2: 'm2',
-    mat3: 'm3',
-    mat4: 'm4',
-    sampler2D: 't',
-    samplerCube: 't'
-  };
-  win = typeof window !== 'undefined';
-  threejs = win && !!window.THREE;
-  defaults = {
-    int: 0,
-    float: 0,
-    vec2: threejs ? new THREE.Vector2() : null,
-    vec3: threejs ? new THREE.Vector3() : null,
-    vec4: threejs ? new THREE.Vector4() : null,
-    mat2: null,
-    mat3: threejs ? new THREE.Matrix3() : null,
-    mat4: threejs ? new THREE.Matrix4() : null,
-    sampler2D: 0,
-    samplerCube: 0
-  };
+  var dirs, inout, param, storages, type, value, _ref;
   dirs = {
     "in": decl["in"],
     out: decl.out,
@@ -1860,7 +1864,13 @@ decl.type = function(name, spec, quant, count, dir, storage) {
   if (quant) {
     type += 'v';
   }
-  value = defaults[type];
+  value = defaults[spec];
+  if (value != null ? value.call : void 0) {
+    value = new value;
+  }
+  if (quant) {
+    value = [value];
+  }
   inout = (_ref = dirs[dir]) != null ? _ref : dirs["in"];
   storage = storages[storage];
   param = decl.param(dir, storage, spec, quant, count);

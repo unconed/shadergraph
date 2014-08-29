@@ -68,7 +68,7 @@ void setColor(vec3 color) {
     //.end()
 
     // Build two-step chain that uses the callback and the uniform
-    .pipe('getColor', uniforms)
+    .pipe('getColor')
     .pipe('setColor')
 
   // Finalize graph (optional, can call shader.link())

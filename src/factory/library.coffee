@@ -21,8 +21,8 @@ library = (language, snippets, load) ->
         throw "Unknown snippet `#{name}`" if !snippets[name]?
         load language, name, snippets[name]
 
-  inline = (name) ->
-    load language, '', name
+  inline = (code) ->
+    load language, '', code
 
   return inline if !callback?
 

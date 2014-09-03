@@ -25,6 +25,7 @@ parseGLSL = (name, code) ->
   tock 'GLSL Tokenize & Parse' if debug
 
   if !ast || errors.length
+    name = '(inline code)' if !name
     console.error "[ShaderGraph] #{name} -", error.message for error in errors
     throw "GLSL parse error"
 

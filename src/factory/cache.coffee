@@ -7,7 +7,7 @@ queue = require './queue'
 hash  = require './hash'
 
 cache = (fetch) ->
-  cache = {}
+  cached = {}
   push  = queue 100
 
   # Snippet factory
@@ -16,10 +16,10 @@ cache = (fetch) ->
 
     # Push new key onto queue, see if an old key expired
     expire = push key
-    delete cache[expire] if expire?
+    delete cached[expire] if expire?
 
     # Clone cached snippet
-    cache[key] = fetch name if !cache[key]?
-    cache[key].clone()
+    cached[key] = fetch name if !cached[key]?
+    cached[key].clone()
 
 module.exports = cache

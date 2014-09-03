@@ -962,20 +962,20 @@ queue = require('./queue');
 hash = require('./hash');
 
 cache = function(fetch) {
-  var push;
-  cache = {};
+  var cached, push;
+  cached = {};
   push = queue(100);
   return function(name) {
     var expire, key;
     key = name.length > 32 ? '##' + hash(name).toString(16) : name;
     expire = push(key);
     if (expire != null) {
-      delete cache[expire];
+      delete cached[expire];
     }
-    if (cache[key] == null) {
-      cache[key] = fetch(name);
+    if (cached[key] == null) {
+      cached[key] = fetch(name);
     }
-    return cache[key].clone();
+    return cached[key].clone();
   };
 };
 
@@ -1445,8 +1445,8 @@ library = function(language, snippets, load) {
       };
     }
   }
-  inline = function(name) {
-    return load(language, '', name);
+  inline = function(code) {
+    return load(language, '', code);
   };
   if (callback == null) {
     return inline;
@@ -2253,6 +2253,9 @@ parseGLSL = function(name, code) {
     tock('GLSL Tokenize & Parse');
   }
   if (!ast || errors.length) {
+    if (!name) {
+      name = '(inline code)';
+    }
     for (_i = 0, _len = errors.length; _i < _len; _i++) {
       error = errors[_i];
       console.error("[ShaderGraph] " + name + " -", error.message);

@@ -739,6 +739,9 @@ Callback = (function(_super) {
     if (!layout.visit(this.namespace, depth)) {
       return;
     }
+    if (this.subroutine == null) {
+      this.make();
+    }
     this._link(this.subroutine, layout, depth);
     return this.graph["export"](layout, depth);
   };
@@ -833,7 +836,7 @@ Isolate = (function(_super) {
   };
 
   Isolate.prototype.fetch = function(outlet) {
-    outlet = this.graph.getOut(outlet.name);
+    outlet = outlet.inout === Graph.IN ? this.graph.getIn(outlet.name) : this.graph.getOut(outlet.name);
     return outlet != null ? outlet.node.owner.fetch(outlet) : void 0;
   };
 
@@ -846,7 +849,7 @@ Isolate = (function(_super) {
   };
 
   Isolate.prototype["export"] = function(layout, depth) {
-    var block, externals, module, outlet, shadow, _i, _len, _ref, _results;
+    var externals, module, outlet, _i, _len, _ref, _results;
     if (!layout.visit(this.namespace, depth)) {
       return;
     }
@@ -864,9 +867,7 @@ Isolate = (function(_super) {
       if (!(isCallback(outlet) && outlet.inout === Graph.IN && (outlet.input != null) && (externals[outlet.name] == null))) {
         continue;
       }
-      shadow = this.graph.getIn(outlet.name);
-      block = shadow.node.owner;
-      module = block.fetch(shadow);
+      module = this.fetch(outlet);
       if (!layout.visit(module.namespace + '__shadow', depth)) {
         continue;
       }

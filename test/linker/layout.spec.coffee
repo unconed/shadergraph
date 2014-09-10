@@ -435,6 +435,78 @@ describe "layout", () ->
 
     expect(code).toBe(result)
 
+  it 'handles piped requires with deep deep nesting (require/isolate/require/end/pipe)', () ->
+
+    code1 = """
+    vec3 getColor() {
+      return vec3(0.2, 0.3, 0.4);
+    }
+    """
+
+    code2 = """
+    vec3 getColor1();
+    vec3 getColor2();
+    vec3 getColorSum() {
+      return getColor1() + getColor2();
+    }
+    """
+
+    code3 = """
+    vec3 getColor();
+    void main() {
+      gl_FragColor = vec4(getColor(), 1.0);
+    }
+    """
+
+    snippets = {
+      'code1': code1
+      'code2': code2
+      'code3': code3
+    }
+
+    result = """
+    #define _sn_1_getColor _pg_1_
+    #define _sn_2_getColor1 _pg_2_
+    #define _sn_3_getColor2 _pg_3_
+    #define _pg_2_ _sn_4_getColor
+    #define _pg_3_ _sn_5_getColor
+    #define _pg_1_ _sn_6_getColorSum
+    vec3 _sn_4_getColor() {
+      return vec3(0.2, 0.3, 0.4);
+    }
+    vec3 _sn_5_getColor() {
+      return vec3(0.2, 0.3, 0.4);
+    }
+    vec3 _sn_6_getColorSum() {
+      return _sn_2_getColor1() + _sn_3_getColor2();
+    }
+    void _sn_7_main() {
+      gl_FragColor = vec4(_sn_1_getColor(), 1.0);
+    }
+    void main() {
+      _sn_7_main();
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .require('code1')
+              .require('code1')
+              .isolate()
+                .isolate()
+                  .require('code2')
+                .end()
+              .end()
+              .pipe('code3')
+              .graph()
+
+    snippet = graph.link()
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+
   it 'de-dupes a repeated singleton (require/require/pipe)', () ->
 
     squareColor = """

@@ -39,7 +39,7 @@ void setColor(vec3 color) {
   // Fetch snippets above
   var fetch = function (key) {
     element = document.getElementById(key);
-    return element.textContent || element.textContent;
+    return element.textContent || element.innerText;
   }
 
   // Load ShaderGraph with given fetch function

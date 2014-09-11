@@ -1489,6 +1489,10 @@ Material = (function() {
   }
 
   Material.prototype.build = function(options) {
+    return this.link(options);
+  };
+
+  Material.prototype.link = function(options) {
     var attributes, fragment, key, shader, uniforms, value, varyings, vertex, _i, _len, _ref, _ref1, _ref2, _ref3;
     if (options == null) {
       options = {};
@@ -3776,7 +3780,7 @@ var connect, cssColor, escapeText, hash, hashColor, makeSVG, merge, path, proces
 hash = require('../factory/hash');
 
 cssColor = function(r, g, b, alpha) {
-  return 'rgba(' + [r, g, b, 1].join(', ') + ')';
+  return 'rgba(' + [r, g, b, alpha].join(', ') + ')';
 };
 
 hashColor = function(string, alpha) {

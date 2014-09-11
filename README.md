@@ -125,7 +125,7 @@ material.fragment
   .pipe('setColor')
 
 // Link both shaders and combine into a three.js style material
-var program = material.build()
+var program = material.link()
 ```
 
 The returned `program` object is compatible with Three.js' `ShaderMaterial` objects.
@@ -208,6 +208,11 @@ shadergraph = ShaderGraph(fetch, config);
 
  * `.link(name)`  
     Compile and link the graph and its subgraphs (with callbacks). The graph is retained.
+
+*Material*
+
+ * `.link(options = {})`
+    Link the material's vertex and fragment shader. Returns Three.js style ShaderMaterial options, merged with any existing options passed in.
 
 Caveats
 ---

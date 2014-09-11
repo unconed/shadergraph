@@ -37,7 +37,7 @@ class Outlet
   connect: (outlet) ->
 
     # Auto-reverse in/out to out/in
-    if @inout == Graph.IN && outlet.inout == Graph.OUT
+    if @inout == Graph.IN  && outlet.inout == Graph.OUT
       return outlet.connect @
 
     # Disallow bad combinations

@@ -865,7 +865,7 @@ describe "layout", () ->
       .pipe('getColor')
       .pipe('setColor')
 
-    program  = material.build()
+    program  = material.link()
     vertex   = normalize(program.vertexShader)
     fragment = normalize(program.fragmentShader)
 

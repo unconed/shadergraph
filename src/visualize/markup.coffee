@@ -1,7 +1,7 @@
 hash = require '../factory/hash'
 
 cssColor = (r, g, b, alpha) ->
-  'rgba(' + [r, g, b, 1].join(', ') + ')'
+  'rgba(' + [r, g, b, alpha].join(', ') + ')'
 
 hashColor = (string, alpha = 1) ->
   color = hash(string) ^ 0x123456

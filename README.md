@@ -7,6 +7,15 @@ shadergraph
 
 ShaderGraph is a library for linking together GLSL snippets into stand-alone shaders. It is mainly meant to build complicated shaders 100% programmatically. But it can also act as the back-end to a live graph-based shader editor, as its graph model is persistent.
 
+Snippets can be simple one-liners, or multi-function source files. Snippets can also declare *callbacks*, as functions without bodies, linked in from elsewhere. This allows complicated execution flows to be built very easily.
+
+```c
+vec3 getColor();
+void main() {
+  gl_FragColor = vec4(getColor(), 1.0);
+}
+```
+
 ShaderGraph is designed to play well with Three.js, but does not depend on it. It merely follows the same code/object conventions.
 
 There is no editing UI included, only a way to display a graph as an HTML/CSS/SVG diagram.
@@ -82,7 +91,7 @@ var uniforms = {
 };
 
 // Build shader graph
-var shader
+shader
   // Require a callback
   .require('getRampColor')
 
@@ -107,11 +116,11 @@ ShaderGraph also includes a material helper, to build a vertex/fragment shader s
 var material = shadergraph.material()
 
 // Build vertex shader graph
-var material.vertex
+material.vertex
   .pipe('vertex')
 
 // Build fragment shader graph
-var material.fragment
+material.fragment
   .pipe('getColor')
   .pipe('setColor')
 

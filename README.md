@@ -160,14 +160,16 @@ shadergraph = ShaderGraph(fetch, config);
  
 *Factory*
 
- * `.pipe(name/code, uniforms = {}, namespace = null)`  
-   `.pipe(name/code, namespace = null, uniforms = {})`  
+ * `.pipe(name/code, uniforms = {}, namespace = null, defines = {})`  
+   `.pipe(name/code, namespace = null, uniforms = {}, defines = {})`  
+   `.pipe(name/code, uniforms = {}, defines = {})`  
    `.pipe(factory)`  
    Include the given code/snippet/factory and connect it to what came before. Binds dictionary of `uniforms`. Set the `namespace`.  
    ![Pipe example](https://raw.github.com/unconed/shadergraph/master/docs/images/pipe.png)
 
- * `.require(name/code, uniforms = {}, namespace = null)`  
-   `.require(name/code, namespace = null, uniforms = {})`  
+ * `.require(name/code, uniforms = {}, namespace = null, defines = {})`  
+   `.require(name/code, namespace = null, uniforms = {}, defines = {})`  
+   `.require(name/code, uniforms = {}, defines = {})`  
    `.require(factory)`  
    Include the given code/snippet/factory as a callback for what comes next. Binds dictionary of `uniforms`. Set the `namespace`.  
    ![Require example](https://raw.github.com/unconed/shadergraph/master/docs/images/require.png)

@@ -96,7 +96,7 @@ describe "snippet", () ->
 
     expect(snippet.uniforms['_bind_uni1']).toBe(uniforms.uni1)
 
-  it 'binds uniforms backwards', () ->
+  it 'binds uniforms (backwards arguments)', () ->
     uniforms =
       uni1:
         type: 'f'
@@ -104,3 +104,16 @@ describe "snippet", () ->
     snippet.bind configLocal, '_bind_', uniforms
 
     expect(snippet.uniforms['_bind_uni1']).toBe(uniforms.uni1)
+
+  it 'adds defines', () ->
+    snippet.bind configLocal, '_sgtest_', {}, { FOOBAR: '', BARFOO: 1 }
+    expect(snippet.code).toMatch(/#define FOOBAR\s+#define BARFOO 1\s/m)
+
+  it 'adds defines (backwards arguments)', () ->
+    snippet.bind configLocal, '_sgtest_', {}, { FOOBAR: '', BARFOO: 1 }
+    expect(snippet.code).toMatch(/#define FOOBAR\s+#define BARFOO 1\s/m)
+
+  it 'adds defines (shorthand syntax)', () ->
+    snippet.bind configLocal, {}, { FOOBAR: '', BARFOO: 1 }
+    expect(snippet.code).toMatch(/#define FOOBAR\s+#define BARFOO 1\s/m)
+

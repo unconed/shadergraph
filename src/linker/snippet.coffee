@@ -30,11 +30,14 @@ class Snippet
   clone: () ->
     new Snippet @language, @_signatures, @_compiler, @_name
 
-  bind: (config, uniforms, namespace) ->
+  bind: (config, uniforms, namespace, defines) ->
 
-    # Alt syntax
+    # Alt syntax (namespace, uniforms, defines)
     if uniforms == '' + uniforms
-      [namespace, uniforms] = [uniforms, namespace ? {}]
+      [namespace, uniforms, defines] = [uniforms, namespace ? {}, defines ? {}]
+    # Alt syntax (uniforms, defines)
+    else if namespace != '' + namespace
+      [defines, namespace] = [namespace ? {}, undefined]
 
     # Prepare data structure
     @main       = @_signatures.main
@@ -78,7 +81,7 @@ class Snippet
     a redef def for def in @_signatures.attribute
     u def, name for name, def of uniforms when exist[name]
 
-    @body = @code = @_compiler @namespace, exceptions
+    @body = @code = @_compiler @namespace, exceptions, defines
 
     null
 

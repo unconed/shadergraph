@@ -1007,32 +1007,32 @@ Factory = (function() {
     this.graph();
   }
 
-  Factory.prototype.pipe = function(name, uniforms, namespace) {
+  Factory.prototype.pipe = function(name, uniforms, namespace, defines) {
     if (name instanceof Factory) {
       this._concat(name);
     } else {
-      this._call(name, uniforms, namespace);
+      this._call(name, uniforms, namespace, defines);
     }
     return this;
   };
 
-  Factory.prototype.call = function(name, uniforms, namespace) {
-    return this.pipe(name, uniforms, namespace);
+  Factory.prototype.call = function(name, uniforms, namespace, defines) {
+    return this.pipe(name, uniforms, namespace, defines);
   };
 
-  Factory.prototype.require = function(name, uniforms, namespace) {
+  Factory.prototype.require = function(name, uniforms, namespace, defines) {
     if (name instanceof Factory) {
       this._import(name);
     } else {
       this.callback();
-      this._call(name, uniforms, namespace);
+      this._call(name, uniforms, namespace, defines);
       this.join();
     }
     return this;
   };
 
-  Factory.prototype["import"] = function(name, uniforms, namespace) {
-    return this.require(name, uniforms, namespace);
+  Factory.prototype["import"] = function(name, uniforms, namespace, defines) {
+    return this.require(name, uniforms, namespace, defines);
   };
 
   Factory.prototype.split = function() {
@@ -1166,10 +1166,10 @@ Factory = (function() {
     }
   };
 
-  Factory.prototype._call = function(name, uniforms, namespace) {
+  Factory.prototype._call = function(name, uniforms, namespace, defines) {
     var block, snippet;
     snippet = this.fetch(name);
-    snippet.bind(this.config, uniforms, namespace);
+    snippet.bind(this.config, uniforms, namespace, defines);
     block = new Block.Call(snippet);
     return this._auto(block);
   };
@@ -1669,21 +1669,37 @@ string_compiler = function(code, placeholders) {
   })()).join('|') + ')\\b', 'g');
   code = code.replace(/\/\/[^\n]*/g, '');
   code = code.replace(/\/\*([^*]|\*[^\/])*\*\//g, '');
-  return function(prefix, exceptions) {
-    var replace;
+  return function(prefix, exceptions, defines) {
+    var compiled, defs, replace, value;
     if (prefix == null) {
       prefix = '';
     }
     if (exceptions == null) {
       exceptions = {};
     }
+    if (defines == null) {
+      defines = {};
+    }
     replace = {};
     for (key in placeholders) {
       replace[key] = exceptions[key] != null ? key : prefix + key;
     }
-    return code.replace(re, function(key) {
+    compiled = code.replace(re, function(key) {
       return replace[key];
     });
+    defs = (function() {
+      var _results;
+      _results = [];
+      for (key in defines) {
+        value = defines[key];
+        _results.push("#define " + key + " " + value);
+      }
+      return _results;
+    })();
+    if (defs.length) {
+      defs.push('');
+    }
+    return defs.join("\n") + compiled;
   };
 };
 
@@ -3634,13 +3650,15 @@ Snippet = (function() {
     return new Snippet(this.language, this._signatures, this._compiler, this._name);
   };
 
-  Snippet.prototype.bind = function(config, uniforms, namespace) {
-    var a, def, e, exceptions, exist, global, key, local, name, redef, u, v, x, _a, _e, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _u, _v;
+  Snippet.prototype.bind = function(config, uniforms, namespace, defines) {
+    var a, def, e, exceptions, exist, global, key, local, name, redef, u, v, x, _a, _e, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _u, _v;
     if (uniforms === '' + uniforms) {
-      _ref = [uniforms, namespace != null ? namespace : {}], namespace = _ref[0], uniforms = _ref[1];
+      _ref = [uniforms, namespace != null ? namespace : {}, defines != null ? defines : {}], namespace = _ref[0], uniforms = _ref[1], defines = _ref[2];
+    } else if (namespace !== '' + namespace) {
+      _ref1 = [namespace != null ? namespace : {}, void 0], defines = _ref1[0], namespace = _ref1[1];
     }
     this.main = this._signatures.main;
-    this.namespace = (_ref1 = namespace != null ? namespace : this.namespace) != null ? _ref1 : Snippet.namespace();
+    this.namespace = (_ref2 = namespace != null ? namespace : this.namespace) != null ? _ref2 : Snippet.namespace();
     this.entry = this.namespace + this.main.name;
     this.uniforms = {};
     this.externals = {};
@@ -3658,9 +3676,9 @@ Snippet = (function() {
       };
     })(this);
     if (config.globals) {
-      _ref2 = config.globals;
-      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-        key = _ref2[_i];
+      _ref3 = config.globals;
+      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
+        key = _ref3[_i];
         global(key);
       }
     }
@@ -3700,29 +3718,29 @@ Snippet = (function() {
         value: def.value
       };
     };
-    _ref3 = this._signatures.uniform;
-    for (_j = 0, _len1 = _ref3.length; _j < _len1; _j++) {
-      def = _ref3[_j];
+    _ref4 = this._signatures.uniform;
+    for (_j = 0, _len1 = _ref4.length; _j < _len1; _j++) {
+      def = _ref4[_j];
       x(def);
     }
-    _ref4 = this._signatures.uniform;
-    for (_k = 0, _len2 = _ref4.length; _k < _len2; _k++) {
-      def = _ref4[_k];
+    _ref5 = this._signatures.uniform;
+    for (_k = 0, _len2 = _ref5.length; _k < _len2; _k++) {
+      def = _ref5[_k];
       u(redef(def));
     }
-    _ref5 = this._signatures.varying;
-    for (_l = 0, _len3 = _ref5.length; _l < _len3; _l++) {
-      def = _ref5[_l];
+    _ref6 = this._signatures.varying;
+    for (_l = 0, _len3 = _ref6.length; _l < _len3; _l++) {
+      def = _ref6[_l];
       v(redef(def));
     }
-    _ref6 = this._signatures.external;
-    for (_m = 0, _len4 = _ref6.length; _m < _len4; _m++) {
-      def = _ref6[_m];
+    _ref7 = this._signatures.external;
+    for (_m = 0, _len4 = _ref7.length; _m < _len4; _m++) {
+      def = _ref7[_m];
       e(def);
     }
-    _ref7 = this._signatures.attribute;
-    for (_n = 0, _len5 = _ref7.length; _n < _len5; _n++) {
-      def = _ref7[_n];
+    _ref8 = this._signatures.attribute;
+    for (_n = 0, _len5 = _ref8.length; _n < _len5; _n++) {
+      def = _ref8[_n];
       a(redef(def));
     }
     for (name in uniforms) {
@@ -3731,7 +3749,7 @@ Snippet = (function() {
         u(def, name);
       }
     }
-    this.body = this.code = this._compiler(this.namespace, exceptions);
+    this.body = this.code = this._compiler(this.namespace, exceptions, defines);
     return null;
   };
 

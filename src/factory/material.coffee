@@ -11,7 +11,8 @@ class Material
   constructor: (@vertex, @fragment) ->
     @tock = tick() if debug
 
-  build: (options = {}) ->
+  build: (options) -> @link options
+  link: (options = {}) ->
     uniforms   = {}
     varyings   = {}
     attributes = {}

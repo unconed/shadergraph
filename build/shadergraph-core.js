@@ -739,6 +739,9 @@ Callback = (function(_super) {
     if (!layout.visit(this.namespace, depth)) {
       return;
     }
+    if (this.subroutine == null) {
+      this.make();
+    }
     this._link(this.subroutine, layout, depth);
     return this.graph["export"](layout, depth);
   };
@@ -833,7 +836,7 @@ Isolate = (function(_super) {
   };
 
   Isolate.prototype.fetch = function(outlet) {
-    outlet = this.graph.getOut(outlet.name);
+    outlet = outlet.inout === Graph.IN ? this.graph.getIn(outlet.name) : this.graph.getOut(outlet.name);
     return outlet != null ? outlet.node.owner.fetch(outlet) : void 0;
   };
 
@@ -846,7 +849,7 @@ Isolate = (function(_super) {
   };
 
   Isolate.prototype["export"] = function(layout, depth) {
-    var block, externals, module, outlet, shadow, _i, _len, _ref, _results;
+    var externals, module, outlet, _i, _len, _ref, _results;
     if (!layout.visit(this.namespace, depth)) {
       return;
     }
@@ -864,9 +867,7 @@ Isolate = (function(_super) {
       if (!(isCallback(outlet) && outlet.inout === Graph.IN && (outlet.input != null) && (externals[outlet.name] == null))) {
         continue;
       }
-      shadow = this.graph.getIn(outlet.name);
-      block = shadow.node.owner;
-      module = block.fetch(shadow);
+      module = this.fetch(outlet);
       if (!layout.visit(module.namespace + '__shadow', depth)) {
         continue;
       }
@@ -962,20 +963,20 @@ queue = require('./queue');
 hash = require('./hash');
 
 cache = function(fetch) {
-  var push;
-  cache = {};
+  var cached, push;
+  cached = {};
   push = queue(100);
   return function(name) {
     var expire, key;
     key = name.length > 32 ? '##' + hash(name).toString(16) : name;
     expire = push(key);
     if (expire != null) {
-      delete cache[expire];
+      delete cached[expire];
     }
-    if (cache[key] == null) {
-      cache[key] = fetch(name);
+    if (cached[key] == null) {
+      cached[key] = fetch(name);
     }
-    return cache[key].clone();
+    return cached[key].clone();
   };
 };
 
@@ -1006,32 +1007,32 @@ Factory = (function() {
     this.graph();
   }
 
-  Factory.prototype.pipe = function(name, uniforms, namespace) {
+  Factory.prototype.pipe = function(name, uniforms, namespace, defines) {
     if (name instanceof Factory) {
       this._concat(name);
     } else {
-      this._call(name, uniforms, namespace);
+      this._call(name, uniforms, namespace, defines);
     }
     return this;
   };
 
-  Factory.prototype.call = function(name, uniforms, namespace) {
-    return this.pipe(name, uniforms, namespace);
+  Factory.prototype.call = function(name, uniforms, namespace, defines) {
+    return this.pipe(name, uniforms, namespace, defines);
   };
 
-  Factory.prototype.require = function(name, uniforms, namespace) {
+  Factory.prototype.require = function(name, uniforms, namespace, defines) {
     if (name instanceof Factory) {
       this._import(name);
     } else {
       this.callback();
-      this._call(name, uniforms, namespace);
+      this._call(name, uniforms, namespace, defines);
       this.join();
     }
     return this;
   };
 
-  Factory.prototype["import"] = function(name, uniforms, namespace) {
-    return this.require(name, uniforms, namespace);
+  Factory.prototype["import"] = function(name, uniforms, namespace, defines) {
+    return this.require(name, uniforms, namespace, defines);
   };
 
   Factory.prototype.split = function() {
@@ -1165,10 +1166,10 @@ Factory = (function() {
     }
   };
 
-  Factory.prototype._call = function(name, uniforms, namespace) {
+  Factory.prototype._call = function(name, uniforms, namespace, defines) {
     var block, snippet;
     snippet = this.fetch(name);
-    snippet.bind(this.config, uniforms, namespace);
+    snippet.bind(this.config, uniforms, namespace, defines);
     block = new Block.Call(snippet);
     return this._auto(block);
   };
@@ -1445,8 +1446,8 @@ library = function(language, snippets, load) {
       };
     }
   }
-  inline = function(name) {
-    return load(language, '', name);
+  inline = function(code) {
+    return load(language, '', code);
   };
   if (callback == null) {
     return inline;
@@ -1488,6 +1489,10 @@ Material = (function() {
   }
 
   Material.prototype.build = function(options) {
+    return this.link(options);
+  };
+
+  Material.prototype.link = function(options) {
     var attributes, fragment, key, shader, uniforms, value, varyings, vertex, _i, _len, _ref, _ref1, _ref2, _ref3;
     if (options == null) {
       options = {};
@@ -1664,21 +1669,37 @@ string_compiler = function(code, placeholders) {
   })()).join('|') + ')\\b', 'g');
   code = code.replace(/\/\/[^\n]*/g, '');
   code = code.replace(/\/\*([^*]|\*[^\/])*\*\//g, '');
-  return function(prefix, exceptions) {
-    var replace;
+  return function(prefix, exceptions, defines) {
+    var compiled, defs, replace, value;
     if (prefix == null) {
       prefix = '';
     }
     if (exceptions == null) {
       exceptions = {};
     }
+    if (defines == null) {
+      defines = {};
+    }
     replace = {};
     for (key in placeholders) {
       replace[key] = exceptions[key] != null ? key : prefix + key;
     }
-    return code.replace(re, function(key) {
+    compiled = code.replace(re, function(key) {
       return replace[key];
     });
+    defs = (function() {
+      var _results;
+      _results = [];
+      for (key in defines) {
+        value = defines[key];
+        _results.push("#define " + key + " " + value);
+      }
+      return _results;
+    })();
+    if (defs.length) {
+      defs.push('');
+    }
+    return defs.join("\n") + compiled;
   };
 };
 
@@ -1693,7 +1714,7 @@ module.exports = {
 
 
 },{}],20:[function(require,module,exports){
-var decl, get;
+var decl, defaults, get, three, threejs, win;
 
 module.exports = decl = {};
 
@@ -1820,34 +1841,38 @@ decl.param = function(dir, storage, spec, quant, count) {
   };
 };
 
+win = typeof window !== 'undefined';
+
+threejs = win && !!window.THREE;
+
+defaults = {
+  int: 0,
+  float: 0,
+  vec2: threejs ? THREE.Vector2 : null,
+  vec3: threejs ? THREE.Vector3 : null,
+  vec4: threejs ? THREE.Vector4 : null,
+  mat2: null,
+  mat3: threejs ? THREE.Matrix3 : null,
+  mat4: threejs ? THREE.Matrix4 : null,
+  sampler2D: 0,
+  samplerCube: 0
+};
+
+three = {
+  int: 'i',
+  float: 'f',
+  vec2: 'v2',
+  vec3: 'v3',
+  vec4: 'v4',
+  mat2: 'm2',
+  mat3: 'm3',
+  mat4: 'm4',
+  sampler2D: 't',
+  samplerCube: 't'
+};
+
 decl.type = function(name, spec, quant, count, dir, storage) {
-  var defaults, dirs, inout, param, storages, three, threejs, type, value, win, _ref;
-  three = {
-    int: 'i',
-    float: 'f',
-    vec2: 'v2',
-    vec3: 'v3',
-    vec4: 'v4',
-    mat2: 'm2',
-    mat3: 'm3',
-    mat4: 'm4',
-    sampler2D: 't',
-    samplerCube: 't'
-  };
-  win = typeof window !== 'undefined';
-  threejs = win && !!window.THREE;
-  defaults = {
-    int: 0,
-    float: 0,
-    vec2: threejs ? new THREE.Vector2() : null,
-    vec3: threejs ? new THREE.Vector3() : null,
-    vec4: threejs ? new THREE.Vector4() : null,
-    mat2: null,
-    mat3: threejs ? new THREE.Matrix3() : null,
-    mat4: threejs ? new THREE.Matrix4() : null,
-    sampler2D: 0,
-    samplerCube: 0
-  };
+  var dirs, inout, param, storages, type, value, _ref;
   dirs = {
     "in": decl["in"],
     out: decl.out,
@@ -1860,7 +1885,13 @@ decl.type = function(name, spec, quant, count, dir, storage) {
   if (quant) {
     type += 'v';
   }
-  value = defaults[type];
+  value = defaults[spec];
+  if (value != null ? value.call : void 0) {
+    value = new value;
+  }
+  if (quant) {
+    value = [value];
+  }
   inout = (_ref = dirs[dir]) != null ? _ref : dirs["in"];
   storage = storages[storage];
   param = decl.param(dir, storage, spec, quant, count);
@@ -1966,9 +1997,10 @@ module.exports = _ = {
     return true;
   },
   call: function(lookup, dangling, entry, signature, body) {
-    var arg, args, id, name, param, ret, _i, _len;
+    var arg, args, id, name, param, ret, rets, _i, _len;
     args = [];
     ret = '';
+    rets = 1;
     for (_i = 0, _len = signature.length; _i < _len; _i++) {
       arg = signature[_i];
       param = arg.param;
@@ -1985,13 +2017,16 @@ module.exports = _ = {
       if (body) {
         if (dangling(name)) {
           if (name === $.RETURN_ARG) {
-            if (body["return"] !== '') {
-              throw "Error: two unconnected return values within same graph";
+            if (body["return"] === '') {
+              body.type = arg.spec;
+              body["return"] = "  return " + id;
+              body.vars[id] = "  " + param(id);
+              body.signature.push(arg);
+            } else {
+              body.vars[id] = "  " + param(id);
+              body.params.push(param(id, true));
+              body.signature.push(arg.copy(id));
             }
-            body.type = arg.spec;
-            body["return"] = "  return " + id;
-            body.vars[id] = "  " + param(id);
-            body.signature.push(arg);
           } else {
             body.params.push(param(id, true));
             body.signature.push(arg.copy(id));
@@ -2239,6 +2274,9 @@ parseGLSL = function(name, code) {
     tock('GLSL Tokenize & Parse');
   }
   if (!ast || errors.length) {
+    if (!name) {
+      name = '(inline code)';
+    }
     for (_i = 0, _len = errors.length; _i < _len; _i++) {
       error = errors[_i];
       console.error("[ShaderGraph] " + name + " -", error.message);
@@ -2945,7 +2983,7 @@ module.exports = Outlet;
 
 
 },{"./graph":24}],28:[function(require,module,exports){
-var Block, Factory, GLSL, Graph, Linker, ShaderGraph, Snippet, Visualize, cache, library, merge, visualize;
+var Block, Factory, GLSL, Graph, Linker, ShaderGraph, Snippet, Visualize, cache, inspect, library, merge, visualize;
 
 Block = require('./block');
 
@@ -2964,6 +3002,8 @@ library = Factory.library;
 cache = Factory.cache;
 
 visualize = Visualize.visualize;
+
+inspect = Visualize.inspect;
 
 Snippet = Linker.Snippet;
 
@@ -3009,6 +3049,10 @@ ShaderGraph = (function() {
     return new Factory.Material(this.shader(config), this.shader(config));
   };
 
+  ShaderGraph.prototype.overlay = function(shader) {
+    return ShaderGraph.overlay(shader);
+  };
+
   ShaderGraph.prototype.visualize = function(shader) {
     return ShaderGraph.visualize(shader);
   };
@@ -3024,6 +3068,14 @@ ShaderGraph = (function() {
   ShaderGraph.Linker = Linker;
 
   ShaderGraph.Visualize = Visualize;
+
+  ShaderGraph.inspect = function(shader) {
+    if (shader instanceof Factory.Material) {
+      return inspect(shader.vertex, shader.fragment);
+    } else {
+      return inspect(shader);
+    }
+  };
 
   ShaderGraph.visualize = function(shader) {
     if (shader instanceof Factory.Material) {
@@ -3577,15 +3629,16 @@ Snippet = (function() {
     var compiler, program, sigs, _ref;
     program = language.parse(name, code);
     _ref = language.compile(program), sigs = _ref[0], compiler = _ref[1];
-    return new Snippet(language, sigs, compiler, name);
+    return new Snippet(language, sigs, compiler, name, code);
   };
 
-  function Snippet(language, _signatures, _compiler, _name) {
+  function Snippet(language, _signatures, _compiler, _name, _original) {
     var _ref;
     this.language = language;
     this._signatures = _signatures;
     this._compiler = _compiler;
     this._name = _name;
+    this._original = _original;
     this.namespace = null;
     this.code = null;
     this.main = null;
@@ -3603,22 +3656,27 @@ Snippet = (function() {
     if (!this._compiler) {
       delete this._compiler;
     }
+    if (!this._original) {
+      delete this._original;
+    }
     if (!this._name) {
       this._name = (_ref = this._signatures) != null ? _ref.main.name : void 0;
     }
   }
 
   Snippet.prototype.clone = function() {
-    return new Snippet(this.language, this._signatures, this._compiler, this._name);
+    return new Snippet(this.language, this._signatures, this._compiler, this._name, this._original);
   };
 
-  Snippet.prototype.bind = function(config, uniforms, namespace) {
-    var a, def, e, exceptions, exist, global, key, local, name, redef, u, v, x, _a, _e, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _u, _v;
+  Snippet.prototype.bind = function(config, uniforms, namespace, defines) {
+    var a, def, e, exceptions, exist, global, key, local, name, redef, u, v, x, _a, _e, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _u, _v;
     if (uniforms === '' + uniforms) {
-      _ref = [uniforms, namespace != null ? namespace : {}], namespace = _ref[0], uniforms = _ref[1];
+      _ref = [uniforms, namespace != null ? namespace : {}, defines != null ? defines : {}], namespace = _ref[0], uniforms = _ref[1], defines = _ref[2];
+    } else if (namespace !== '' + namespace) {
+      _ref1 = [namespace != null ? namespace : {}, void 0], defines = _ref1[0], namespace = _ref1[1];
     }
     this.main = this._signatures.main;
-    this.namespace = (_ref1 = namespace != null ? namespace : this.namespace) != null ? _ref1 : Snippet.namespace();
+    this.namespace = (_ref2 = namespace != null ? namespace : this.namespace) != null ? _ref2 : Snippet.namespace();
     this.entry = this.namespace + this.main.name;
     this.uniforms = {};
     this.externals = {};
@@ -3636,9 +3694,9 @@ Snippet = (function() {
       };
     })(this);
     if (config.globals) {
-      _ref2 = config.globals;
-      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-        key = _ref2[_i];
+      _ref3 = config.globals;
+      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
+        key = _ref3[_i];
         global(key);
       }
     }
@@ -3678,29 +3736,29 @@ Snippet = (function() {
         value: def.value
       };
     };
-    _ref3 = this._signatures.uniform;
-    for (_j = 0, _len1 = _ref3.length; _j < _len1; _j++) {
-      def = _ref3[_j];
+    _ref4 = this._signatures.uniform;
+    for (_j = 0, _len1 = _ref4.length; _j < _len1; _j++) {
+      def = _ref4[_j];
       x(def);
     }
-    _ref4 = this._signatures.uniform;
-    for (_k = 0, _len2 = _ref4.length; _k < _len2; _k++) {
-      def = _ref4[_k];
+    _ref5 = this._signatures.uniform;
+    for (_k = 0, _len2 = _ref5.length; _k < _len2; _k++) {
+      def = _ref5[_k];
       u(redef(def));
     }
-    _ref5 = this._signatures.varying;
-    for (_l = 0, _len3 = _ref5.length; _l < _len3; _l++) {
-      def = _ref5[_l];
+    _ref6 = this._signatures.varying;
+    for (_l = 0, _len3 = _ref6.length; _l < _len3; _l++) {
+      def = _ref6[_l];
       v(redef(def));
     }
-    _ref6 = this._signatures.external;
-    for (_m = 0, _len4 = _ref6.length; _m < _len4; _m++) {
-      def = _ref6[_m];
+    _ref7 = this._signatures.external;
+    for (_m = 0, _len4 = _ref7.length; _m < _len4; _m++) {
+      def = _ref7[_m];
       e(def);
     }
-    _ref7 = this._signatures.attribute;
-    for (_n = 0, _len5 = _ref7.length; _n < _len5; _n++) {
-      def = _ref7[_n];
+    _ref8 = this._signatures.attribute;
+    for (_n = 0, _len5 = _ref8.length; _n < _len5; _n++) {
+      def = _ref8[_n];
       a(redef(def));
     }
     for (name in uniforms) {
@@ -3709,7 +3767,7 @@ Snippet = (function() {
         u(def, name);
       }
     }
-    this.body = this.code = this._compiler(this.namespace, exceptions);
+    this.body = this.code = this._compiler(this.namespace, exceptions, defines);
     return null;
   };
 
@@ -3751,14 +3809,27 @@ exports.visualize = function() {
   }).apply(this, arguments));
 };
 
+exports.inspect = function() {
+  var contents, element;
+  contents = visualize.apply(null, arguments);
+  element = markup.overlay(contents);
+  document.body.appendChild(element);
+  contents.update();
+  return element;
+};
+
 
 },{"../Graph":2,"./markup":37,"./serialize":38}],37:[function(require,module,exports){
-var connect, cssColor, escapeText, hash, hashColor, makeSVG, merge, path, process, sqr, _markup, _order;
+var connect, cssColor, escapeText, hash, hashColor, makeSVG, merge, overlay, path, process, sqr, trim, _activate, _markup, _order;
 
 hash = require('../factory/hash');
 
+trim = function(string) {
+  return ("" + string).replace(/^\s+|\s+$/g, '');
+};
+
 cssColor = function(r, g, b, alpha) {
-  return 'rgba(' + [r, g, b, 1].join(', ') + ')';
+  return 'rgba(' + [r, g, b, alpha].join(', ') + ')';
 };
 
 hashColor = function(string, alpha) {
@@ -3791,7 +3862,29 @@ process = function(data) {
   el.update = function() {
     return connect(el, links);
   };
+  _activate(el);
   return el;
+};
+
+_activate = function(el) {
+  var code, codes, _i, _len, _results;
+  codes = el.querySelectorAll('.shadergraph-code');
+  _results = [];
+  for (_i = 0, _len = codes.length; _i < _len; _i++) {
+    code = codes[_i];
+    _results.push((function() {
+      var popup;
+      popup = code;
+      popup.parentNode.classList.add('shadergraph-has-code');
+      return popup.parentNode.addEventListener('click', function(event) {
+        return popup.style.display = {
+          block: 'none',
+          none: 'block'
+        }[popup.style.display || 'none'];
+      });
+    })());
+  }
+  return _results;
 };
 
 _order = function(data) {
@@ -3836,7 +3929,7 @@ _order = function(data) {
 };
 
 _markup = function(data, links) {
-  var addOutlet, block, clear, color, column, columns, link, node, outlet, outlets, wrapper, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
+  var addOutlet, block, clear, color, column, columns, div, link, node, outlet, outlets, wrapper, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
   _order(data);
   wrapper = document.createElement('div');
   wrapper.classList.add('shadergraph-graph');
@@ -3875,6 +3968,12 @@ _markup = function(data, links) {
       clear = document.createElement('div');
       clear.classList.add('shadergraph-clear');
       block.appendChild(clear);
+    }
+    if (node.code != null) {
+      div = document.createElement('div');
+      div.classList.add('shadergraph-code');
+      div.innerHTML = escapeText(trim(node.code));
+      block.appendChild(div);
     }
     column = columns[node.depth];
     if (column == null) {
@@ -3933,7 +4032,7 @@ makeSVG = function(tag) {
 };
 
 connect = function(element, links) {
-  var a, b, c, line, link, ref, svg, _i, _j, _len, _len1;
+  var a, b, box, c, line, link, ref, svg, _i, _j, _len, _len1;
   if (element.parentNode == null) {
     return;
   }
@@ -3953,9 +4052,13 @@ connect = function(element, links) {
   if (svg != null) {
     element.removeChild(svg);
   }
+  box = element;
+  while (box.parentNode && box.offsetHeight === 0) {
+    box = box.parentNode;
+  }
   svg = makeSVG();
-  svg.setAttribute('width', element.offsetWidth);
-  svg.setAttribute('height', element.offsetHeight);
+  svg.setAttribute('width', box.offsetWidth);
+  svg.setAttribute('height', box.offsetHeight);
   for (_j = 0, _len1 = links.length; _j < _len1; _j++) {
     link = links[_j];
     c = link.coords;
@@ -3967,6 +4070,27 @@ connect = function(element, links) {
     svg.appendChild(line);
   }
   return element.appendChild(svg);
+};
+
+overlay = function(contents) {
+  var close, div, inside, view;
+  div = document.createElement('div');
+  div.setAttribute('class', 'shadergraph-overlay');
+  close = document.createElement('div');
+  close.setAttribute('class', 'shadergraph-close');
+  close.innerHTML = '&times;';
+  view = document.createElement('div');
+  view.setAttribute('class', 'shadergraph-view');
+  inside = document.createElement('div');
+  inside.setAttribute('class', 'shadergraph-inside');
+  inside.appendChild(contents);
+  view.appendChild(inside);
+  div.appendChild(view);
+  div.appendChild(close);
+  close.addEventListener('click', function() {
+    return div.parentNode.removeChild(div);
+  });
+  return div;
 };
 
 merge = function(markup) {
@@ -3992,9 +4116,11 @@ merge = function(markup) {
   }
 };
 
-exports.process = process;
-
-exports.merge = merge;
+module.exports = {
+  process: process,
+  merge: merge,
+  overlay: overlay
+};
 
 
 },{"../factory/hash":13}],38:[function(require,module,exports){
@@ -4029,6 +4155,7 @@ serialize = function(graph) {
     if (block instanceof Block.Call) {
       record.name = block.snippet._name;
       record.type = 'call';
+      record.code = block.snippet._original;
     } else if (block instanceof Block.Callback) {
       record.name = "Callback";
       record.type = 'callback';

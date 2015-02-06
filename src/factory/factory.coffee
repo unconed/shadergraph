@@ -12,30 +12,30 @@ class Factory
     @graph()
 
   # Combined call/concat shortcut
-  pipe: (name, uniforms, namespace) ->
+  pipe: (name, uniforms, namespace, defines) ->
     if name instanceof Factory
       @_concat name
     else
-      @_call name, uniforms, namespace
+      @_call name, uniforms, namespace, defines
     @
 
   # Old name
-  call: (name, uniforms, namespace) ->
-    @pipe name, uniforms, namespace
+  call: (name, uniforms, namespace, defines) ->
+    @pipe name, uniforms, namespace, defines
 
   # Combined callback/import shortcut
-  require: (name, uniforms, namespace) ->
+  require: (name, uniforms, namespace, defines) ->
     if name instanceof Factory
       @_import name
     else
       @callback()
-      @_call name, uniforms, namespace
+      @_call name, uniforms, namespace, defines
       @join()
     @
 
   # Old name
-  import: (name, uniforms, namespace) ->
-    @require name, uniforms, namespace
+  import: (name, uniforms, namespace, defines) ->
+    @require name, uniforms, namespace, defines
 
   # Create parallel branches that connect as one block to the end
   # (one outgoing connection per outlet)
@@ -158,9 +158,9 @@ class Factory
       @_auto block
 
   # Create next call block
-  _call: (name, uniforms, namespace) ->
+  _call: (name, uniforms, namespace, defines) ->
     snippet = @fetch name
-    snippet.bind @config, uniforms, namespace
+    snippet.bind @config, uniforms, namespace, defines
     block = new Block.Call snippet
     @_auto block
 

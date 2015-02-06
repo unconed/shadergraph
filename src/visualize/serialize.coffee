@@ -29,6 +29,7 @@ serialize = (graph) ->
     if      block instanceof Block.Call
       record.name  = block.snippet._name
       record.type  = 'call'
+      record.code  = block.snippet._original
 
     else if block instanceof Block.Callback
       record.name  = "Callback"

@@ -52,12 +52,15 @@ string_compiler = (code, placeholders) ->
 
   # Assembler function that takes namespace prefix and exceptions
   # and returns GLSL source code
-  (prefix = '', exceptions = {}) ->
+  (prefix = '', exceptions = {}, defines = {}) ->
     replace = {}
     for key of placeholders
       replace[key] = if exceptions[key]? then key else prefix + key
 
-    code.replace re, (key) -> replace[key]
+    compiled = code.replace re, (key) -> replace[key]
 
+    defs = ("#define #{key} #{value}" for key, value of defines)
+    defs.push '' if defs.length
+    defs.join("\n") + compiled
 
 module.exports = compile

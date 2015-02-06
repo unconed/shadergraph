@@ -56,6 +56,7 @@ class Callback extends Block
 
   export: (layout, depth) ->
     return unless layout.visit @namespace, depth
+    @make() if !@subroutine?
 
     @_link     @subroutine, layout, depth
     @graph.export layout, depth

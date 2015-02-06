@@ -172,7 +172,7 @@ class Node
 
     # Remove from name list and inout list.
     delete @outlets[key]
-    @inputs .splice(@inputs .indexOf(outlet), 1)  if outlet.inout == Graph.IN
+    @inputs .splice(@inputs .indexOf(outlet), 1) if outlet.inout == Graph.IN
     @outputs.splice(@outputs.indexOf(outlet), 1) if outlet.inout == Graph.OUT
 
     @

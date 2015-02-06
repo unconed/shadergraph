@@ -106,33 +106,35 @@ decl.param = (dir, storage, spec, quant, count) ->
   (name, long) ->
     (if long then dir else '') + "#{prefix}#{name}#{suffix}"
 
+# Three.js sugar
+win = typeof window != 'undefined'
+threejs = win && !!window.THREE
+
+defaults =
+  int:         0
+  float:       0
+  vec2:        if threejs then THREE.Vector2 else null
+  vec3:        if threejs then THREE.Vector3 else null
+  vec4:        if threejs then THREE.Vector4 else null
+  mat2:        null
+  mat3:        if threejs then THREE.Matrix3 else null
+  mat4:        if threejs then THREE.Matrix4 else null
+  sampler2D:   0
+  samplerCube: 0
+
+three =
+  int:         'i'
+  float:       'f'
+  vec2:        'v2'
+  vec3:        'v3'
+  vec4:        'v4'
+  mat2:        'm2'
+  mat3:        'm3'
+  mat4:        'm4'
+  sampler2D:   't'
+  samplerCube: 't'
+
 decl.type = (name, spec, quant, count, dir, storage) ->
-  three =
-    int:         'i'
-    float:       'f'
-    vec2:        'v2'
-    vec3:        'v3'
-    vec4:        'v4'
-    mat2:        'm2'
-    mat3:        'm3'
-    mat4:        'm4'
-    sampler2D:   't'
-    samplerCube: 't'
-
-  win = typeof window != 'undefined'
-  threejs = win && !!window.THREE
-
-  defaults =
-    int:         0
-    float:       0
-    vec2:        if threejs then new THREE.Vector2() else null
-    vec3:        if threejs then new THREE.Vector3() else null
-    vec4:        if threejs then new THREE.Vector4() else null
-    mat2:        null
-    mat3:        if threejs then new THREE.Matrix3() else null
-    mat4:        if threejs then new THREE.Matrix4() else null
-    sampler2D:   0
-    samplerCube: 0
 
   dirs =
     in:    decl.in
@@ -144,7 +146,11 @@ decl.type = (name, spec, quant, count, dir, storage) ->
 
   type    = three[spec]
   type   += 'v' if quant
-  value   = defaults[type]
+
+  value   = defaults[spec]
+  value   = new value if value?.call
+  value   = [value]   if quant
+
   inout   = dirs[dir] ? dirs.in
   storage = storages[storage]
 

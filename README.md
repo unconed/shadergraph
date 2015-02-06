@@ -125,7 +125,7 @@ material.fragment
   .pipe('setColor')
 
 // Link both shaders and combine into a three.js style material
-var program = material.build()
+var program = material.link()
 ```
 
 The returned `program` object is compatible with Three.js' `ShaderMaterial` objects.
@@ -157,17 +157,21 @@ shadergraph = ShaderGraph(fetch, config);
    Returns an empty `material` wrapping two factories: `material.vertex` and `material.fragment`. Override global `config` options.
  * `.visualize(graph/factory/material)`  
    Draw the given graph(s), returns an HTML `element`. Call `element.update()` after inserting.
+ * `.inspect(graph/factory/material)`  
+   Draw the graph and insert it into the body as a floating inspector.
  
 *Factory*
 
- * `.pipe(name/code, uniforms = {}, namespace = null)`  
-   `.pipe(name/code, namespace = null, uniforms = {})`  
+ * `.pipe(name/code, uniforms = {}, namespace = null, defines = {})`  
+   `.pipe(name/code, namespace = null, uniforms = {}, defines = {})`  
+   `.pipe(name/code, uniforms = {}, defines = {})`  
    `.pipe(factory)`  
    Include the given code/snippet/factory and connect it to what came before. Binds dictionary of `uniforms`. Set the `namespace`.  
    ![Pipe example](https://raw.github.com/unconed/shadergraph/master/docs/images/pipe.png)
 
- * `.require(name/code, uniforms = {}, namespace = null)`  
-   `.require(name/code, namespace = null, uniforms = {})`  
+ * `.require(name/code, uniforms = {}, namespace = null, defines = {})`  
+   `.require(name/code, namespace = null, uniforms = {}, defines = {})`  
+   `.require(name/code, uniforms = {}, defines = {})`  
    `.require(factory)`  
    Include the given code/snippet/factory as a callback for what comes next. Binds dictionary of `uniforms`. Set the `namespace`.  
    ![Require example](https://raw.github.com/unconed/shadergraph/master/docs/images/require.png)
@@ -208,6 +212,11 @@ shadergraph = ShaderGraph(fetch, config);
 
  * `.link(name)`  
     Compile and link the graph and its subgraphs (with callbacks). The graph is retained.
+
+*Material*
+
+ * `.link(options = {})`
+    Link the material's vertex and fragment shader. Returns Three.js style ShaderMaterial options, merged with any existing options passed in.
 
 Caveats
 ---

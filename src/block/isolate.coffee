@@ -39,7 +39,7 @@ class Isolate extends Block
 
   fetch: (outlet) ->
     # Fetch subroutine from either nested Isolate or Callback block
-    outlet = @graph.getOut outlet.name
+    outlet = if outlet.inout == Graph.IN then @graph.getIn outlet.name else @graph.getOut outlet.name
     outlet?.node.owner.fetch outlet
 
   call: (program, depth) ->
@@ -65,13 +65,10 @@ class Isolate extends Block
                                     outlet.input?            and
                                     !externals[outlet.name]?
 
-      shadow = @graph.getIn outlet.name
-      block  = shadow.node.owner
-      module = block.fetch shadow
-
+      module = @fetch outlet
       continue unless layout.visit module.namespace + '__shadow', depth
-      @_link module, layout, depth
 
+      @_link module, layout, depth
 
   callback: (layout, depth, name, external, outlet) ->
     subroutine = @fetch outlet

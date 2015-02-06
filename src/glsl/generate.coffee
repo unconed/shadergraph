@@ -54,6 +54,7 @@ module.exports = _ =
   call: (lookup, dangling, entry, signature, body) ->
     args      = []
     ret       = ''
+    rets      = 1
 
     for arg in signature
       param = arg.param
@@ -71,11 +72,15 @@ module.exports = _ =
         if dangling name
 
           if name == $.RETURN_ARG
-            throw "Error: two unconnected return values within same graph" if body.return != ''
-            body.type     = arg.spec
-            body.return   = "  return #{id}"
-            body.vars[id] = "  " + param(id)
-            body.signature.push arg
+            if body.return == ''
+              body.type     = arg.spec
+              body.return   = "  return #{id}"
+              body.vars[id] = "  " + param(id)
+              body.signature.push arg
+            else
+              body.vars[id] = "  " + param(id)
+              body.params.push param(id, true)
+              body.signature.push arg.copy id
           else
             body.params.push param(id, true)
             body.signature.push arg.copy id

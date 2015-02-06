@@ -5,9 +5,9 @@ class Snippet
   @load: (language, name, code) ->
     program          = language.parse   name, code
     [sigs, compiler] = language.compile program
-    new Snippet language, sigs, compiler, name
+    new Snippet language, sigs, compiler, name, code
 
-  constructor: (@language, @_signatures, @_compiler, @_name) ->
+  constructor: (@language, @_signatures, @_compiler, @_name, @_original) ->
     @namespace  = null
     @code       = null
 
@@ -23,18 +23,22 @@ class Snippet
     delete @language    if !@language
     delete @_signatures if !@_signatures
     delete @_compiler   if !@_compiler
+    delete @_original   if !@_original
 
     # Insert snippet name if not provided
     @_name = @_signatures?.main.name if !@_name
 
   clone: () ->
-    new Snippet @language, @_signatures, @_compiler, @_name
+    new Snippet @language, @_signatures, @_compiler, @_name, @_original
 
-  bind: (config, uniforms, namespace) ->
+  bind: (config, uniforms, namespace, defines) ->
 
-    # Alt syntax
+    # Alt syntax (namespace, uniforms, defines)
     if uniforms == '' + uniforms
-      [namespace, uniforms] = [uniforms, namespace ? {}]
+      [namespace, uniforms, defines] = [uniforms, namespace ? {}, defines ? {}]
+    # Alt syntax (uniforms, defines)
+    else if namespace != '' + namespace
+      [defines, namespace] = [namespace ? {}, undefined]
 
     # Prepare data structure
     @main       = @_signatures.main
@@ -78,7 +82,7 @@ class Snippet
     a redef def for def in @_signatures.attribute
     u def, name for name, def of uniforms when exist[name]
 
-    @body = @code = @_compiler @namespace, exceptions
+    @body = @code = @_compiler @namespace, exceptions, defines
 
     null
 

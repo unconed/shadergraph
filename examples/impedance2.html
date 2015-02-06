@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>ShaderGraph - Require Shaders</title>
+  <title>ShaderGraph - Impedance Matching Returns</title>
   <link rel="stylesheet" href="../build/shadergraph.css" />
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
@@ -13,10 +13,11 @@ vec3 getColor() {
 </script>
 
 <script type="application/x-glsl" id="getColorSum">
-vec3 getColor1();
-vec3 getColor2();
+void getColors(out vec3 color1, out vec3 color2);
 vec3 getColorSum() {
-  return getColor1() + getColor2();
+  vec3 a, b;
+  getColors(a, b);
+  return a + b;
 }
 </script>
 
@@ -29,8 +30,8 @@ void main() {
 
 </head>
 <body>
-  <h4>Require Shaders</h4>
-  <p>A pipe of required nodes.</p>
+  <h4>Impedance Matching Returns</h4>
+  <p>Multiple returns bundled into a callback, one is changed to an <code>out</code> argument.</p>
 
   <div class="graph"></div>
   <h5>View Source for Code</h5>
@@ -51,16 +52,20 @@ void main() {
 
   // Build shader graph
   var shader = shadergraph.shader();
-  shader.require('getColor');        // Require unique instance of callback
-  shader.require('getColor');        // Require unique instance of callback
-  shader.require('getColorSum');     // Hook up both callbacks and output a new callback
-  shader.pipe('setColor');           // Connect to main snippet
+  shader
+    .callback()                  // Make a new callback
+      .pipe('getColor')          // Containing two parallel calls to getColor
+    .next()
+      .pipe('getColor')
+    .end()
+    .require('getColorSum')      // Hook up callback and output a new callback
+    .pipe('setColor')            // Connect to main snippet
 
   // Finalize graph (optional, can call shader.link())
   graph   = shader.graph();
 
   // Link entire shader into a main() function
-  snippet = graph.link('main');
+  snippet = graph.link();
 
   // Show in document body
   document.querySelector('pre').innerText = snippet.code;
@@ -70,7 +75,7 @@ void main() {
   document.querySelector('.graph').appendChild(visualize);
   visualize.update();
 
-  console.log("shader.link('main') = ", snippet);
+  console.log("shader.link() = ", snippet);
 
   </script>
   

@@ -130,6 +130,13 @@ var program = material.link()
 
 The returned `program` object is compatible with Three.js' `ShaderMaterial` objects.
 
+Caveats
+---
+ * Call `shadergraph.inspect(…)` anywhere to insert an inspector for a graph, and find missing/wrong connections.
+ * Preprocessing directives like `#ifdef` and `#define` are ignored, but do pass through. Be careful when using them. Consider using snippets and/or callbacks instead.
+ * Structs are not supported, `glsl-parser` seems to choke on them. Array types are probably a bit buggy still.
+
+
 * * *
 
 Reference
@@ -217,13 +224,6 @@ shadergraph = ShaderGraph(fetch, config);
 
  * `.link(options = {})`
     Link the material's vertex and fragment shader. Returns Three.js style ShaderMaterial options, merged with any existing options passed in.
-
-Caveats
----
-
- * Use `shadergraph.visualize(…)` to inspect broken graphs and find missing/wrong connections.
- * Preprocessing directives like `#ifdef` and `#define` are ignored, but do pass through. Be careful when using them. Consider using snippets and/or callbacks instead.
- * Structs are not supported, `glsl-parser` seems to choke on them. Array types are probably a bit buggy still.
 
 Manual Use
 ---

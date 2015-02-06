@@ -5,9 +5,9 @@ class Snippet
   @load: (language, name, code) ->
     program          = language.parse   name, code
     [sigs, compiler] = language.compile program
-    new Snippet language, sigs, compiler, name
+    new Snippet language, sigs, compiler, name, code
 
-  constructor: (@language, @_signatures, @_compiler, @_name) ->
+  constructor: (@language, @_signatures, @_compiler, @_name, @_original) ->
     @namespace  = null
     @code       = null
 
@@ -23,12 +23,13 @@ class Snippet
     delete @language    if !@language
     delete @_signatures if !@_signatures
     delete @_compiler   if !@_compiler
+    delete @_original   if !@_original
 
     # Insert snippet name if not provided
     @_name = @_signatures?.main.name if !@_name
 
   clone: () ->
-    new Snippet @language, @_signatures, @_compiler, @_name
+    new Snippet @language, @_signatures, @_compiler, @_name, @_original
 
   bind: (config, uniforms, namespace, defines) ->
 

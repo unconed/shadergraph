@@ -2983,7 +2983,7 @@ module.exports = Outlet;
 
 
 },{"./graph":24}],28:[function(require,module,exports){
-var Block, Factory, GLSL, Graph, Linker, ShaderGraph, Snippet, Visualize, cache, library, merge, visualize;
+var Block, Factory, GLSL, Graph, Linker, ShaderGraph, Snippet, Visualize, cache, inspect, library, merge, visualize;
 
 Block = require('./block');
 
@@ -3002,6 +3002,8 @@ library = Factory.library;
 cache = Factory.cache;
 
 visualize = Visualize.visualize;
+
+inspect = Visualize.inspect;
 
 Snippet = Linker.Snippet;
 
@@ -3047,6 +3049,10 @@ ShaderGraph = (function() {
     return new Factory.Material(this.shader(config), this.shader(config));
   };
 
+  ShaderGraph.prototype.overlay = function(shader) {
+    return ShaderGraph.overlay(shader);
+  };
+
   ShaderGraph.prototype.visualize = function(shader) {
     return ShaderGraph.visualize(shader);
   };
@@ -3062,6 +3068,14 @@ ShaderGraph = (function() {
   ShaderGraph.Linker = Linker;
 
   ShaderGraph.Visualize = Visualize;
+
+  ShaderGraph.inspect = function(shader) {
+    if (shader instanceof Factory.Material) {
+      return inspect(shader.vertex, shader.fragment);
+    } else {
+      return inspect(shader);
+    }
+  };
 
   ShaderGraph.visualize = function(shader) {
     if (shader instanceof Factory.Material) {
@@ -3615,15 +3629,16 @@ Snippet = (function() {
     var compiler, program, sigs, _ref;
     program = language.parse(name, code);
     _ref = language.compile(program), sigs = _ref[0], compiler = _ref[1];
-    return new Snippet(language, sigs, compiler, name);
+    return new Snippet(language, sigs, compiler, name, code);
   };
 
-  function Snippet(language, _signatures, _compiler, _name) {
+  function Snippet(language, _signatures, _compiler, _name, _original) {
     var _ref;
     this.language = language;
     this._signatures = _signatures;
     this._compiler = _compiler;
     this._name = _name;
+    this._original = _original;
     this.namespace = null;
     this.code = null;
     this.main = null;
@@ -3641,13 +3656,16 @@ Snippet = (function() {
     if (!this._compiler) {
       delete this._compiler;
     }
+    if (!this._original) {
+      delete this._original;
+    }
     if (!this._name) {
       this._name = (_ref = this._signatures) != null ? _ref.main.name : void 0;
     }
   }
 
   Snippet.prototype.clone = function() {
-    return new Snippet(this.language, this._signatures, this._compiler, this._name);
+    return new Snippet(this.language, this._signatures, this._compiler, this._name, this._original);
   };
 
   Snippet.prototype.bind = function(config, uniforms, namespace, defines) {
@@ -3791,11 +3809,24 @@ exports.visualize = function() {
   }).apply(this, arguments));
 };
 
+exports.inspect = function() {
+  var contents, element;
+  contents = visualize.apply(null, arguments);
+  element = markup.overlay(contents);
+  document.body.appendChild(element);
+  contents.update();
+  return element;
+};
+
 
 },{"../Graph":2,"./markup":37,"./serialize":38}],37:[function(require,module,exports){
-var connect, cssColor, escapeText, hash, hashColor, makeSVG, merge, path, process, sqr, _markup, _order;
+var connect, cssColor, escapeText, hash, hashColor, makeSVG, merge, overlay, path, process, sqr, trim, _activate, _markup, _order;
 
 hash = require('../factory/hash');
+
+trim = function(string) {
+  return ("" + string).replace(/^\s+|\s+$/g, '');
+};
 
 cssColor = function(r, g, b, alpha) {
   return 'rgba(' + [r, g, b, alpha].join(', ') + ')';
@@ -3831,7 +3862,29 @@ process = function(data) {
   el.update = function() {
     return connect(el, links);
   };
+  _activate(el);
   return el;
+};
+
+_activate = function(el) {
+  var code, codes, _i, _len, _results;
+  codes = el.querySelectorAll('.shadergraph-code');
+  _results = [];
+  for (_i = 0, _len = codes.length; _i < _len; _i++) {
+    code = codes[_i];
+    _results.push((function() {
+      var popup;
+      popup = code;
+      popup.parentNode.classList.add('shadergraph-has-code');
+      return popup.parentNode.addEventListener('click', function(event) {
+        return popup.style.display = {
+          block: 'none',
+          none: 'block'
+        }[popup.style.display || 'none'];
+      });
+    })());
+  }
+  return _results;
 };
 
 _order = function(data) {
@@ -3876,7 +3929,7 @@ _order = function(data) {
 };
 
 _markup = function(data, links) {
-  var addOutlet, block, clear, color, column, columns, link, node, outlet, outlets, wrapper, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
+  var addOutlet, block, clear, color, column, columns, div, link, node, outlet, outlets, wrapper, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
   _order(data);
   wrapper = document.createElement('div');
   wrapper.classList.add('shadergraph-graph');
@@ -3915,6 +3968,12 @@ _markup = function(data, links) {
       clear = document.createElement('div');
       clear.classList.add('shadergraph-clear');
       block.appendChild(clear);
+    }
+    if (node.code != null) {
+      div = document.createElement('div');
+      div.classList.add('shadergraph-code');
+      div.innerHTML = escapeText(trim(node.code));
+      block.appendChild(div);
     }
     column = columns[node.depth];
     if (column == null) {
@@ -3973,7 +4032,7 @@ makeSVG = function(tag) {
 };
 
 connect = function(element, links) {
-  var a, b, c, line, link, ref, svg, _i, _j, _len, _len1;
+  var a, b, box, c, line, link, ref, svg, _i, _j, _len, _len1;
   if (element.parentNode == null) {
     return;
   }
@@ -3993,9 +4052,13 @@ connect = function(element, links) {
   if (svg != null) {
     element.removeChild(svg);
   }
+  box = element;
+  while (box.parentNode && box.offsetHeight === 0) {
+    box = box.parentNode;
+  }
   svg = makeSVG();
-  svg.setAttribute('width', element.offsetWidth);
-  svg.setAttribute('height', element.offsetHeight);
+  svg.setAttribute('width', box.offsetWidth);
+  svg.setAttribute('height', box.offsetHeight);
   for (_j = 0, _len1 = links.length; _j < _len1; _j++) {
     link = links[_j];
     c = link.coords;
@@ -4007,6 +4070,27 @@ connect = function(element, links) {
     svg.appendChild(line);
   }
   return element.appendChild(svg);
+};
+
+overlay = function(contents) {
+  var close, div, inside, view;
+  div = document.createElement('div');
+  div.setAttribute('class', 'shadergraph-overlay');
+  close = document.createElement('div');
+  close.setAttribute('class', 'shadergraph-close');
+  close.innerHTML = '&times;';
+  view = document.createElement('div');
+  view.setAttribute('class', 'shadergraph-view');
+  inside = document.createElement('div');
+  inside.setAttribute('class', 'shadergraph-inside');
+  inside.appendChild(contents);
+  view.appendChild(inside);
+  div.appendChild(view);
+  div.appendChild(close);
+  close.addEventListener('click', function() {
+    return div.parentNode.removeChild(div);
+  });
+  return div;
 };
 
 merge = function(markup) {
@@ -4032,9 +4116,11 @@ merge = function(markup) {
   }
 };
 
-exports.process = process;
-
-exports.merge = merge;
+module.exports = {
+  process: process,
+  merge: merge,
+  overlay: overlay
+};
 
 
 },{"../factory/hash":13}],38:[function(require,module,exports){
@@ -4069,6 +4155,7 @@ serialize = function(graph) {
     if (block instanceof Block.Call) {
       record.name = block.snippet._name;
       record.type = 'call';
+      record.code = block.snippet._original;
     } else if (block instanceof Block.Callback) {
       record.name = "Callback";
       record.type = 'callback';

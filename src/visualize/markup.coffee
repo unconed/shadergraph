@@ -1,5 +1,7 @@
 hash = require '../factory/hash'
 
+trim = (string) -> ("" + string).replace /^\s+|\s+$/g, ''
+
 cssColor = (r, g, b, alpha) ->
   'rgba(' + [r, g, b, alpha].join(', ') + ')'
 
@@ -34,7 +36,20 @@ process = (data) ->
   el = _markup  data, links
   el.update = () ->
     connect el, links
+  _activate el
   el
+
+_activate = (el) ->
+  codes = el.querySelectorAll '.shadergraph-code'
+  for code in codes
+    do ->
+      popup = code
+      popup.parentNode.classList.add 'shadergraph-has-code'
+      popup.parentNode.addEventListener 'click', (event) ->
+        popup.style.display = {
+          block: 'none'
+          none:  'block'
+        }[popup.style.display || 'none']
 
 _order = (data) ->
   nodeMap = {}
@@ -99,6 +114,12 @@ _markup = (data, links) ->
       clear = document.createElement 'div'
       clear.classList.add 'shadergraph-clear'
       block.appendChild clear
+
+    if node.code?
+      div = document.createElement 'div'
+      div.classList.add 'shadergraph-code'
+      div.innerHTML = escapeText trim node.code
+      block.appendChild div
 
     column = columns[node.depth]
     if !column?
@@ -174,9 +195,12 @@ connect = (element, links) ->
   svg = element.querySelector 'svg'
   element.removeChild svg if svg?
 
+  box = element
+  box = box.parentNode while box.parentNode && box.offsetHeight == 0
+
   svg = makeSVG()
-  svg.setAttribute('width', element.offsetWidth)
-  svg.setAttribute('height', element.offsetHeight)
+  svg.setAttribute('width', box.offsetWidth)
+  svg.setAttribute('height', box.offsetHeight)
 
   for link in links
     c = link.coords
@@ -190,6 +214,29 @@ connect = (element, links) ->
 
   element.appendChild svg
 
+overlay = (contents) ->
+  div = document.createElement 'div'
+  div.setAttribute 'class', 'shadergraph-overlay'
+
+  close = document.createElement 'div'
+  close.setAttribute 'class', 'shadergraph-close'
+  close.innerHTML = '&times;'
+
+  view = document.createElement 'div'
+  view.setAttribute 'class', 'shadergraph-view'
+
+  inside = document.createElement 'div'
+  inside.setAttribute 'class', 'shadergraph-inside'
+
+  inside.appendChild contents
+  view.appendChild inside
+  div.appendChild view
+  div.appendChild close
+
+  close.addEventListener 'click', () -> div.parentNode.removeChild div
+
+  div
+
 merge = (markup) ->
   if markup.length != 1
     div = document.createElement 'div'
@@ -199,5 +246,5 @@ merge = (markup) ->
   else
     return markup[0]
 
-exports.process = process
-exports.merge   = merge
+module.exports = {process, merge, overlay}
+

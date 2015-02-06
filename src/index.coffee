@@ -8,6 +8,7 @@ Visualize = require './visualize'
 library   = Factory.library
 cache     = Factory.cache
 visualize = Visualize.visualize
+inspect   = Visualize.inspect
 
 Snippet   = Linker.Snippet
 
@@ -36,6 +37,7 @@ class ShaderGraph
   material: (config) ->
     new Factory.Material @shader(config), @shader(config)
 
+  overlay:   (shader) -> ShaderGraph.overlay   shader
   visualize: (shader) -> ShaderGraph.visualize shader
 
   # Expose class hierarchy
@@ -47,6 +49,12 @@ class ShaderGraph
   @Visualize: Visualize
 
   # Static visualization method
+  @inspect   = (shader) ->
+    if shader instanceof Factory.Material
+      inspect shader.vertex, shader.fragment
+    else
+      inspect shader
+
   @visualize = (shader) ->
     if shader instanceof Factory.Material
       visualize shader.vertex, shader.fragment

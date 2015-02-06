@@ -157,6 +157,8 @@ shadergraph = ShaderGraph(fetch, config);
    Returns an empty `material` wrapping two factories: `material.vertex` and `material.fragment`. Override global `config` options.
  * `.visualize(graph/factory/material)`  
    Draw the given graph(s), returns an HTML `element`. Call `element.update()` after inserting.
+ * `.inspect(graph/factory/material)`  
+   Draw the graph and insert it into the body as a floating inspector.
  
 *Factory*
 

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>ShaderGraph - Callback Graph</title>
+  <title>ShaderGraph - Impedance Matching 1</title>
   <link rel="stylesheet" href="../build/shadergraph.css" />
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
@@ -19,25 +19,29 @@ vec3 getColor() {
 </script>
 
 <script type="application/x-glsl" id="getCallbackColor">
-vec3 getColor();
+void getColor(out vec3 color);
 vec3 getCallbackColor() {
-  return getColor() * 2.0;
+  getColor(color);
+  color *= 2.0;
+  return color;
 }
 </script>
 
 <script type="application/x-glsl" id="setColor">
-vec3 getColor1();
-vec3 getColor2();
+void getColor1(out vec3 color);
+void getColor2(out vec3 color);
 void setColor() {
-  vec3 color = getColor1() + getColor2();
-  gl_FragColor = vec4(color, 1.0);
+  vec3 a, b;
+  a = getColor1();
+  getColor2(b);
+  gl_FragColor = vec4(a + b, 1.0);
 }
 </script>
 
 </head>
 <body>
-  <h4>Callback Graph</h4>
-  <p>Callback created from pipeline of nodes.</p>
+  <h4>Impedance Matching 1</h4>
+  <p>Generate linkage function to connect compatible but different call signatures (i.e. <code>return</code> vs <code>in</code>/<code>out</code>).</p>
 
   <div class="graph"></div>
   <h5>View Source for Code</h5>
@@ -79,8 +83,7 @@ void setColor() {
   snippet = graph.link();
 
   // Show in document body
-  pre = document.querySelector('pre')
-  pre.innerText = snippet.code;
+  document.querySelector('pre').innerText = snippet.code;
 
   // Generate visualization of graph
   visualize = shadergraph.visualize(graph);

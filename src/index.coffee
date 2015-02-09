@@ -26,6 +26,7 @@ class ShaderGraph
       globalVaryings:   true
       globalAttributes: true
       globals:          []
+      autoInspect:      false
 
     @config = merge defaults, config
     @fetch  = cache library GLSL, snippets, Snippet.load

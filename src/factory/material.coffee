@@ -26,7 +26,9 @@ class Material
       (attributes[key] = value) for key, value of shader.attributes
 
     options.vertexShader   = vertex  .code
+    options.vertexGraph    = vertex  .graph
     options.fragmentShader = fragment.code
+    options.fragmentGraph  = fragment.graph
     options.attributes     = attributes
     options.uniforms       = uniforms
     options.varyings       = varyings

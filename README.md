@@ -34,6 +34,7 @@ ShaderGraph
  * [Passed Outputs](http://acko.net/files/shadergraph2/examples/pass.html)
  * [Isolate Subgraphs](http://acko.net/files/shadergraph2/examples/isolate.html)
  * [Deep Nesting](http://acko.net/files/shadergraph2/examples/deep.html)
+ * [Deep Callback](http://acko.net/files/shadergraph2/examples/deepcallback.html)
  * [Isolated require](http://acko.net/files/shadergraph2/examples/wrap.html)
 
 ShaderGraph 2 drives all shaders in MathBox² (in development). Demos: [Vertex Colors](http://acko.net/files/dump/mathbox2/vertexcolor.html), [Volume of Vectors](http://acko.net/files/dump/mathbox2/volume.html), [Waves of Quads](http://acko.net/files/dump/mathbox2/face.html)
@@ -152,6 +153,7 @@ var config = {
   globalVaryings:   true,  // Make varyings   global
   globalAttributes: true,  // Make attributes global
   globals:          [],    // Make specific symbols global
+  autoInspect:      false, // Pop-up a graph inspector if compilation fails
 }
 shadergraph = ShaderGraph(fetch, config);
 ```

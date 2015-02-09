@@ -16,6 +16,7 @@ class Snippet
 
     @uniforms   = null
     @externals  = null
+    @symbols    = null
     @attributes = null
     @varyings   = null
 
@@ -46,9 +47,10 @@ class Snippet
     @entry      = @namespace + @main.name
 
     @uniforms   = {}
-    @externals  = {}
-    @attributes = {}
     @varyings   = {}
+    @attributes = {}
+    @externals  = {}
+    @symbols    = []
     exist       = {}
     exceptions  = {}
 
@@ -70,8 +72,11 @@ class Snippet
     x = (def)       =>       exist[def.name]           = true
     u = (def, name) =>   @uniforms[_u name ? def.name] = def
     v = (def)       =>   @varyings[_v def.name]        = def
-    e = (def)       =>  @externals[_e def.name]        = def
     a = (def)       => @attributes[_a def.name]        = def
+    e = (def)       =>
+                        name = _e def.name
+                        @externals[name]               = def
+                        @symbols.push name
 
     redef = (def) -> {type: def.type, name: def.name, value: def.value}
 

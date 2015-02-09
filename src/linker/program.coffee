@@ -19,8 +19,9 @@ class Program
   @entry: () -> "_pg_#{++Program.index}_"
 
   # Program starts out empty, ready to compile starting from a particular block
-  constructor: (@language, @namespace) ->
+  constructor: (@language, @namespace, @graph) ->
     @calls      = {}
+    @requires   = {}
 
   # Call a given module at certain priority
   call: (node, module, priority) ->
@@ -34,12 +35,17 @@ class Program
 
     @
 
+  # Require a given (callback) module's externals
+  require: (node, module) ->
+    ns = module.namespace
+    @requires[ns] = {node, module}
+
   # Compile queued ops into result
   assemble: () ->
-    data         = assemble @language, @namespace ? Program.entry, @calls
-    snippet      = new Snippet
-    snippet[key] = data[key] for key of data
-
+    data          = assemble @language, @namespace ? Program.entry, @calls, @requires
+    snippet       = new Snippet
+    snippet[key]  = data[key] for key of data
+    snippet.graph = @graph
     snippet
 
 module.exports = Program

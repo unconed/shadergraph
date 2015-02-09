@@ -5,26 +5,25 @@
   <title>ShaderGraph - Deep Singleton</title>
   <link rel="stylesheet" href="../build/shadergraph.css" />
   <script type="text/javascript" src="../build/shadergraph.js"></script>
-
-<script type="application/x-glsl" id="squareColor">
-vec3 squareColor(vec3 rgb) {
-  return rgb * rgb;
+    
+<script type="application/x-glsl" id="getColor">
+vec3 getColor() {
+  return vec3(0.2, 0.3, 0.4);
 }
 </script>
 
-<script type="application/x-glsl" id="getColor">
-vec3 getColor() {
-  return vec3(1.0, 0.5, 0.25);
+<script type="application/x-glsl" id="getColorSum">
+vec3 getColor1();
+vec3 getColor2();
+vec3 getColorSum() {
+  return getColor1() + getColor2();
 }
 </script>
 
 <script type="application/x-glsl" id="setColor">
-vec3 mapColor1(vec3 color);
-vec3 mapColor2(vec3 color);
-void setColor(vec3 color) {
-  color = mapColor1(color);
-  color = mapColor2(color);
-  gl_FragColor = vec4(color, 1.0);
+vec3 getColor();
+void main() {
+  gl_FragColor = vec4(getColor(), 1.0);
 }
 </script>
 
@@ -48,7 +47,7 @@ void setColor(vec3 color) {
 
   // Load ShaderGraph with given fetch function
   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  var shadergraph = ShaderGraph(fetch);
+  var shadergraph = ShaderGraph(fetch, { autoInspect: true });
 
   // Prepare instanced snippet
   var instance = shadergraph.shader();

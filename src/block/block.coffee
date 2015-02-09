@@ -19,7 +19,7 @@ class Block
 
   # Compile a new program starting from this block
   compile: (language, namespace) ->
-    program = new Program language, namespace ? Program.entry()
+    program = new Program language, namespace ? Program.entry(), @node.graph
     @call program, 0
     program.assemble()
 
@@ -27,7 +27,7 @@ class Block
   link: (language, namespace) ->
     module = @compile language, namespace
 
-    layout = new Layout language
+    layout = new Layout language, @node.graph
     @_include module, layout, 0
     @export   layout, 0
     layout.link module
@@ -37,9 +37,24 @@ class Block
   callback: (layout, depth, name, external, outlet) ->
   export:   (layout, depth) ->
 
+  # Info string for debugging
+  _info: (suffix) ->
+    string = @node.owner.snippet?._name ? @node.owner.namespace
+    string += '.' + suffix if suffix?
+
+  # Create an outlet for a signature definition
+  _outlet: (def, props) ->
+    outlet = Graph.Outlet.make def, props
+    outlet.meta.def = def
+    outlet
+
   # Make a call to this module in the given program
   _call: (module, program, depth) ->
     program.call @node, module, depth
+
+  # Require this module's dependencies in the given program
+  _require: (module, program) ->
+    program.require @node, module
 
   # Make a call to all connected inputs
   _inputs: (module, program, depth) ->
@@ -58,11 +73,23 @@ class Block
   # Link this module's connected callbacks 
   _link: (module, layout, depth) ->
     debug && console.log 'block::_link', @.toString(), module.namespace
-    for key, ext of module.externals
+    for key in module.symbols
+      ext = module.externals[key]
       outlet = @node.get ext.name
+      throw Error("OutletError: External not found on #{@_info ext.name}") if !outlet
+
+      continue if outlet.meta.child?
+
+      [orig, parent, block] = [outlet, outlet, null]
+      while !block and parent
+        [parent, outlet] = [outlet.meta.parent, parent]
+
+      block  = Block.previous outlet
+      throw Error("OutletError: Missing connection on #{@_info ext.name}") if !block
+
       debug && console.log 'callback -> ', @.toString(), ext.name, outlet
-      Block.previous(outlet)?.callback layout, depth + 1, key, ext, outlet.input
-      Block.previous(outlet)?.export layout, depth + 1
+      block.callback layout, depth + 1, key, ext, outlet.input
+      block?.export layout, depth + 1
 
   # Trace backwards to discover callbacks further up
   _trace: (module, layout, depth) ->

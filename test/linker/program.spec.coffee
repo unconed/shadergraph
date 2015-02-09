@@ -403,13 +403,13 @@ describe "program", () ->
 
     # verify if externals were exported correctly
     n = 0
-    names = ['callback1', 'callback2']
+    names = ['_io_1_callback1', '_io_1_callback2']
     snippets = ['split', 'join']
     types = ['(f)(v2)', '(v3)(v3)']
     for name, ext of snippet.externals
       namespace = ns(name)
       expect(snippet.code.indexOf('void '+ namespace + snippets[n] + '(')).not.toBe -1
-      expect(ext.name).toBe(names[n])
+      expect(normalize ext.name).toBe(names[n])
       expect(ext.type).toBe(types[n])
       n++
     expect(n).toBe(2)

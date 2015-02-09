@@ -8,17 +8,20 @@ Priority   = require './priority'
   Unconnected input/outputs and undefined callbacks are exposed in the new global/main scope
   If there is only one call with an identical call signature, a #define is output instead.
 ###
-assemble = (language, namespace, calls) ->
+assemble = (language, namespace, calls, requires) ->
 
   generate = language.generate
 
   externals  = {}
+  symbols    = []
   uniforms   = {}
   varyings   = {}
   attributes = {}
   library    = {}
 
   process = () ->
+
+    required r.node, r.module for ns, r of requires
 
     [body, calls] = handle calls
     body.entry    = namespace if namespace?
@@ -36,6 +39,7 @@ assemble = (language, namespace, calls) ->
     code:        code        # Complete snippet (tests/debug)
     main:        main        # Function signature
     entry:       main.name   # Entry point name
+    symbols:     symbols
     externals:   externals
     uniforms:    uniforms
     varyings:    varyings
@@ -80,14 +84,23 @@ assemble = (language, namespace, calls) ->
     # Adopt snippet body as library
     adopt module.namespace, module.body, priority
 
-    # Adopt externals
+    # Adopt GL vars
     (uniforms[key]   = def) for key, def of module.uniforms
     (varyings[key]   = def) for key, def of module.varyings
     (attributes[key] = def) for key, def of module.attributes
 
-    for key, def of module.externals
-      if isDangling node, def.name
-        externals[key] = def
+    required node, module
+
+  required = (node, module) ->
+    # Adopt external symbols
+    for key in module.symbols
+      ext = module.externals[key]
+      if isDangling node, ext.name
+        copy = {}
+        copy[k] = v for k, v of ext
+        copy.name = lookup node, ext.name
+        externals[key] = copy
+        symbols.push key
 
   # Check for dangling input/output
   isDangling = (node, name) ->

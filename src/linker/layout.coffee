@@ -12,7 +12,7 @@ debug = false
 ###
 class Layout
 
-  constructor: (@language) ->
+  constructor: (@language, @graph) ->
     @links    = []
     @includes = []
     @modules  = {}
@@ -38,10 +38,10 @@ class Layout
 
   # Compile queued ops into result
   link: (module) ->
-    data         = link @language, @links, @includes, module
-    snippet      = new Snippet
-    snippet[key] = data[key] for key of data
-
+    data          = link @language, @links, @includes, module
+    snippet       = new Snippet
+    snippet[key]  = data[key] for key of data
+    snippet.graph = @graph
     snippet
 
 

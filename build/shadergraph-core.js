@@ -178,6 +178,7 @@ Node = (function() {
     this.graph = null;
     this.inputs = [];
     this.outputs = [];
+    this.all = [];
     this.outlets = null;
     this.id = Node.id();
     this.setOutlets(outlets);
@@ -220,16 +221,16 @@ Node = (function() {
   };
 
   Node.prototype.setOutlets = function(outlets) {
-    var existing, hash, key, make, match, outlet, _i, _j, _k, _len, _len1, _len2, _ref;
-    make = function(outlet) {
-      return new Outlet(outlet.inout, outlet.name, outlet.hint, outlet.type, outlet.meta);
-    };
+    var existing, hash, key, match, outlet, _i, _j, _k, _len, _len1, _len2, _ref;
     if (outlets != null) {
       if (this.outlets == null) {
         this.outlets = {};
         for (_i = 0, _len = outlets.length; _i < _len; _i++) {
           outlet = outlets[_i];
-          this._add(make(outlet));
+          if (!(outlet instanceof Outlet)) {
+            outlet = Outlet.make(outlet);
+          }
+          this._add(outlet);
         }
         return;
       }
@@ -257,7 +258,10 @@ Node = (function() {
         if (existing instanceof Outlet) {
           this._morph(existing, outlet);
         } else {
-          this._add(make(outlet));
+          if (!(outlet instanceof Outlet)) {
+            outlet = Outlet.make(outlet);
+          }
+          this._add(outlet);
         }
       }
       this;
@@ -340,6 +344,7 @@ Node = (function() {
     if (outlet.inout === Graph.OUT) {
       this.outputs.push(outlet);
     }
+    this.all.push(outlet);
     return this.outlets[key] = outlet;
   };
 
@@ -368,6 +373,7 @@ Node = (function() {
     if (outlet.inout === Graph.OUT) {
       this.outputs.splice(this.outputs.indexOf(outlet), 1);
     }
+    this.all.splice(this.all.indexOf(outlet), 1);
     return this;
   };
 
@@ -389,6 +395,22 @@ Graph = require('./graph');
  */
 
 Outlet = (function() {
+  Outlet.make = function(outlet, extra) {
+    var key, meta, value, _ref;
+    if (extra == null) {
+      extra = {};
+    }
+    meta = extra;
+    if (outlet.meta != null) {
+      _ref = outlet.meta;
+      for (key in _ref) {
+        value = _ref[key];
+        meta[key] = value;
+      }
+    }
+    return new Outlet(outlet.inout, outlet.name, outlet.hint, outlet.type, meta);
+  };
+
   Outlet.index = 0;
 
   Outlet.id = function(name) {
@@ -400,19 +422,22 @@ Outlet = (function() {
     return name = name.replace(/(In|Out|Inout|InOut)$/, '');
   };
 
-  function Outlet(inout, name, hint, type, meta) {
+  function Outlet(inout, name, hint, type, meta, id) {
     this.inout = inout;
     this.name = name;
     this.hint = hint;
     this.type = type;
-    this.meta = meta;
+    this.meta = meta != null ? meta : {};
+    this.id = id;
     if (this.hint == null) {
       this.hint = Outlet.hint(name);
     }
     this.node = null;
     this.input = null;
     this.output = [];
-    this.id = Outlet.id(this.hint);
+    if (this.id == null) {
+      this.id = Outlet.id(this.hint);
+    }
   }
 
   Outlet.prototype.morph = function(outlet) {
@@ -424,18 +449,13 @@ Outlet = (function() {
   };
 
   Outlet.prototype.dupe = function(name) {
-    var hint, inout, meta, type;
+    var outlet;
     if (name == null) {
       name = this.id;
     }
-    inout = this.inout, hint = this.hint, type = this.type, meta = this.meta;
-    return {
-      inout: inout,
-      hint: hint,
-      type: type,
-      meta: meta,
-      name: name
-    };
+    outlet = Outlet.make(this);
+    outlet.name = name;
+    return outlet;
   };
 
   Outlet.prototype.connect = function(outlet) {
@@ -519,7 +539,7 @@ Block = (function() {
 
   Block.prototype.compile = function(language, namespace) {
     var program;
-    program = new Program(language, namespace != null ? namespace : Program.entry());
+    program = new Program(language, namespace != null ? namespace : Program.entry(), this.node.graph);
     this.call(program, 0);
     return program.assemble();
   };
@@ -527,7 +547,7 @@ Block = (function() {
   Block.prototype.link = function(language, namespace) {
     var layout, module;
     module = this.compile(language, namespace);
-    layout = new Layout(language);
+    layout = new Layout(language, this.node.graph);
     this._include(module, layout, 0);
     this["export"](layout, 0);
     return layout.link(module);
@@ -539,8 +559,27 @@ Block = (function() {
 
   Block.prototype["export"] = function(layout, depth) {};
 
+  Block.prototype._info = function(suffix) {
+    var string, _ref, _ref1;
+    string = (_ref = (_ref1 = this.node.owner.snippet) != null ? _ref1._name : void 0) != null ? _ref : this.node.owner.namespace;
+    if (suffix != null) {
+      return string += '.' + suffix;
+    }
+  };
+
+  Block.prototype._outlet = function(def, props) {
+    var outlet;
+    outlet = Graph.Outlet.make(def, props);
+    outlet.meta.def = def;
+    return outlet;
+  };
+
   Block.prototype._call = function(module, program, depth) {
     return program.call(this.node, module, depth);
+  };
+
+  Block.prototype._require = function(module, program) {
+    return program.require(this.node, module);
   };
 
   Block.prototype._inputs = function(module, program, depth) {
@@ -564,18 +603,31 @@ Block = (function() {
   };
 
   Block.prototype._link = function(module, layout, depth) {
-    var ext, key, outlet, _ref, _ref1, _ref2, _results;
+    var block, ext, key, orig, outlet, parent, _i, _len, _ref, _ref1, _ref2, _results;
     debug && console.log('block::_link', this.toString(), module.namespace);
-    _ref = module.externals;
+    _ref = module.symbols;
     _results = [];
-    for (key in _ref) {
-      ext = _ref[key];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      key = _ref[_i];
+      ext = module.externals[key];
       outlet = this.node.get(ext.name);
-      debug && console.log('callback -> ', this.toString(), ext.name, outlet);
-      if ((_ref1 = Block.previous(outlet)) != null) {
-        _ref1.callback(layout, depth + 1, key, ext, outlet.input);
+      if (!outlet) {
+        throw Error("OutletError: External not found on " + (this._info(ext.name)));
       }
-      _results.push((_ref2 = Block.previous(outlet)) != null ? _ref2["export"](layout, depth + 1) : void 0);
+      if (outlet.meta.child != null) {
+        continue;
+      }
+      _ref1 = [outlet, outlet, null], orig = _ref1[0], parent = _ref1[1], block = _ref1[2];
+      while (!block && parent) {
+        _ref2 = [outlet.meta.parent, parent], parent = _ref2[0], outlet = _ref2[1];
+      }
+      block = Block.previous(outlet);
+      if (!block) {
+        throw Error("OutletError: Missing connection on " + (this._info(ext.name)));
+      }
+      debug && console.log('callback -> ', this.toString(), ext.name, outlet);
+      block.callback(layout, depth + 1, key, ext, outlet.input);
+      _results.push(block != null ? block["export"](layout, depth + 1) : void 0);
     }
     return _results;
   };
@@ -621,15 +673,33 @@ Call = (function(_super) {
   };
 
   Call.prototype.makeOutlets = function() {
-    var external, key, outlets, _ref;
-    outlets = [];
-    outlets = outlets.concat(this.snippet.main.signature);
-    _ref = this.snippet.externals;
-    for (key in _ref) {
-      external = _ref[key];
-      outlets.push(external);
-    }
-    return outlets;
+    var callbacks, externals, key, main, outlet, params, symbols;
+    main = this.snippet.main.signature;
+    externals = this.snippet.externals;
+    symbols = this.snippet.symbols;
+    params = (function() {
+      var _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = main.length; _i < _len; _i++) {
+        outlet = main[_i];
+        _results.push(this._outlet(outlet, {
+          callback: false
+        }));
+      }
+      return _results;
+    }).call(this);
+    callbacks = (function() {
+      var _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = symbols.length; _i < _len; _i++) {
+        key = symbols[_i];
+        _results.push(this._outlet(externals[key], {
+          callback: true
+        }));
+      }
+      return _results;
+    }).call(this);
+    return params.concat(callbacks);
   };
 
   Call.prototype.call = function(program, depth) {
@@ -653,17 +723,13 @@ module.exports = Call;
 
 
 },{"./block":5}],7:[function(require,module,exports){
-var Block, Callback, Graph, isCallback,
+var Block, Callback, Graph,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 Graph = require('../graph');
 
 Block = require('./block');
-
-isCallback = function(outlet) {
-  return outlet.type[0] === '(';
-};
 
 
 /*
@@ -689,14 +755,21 @@ Callback = (function(_super) {
 
   Callback.prototype.makeOutlets = function() {
     var handle, ins, outlet, outlets, outs, type, _i, _j, _len, _len1, _ref, _ref1;
+    this.make();
     outlets = [];
     ins = [];
     outs = [];
     handle = (function(_this) {
       return function(outlet, list) {
-        if (isCallback(outlet)) {
+        var dupe, _base;
+        if (outlet.meta.callback) {
           if (outlet.inout === Graph.IN) {
-            return outlets.push(outlet.dupe(outlet.name));
+            dupe = outlet.dupe();
+            if ((_base = dupe.meta).child == null) {
+              _base.child = outlet;
+            }
+            outlet.meta.parent = dupe;
+            return outlets.push(dupe);
           }
         } else {
           return list.push(outlet.type);
@@ -719,7 +792,11 @@ Callback = (function(_super) {
     outlets.push({
       name: 'callback',
       type: type,
-      inout: Graph.OUT
+      inout: Graph.OUT,
+      meta: {
+        callback: true,
+        def: this.subroutine.main
+      }
     });
     return outlets;
   };
@@ -728,28 +805,19 @@ Callback = (function(_super) {
     return this.subroutine = this.graph.compile(this.namespace);
   };
 
-  Callback.prototype.fetch = function(outlet) {
-    if (this.subroutine == null) {
-      this.make();
-    }
-    return this.subroutine;
-  };
-
   Callback.prototype["export"] = function(layout, depth) {
     if (!layout.visit(this.namespace, depth)) {
       return;
-    }
-    if (this.subroutine == null) {
-      this.make();
     }
     this._link(this.subroutine, layout, depth);
     return this.graph["export"](layout, depth);
   };
 
+  Callback.prototype.call = function(program, depth) {
+    return this._require(this.subroutine, program, depth);
+  };
+
   Callback.prototype.callback = function(layout, depth, name, external, outlet) {
-    if (this.subroutine == null) {
-      this.make();
-    }
     this._include(this.subroutine, layout, depth);
     return this._callback(this.subroutine, layout, depth, name, external, outlet);
   };
@@ -774,17 +842,13 @@ exports.Join = require('./join');
 
 
 },{"./block":5,"./call":6,"./callback":7,"./isolate":9,"./join":10}],9:[function(require,module,exports){
-var Block, Graph, Isolate, isCallback,
+var Block, Graph, Isolate,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 Graph = require('../graph');
 
 Block = require('./block');
-
-isCallback = function(outlet) {
-  return outlet.type[0] === '(';
-};
 
 
 /*
@@ -809,23 +873,33 @@ Isolate = (function(_super) {
   };
 
   Isolate.prototype.makeOutlets = function() {
-    var name, names, outlet, outlets, set, _i, _j, _len, _len1, _ref, _ref1;
+    var dupe, name, names, outlet, outlets, seen, set, _base, _i, _j, _len, _len1, _ref, _ref1, _ref2;
+    this.make();
     outlets = [];
     names = null;
     _ref = ['inputs', 'outputs'];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       set = _ref[_i];
+      seen = {};
       _ref1 = this.graph[set]();
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         outlet = _ref1[_j];
         name = void 0;
-        if (outlet.hint === 'return') {
-          name = 'return';
+        if (((_ref2 = outlet.hint) === 'return' || _ref2 === 'callback') && outlet.inout === Graph.OUT) {
+          name = outlet.hint;
         }
-        if (isCallback(outlet)) {
-          name = outlet.name;
+        if (seen[name] != null) {
+          name = void 0;
         }
-        outlets.push(outlet.dupe(name));
+        if (name != null) {
+          seen[name] = true;
+        }
+        dupe = outlet.dupe(name);
+        if ((_base = dupe.meta).child == null) {
+          _base.child = outlet;
+        }
+        outlet.meta.parent = dupe;
+        outlets.push(dupe);
       }
     }
     return outlets;
@@ -835,52 +909,23 @@ Isolate = (function(_super) {
     return this.subroutine = this.graph.compile(this.namespace);
   };
 
-  Isolate.prototype.fetch = function(outlet) {
-    outlet = outlet.inout === Graph.IN ? this.graph.getIn(outlet.name) : this.graph.getOut(outlet.name);
-    return outlet != null ? outlet.node.owner.fetch(outlet) : void 0;
-  };
-
   Isolate.prototype.call = function(program, depth) {
-    if (this.subroutine == null) {
-      this.make();
-    }
     this._call(this.subroutine, program, depth);
     return this._inputs(this.subroutine, program, depth);
   };
 
   Isolate.prototype["export"] = function(layout, depth) {
-    var externals, module, outlet, _i, _len, _ref, _results;
     if (!layout.visit(this.namespace, depth)) {
       return;
     }
-    if (this.subroutine == null) {
-      this.make();
-    }
     this._link(this.subroutine, layout, depth);
     this._trace(this.subroutine, layout, depth);
-    this.graph["export"](layout, depth);
-    externals = this.subroutine.externals;
-    _ref = this.node.inputs;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      outlet = _ref[_i];
-      if (!(isCallback(outlet) && outlet.inout === Graph.IN && (outlet.input != null) && (externals[outlet.name] == null))) {
-        continue;
-      }
-      module = this.fetch(outlet);
-      if (!layout.visit(module.namespace + '__shadow', depth)) {
-        continue;
-      }
-      _results.push(this._link(module, layout, depth));
-    }
-    return _results;
+    return this.graph["export"](layout, depth);
   };
 
   Isolate.prototype.callback = function(layout, depth, name, external, outlet) {
-    var subroutine;
-    subroutine = this.fetch(outlet);
-    this._include(subroutine, layout, depth);
-    return this._callback(subroutine, layout, depth, name, external, outlet);
+    outlet = outlet.meta.child;
+    return outlet.node.owner.callback(layout, depth, name, external, outlet);
   };
 
   return Isolate;
@@ -1026,7 +1071,7 @@ Factory = (function() {
     } else {
       this.callback();
       this._call(name, uniforms, namespace, defines);
-      this.join();
+      this.end();
     }
     return this;
   };
@@ -1063,7 +1108,7 @@ Factory = (function() {
   Factory.prototype.pass = function() {
     var pass;
     pass = this._stack[2].end;
-    this.join();
+    this.end();
     this._state.end = this._state.end.concat(pass);
     return this;
   };
@@ -1085,7 +1130,7 @@ Factory = (function() {
   Factory.prototype.graph = function() {
     var graph, _ref;
     while (((_ref = this._stack) != null ? _ref.length : void 0) > 1) {
-      this.join();
+      this.end();
     }
     if (this._graph) {
       this._tail(this._state, this._graph);
@@ -1116,17 +1161,33 @@ Factory = (function() {
   };
 
   Factory.prototype._concat = function(factory) {
-    var block;
-    block = new Block.Isolate(factory._graph);
+    var block, error;
     this._tail(factory._state, factory._graph);
+    try {
+      block = new Block.Isolate(factory._graph);
+    } catch (_error) {
+      error = _error;
+      if (this.config.autoInspect) {
+        Visualize.inspect(error, this._graph, factory);
+      }
+      throw error;
+    }
     this._auto(block);
     return this;
   };
 
   Factory.prototype._import = function(factory) {
-    var block;
-    block = new Block.Callback(factory._graph);
+    var block, error;
     this._tail(factory._state, factory._graph);
+    try {
+      block = new Block.Callback(factory._graph);
+    } catch (_error) {
+      error = _error;
+      if (this.config.autoInspect) {
+        Visualize.inspect(error, this._graph, factory);
+      }
+      throw error;
+    }
     this._auto(block);
     return this;
   };
@@ -1147,21 +1208,37 @@ Factory = (function() {
   };
 
   Factory.prototype._isolate = function(sub, main) {
-    var block, subgraph;
+    var block, error, subgraph;
     if (sub.nodes.length) {
       subgraph = this._subgraph(sub);
-      block = new Block.Isolate(subgraph);
       this._tail(sub, subgraph);
+      try {
+        block = new Block.Isolate(subgraph);
+      } catch (_error) {
+        error = _error;
+        if (this.config.autoInspect) {
+          Visualize.inspect(error, this._graph, subgraph);
+        }
+        throw error;
+      }
       return this._auto(block);
     }
   };
 
   Factory.prototype._callback = function(sub, main) {
-    var block, subgraph;
+    var block, error, subgraph;
     if (sub.nodes.length) {
       subgraph = this._subgraph(sub);
-      block = new Block.Callback(subgraph);
       this._tail(sub, subgraph);
+      try {
+        block = new Block.Callback(subgraph);
+      } catch (_error) {
+        error = _error;
+        if (this.config.autoInspect) {
+          Visualize.inspect(error, this._graph, subgraph);
+        }
+        throw error;
+      }
       return this._auto(block);
     }
   };
@@ -1199,25 +1276,49 @@ Factory = (function() {
     }
     graph.compile = (function(_this) {
       return function(namespace) {
+        var error;
         if (namespace == null) {
           namespace = 'main';
         }
-        return graph.tail.owner.compile(_this.language, namespace);
+        try {
+          return graph.tail.owner.compile(_this.language, namespace);
+        } catch (_error) {
+          error = _error;
+          if (_this.config.autoInspect) {
+            graph.inspect(error);
+          }
+          throw error;
+        }
       };
     })(this);
     graph.link = (function(_this) {
       return function(namespace) {
+        var error;
         if (namespace == null) {
           namespace = 'main';
         }
-        return graph.tail.owner.link(_this.language, namespace);
+        try {
+          return graph.tail.owner.link(_this.language, namespace);
+        } catch (_error) {
+          error = _error;
+          if (_this.config.autoInspect) {
+            graph.inspect(error);
+          }
+          throw error;
+        }
       };
     })(this);
-    return graph["export"] = (function(_this) {
+    graph["export"] = (function(_this) {
       return function(layout, depth) {
         return graph.tail.owner["export"](layout, depth);
       };
     })(this);
+    return graph.inspect = function(message) {
+      if (message == null) {
+        message = null;
+      }
+      return Visualize.inspect(message, graph);
+    };
   };
 
   Factory.prototype._group = function(op, empty) {
@@ -1522,7 +1623,9 @@ Material = (function() {
       }
     }
     options.vertexShader = vertex.code;
+    options.vertexGraph = vertex.graph;
     options.fragmentShader = fragment.code;
+    options.fragmentGraph = fragment.graph;
     options.attributes = attributes;
     options.uniforms = uniforms;
     options.varyings = varyings;
@@ -2677,6 +2780,7 @@ Node = (function() {
     this.graph = null;
     this.inputs = [];
     this.outputs = [];
+    this.all = [];
     this.outlets = null;
     this.id = Node.id();
     this.setOutlets(outlets);
@@ -2719,16 +2823,16 @@ Node = (function() {
   };
 
   Node.prototype.setOutlets = function(outlets) {
-    var existing, hash, key, make, match, outlet, _i, _j, _k, _len, _len1, _len2, _ref;
-    make = function(outlet) {
-      return new Outlet(outlet.inout, outlet.name, outlet.hint, outlet.type, outlet.meta);
-    };
+    var existing, hash, key, match, outlet, _i, _j, _k, _len, _len1, _len2, _ref;
     if (outlets != null) {
       if (this.outlets == null) {
         this.outlets = {};
         for (_i = 0, _len = outlets.length; _i < _len; _i++) {
           outlet = outlets[_i];
-          this._add(make(outlet));
+          if (!(outlet instanceof Outlet)) {
+            outlet = Outlet.make(outlet);
+          }
+          this._add(outlet);
         }
         return;
       }
@@ -2756,7 +2860,10 @@ Node = (function() {
         if (existing instanceof Outlet) {
           this._morph(existing, outlet);
         } else {
-          this._add(make(outlet));
+          if (!(outlet instanceof Outlet)) {
+            outlet = Outlet.make(outlet);
+          }
+          this._add(outlet);
         }
       }
       this;
@@ -2839,6 +2946,7 @@ Node = (function() {
     if (outlet.inout === Graph.OUT) {
       this.outputs.push(outlet);
     }
+    this.all.push(outlet);
     return this.outlets[key] = outlet;
   };
 
@@ -2867,6 +2975,7 @@ Node = (function() {
     if (outlet.inout === Graph.OUT) {
       this.outputs.splice(this.outputs.indexOf(outlet), 1);
     }
+    this.all.splice(this.all.indexOf(outlet), 1);
     return this;
   };
 
@@ -2888,6 +2997,22 @@ Graph = require('./graph');
  */
 
 Outlet = (function() {
+  Outlet.make = function(outlet, extra) {
+    var key, meta, value, _ref;
+    if (extra == null) {
+      extra = {};
+    }
+    meta = extra;
+    if (outlet.meta != null) {
+      _ref = outlet.meta;
+      for (key in _ref) {
+        value = _ref[key];
+        meta[key] = value;
+      }
+    }
+    return new Outlet(outlet.inout, outlet.name, outlet.hint, outlet.type, meta);
+  };
+
   Outlet.index = 0;
 
   Outlet.id = function(name) {
@@ -2899,19 +3024,22 @@ Outlet = (function() {
     return name = name.replace(/(In|Out|Inout|InOut)$/, '');
   };
 
-  function Outlet(inout, name, hint, type, meta) {
+  function Outlet(inout, name, hint, type, meta, id) {
     this.inout = inout;
     this.name = name;
     this.hint = hint;
     this.type = type;
-    this.meta = meta;
+    this.meta = meta != null ? meta : {};
+    this.id = id;
     if (this.hint == null) {
       this.hint = Outlet.hint(name);
     }
     this.node = null;
     this.input = null;
     this.output = [];
-    this.id = Outlet.id(this.hint);
+    if (this.id == null) {
+      this.id = Outlet.id(this.hint);
+    }
   }
 
   Outlet.prototype.morph = function(outlet) {
@@ -2923,18 +3051,13 @@ Outlet = (function() {
   };
 
   Outlet.prototype.dupe = function(name) {
-    var hint, inout, meta, type;
+    var outlet;
     if (name == null) {
       name = this.id;
     }
-    inout = this.inout, hint = this.hint, type = this.type, meta = this.meta;
-    return {
-      inout: inout,
-      hint: hint,
-      type: type,
-      meta: meta,
-      name: name
-    };
+    outlet = Outlet.make(this);
+    outlet.name = name;
+    return outlet;
   };
 
   Outlet.prototype.connect = function(outlet) {
@@ -3030,7 +3153,8 @@ ShaderGraph = (function() {
       globalUniforms: false,
       globalVaryings: true,
       globalAttributes: true,
-      globals: []
+      globals: [],
+      autoInspect: false
     };
     this.config = merge(defaults, config);
     this.fetch = cache(library(GLSL, snippets, Snippet.load));
@@ -3112,16 +3236,21 @@ Priority = require('./priority');
   If there is only one call with an identical call signature, a #define is output instead.
  */
 
-assemble = function(language, namespace, calls) {
-  var adopt, attributes, externals, generate, handle, include, isDangling, library, lookup, process, uniforms, varyings;
+assemble = function(language, namespace, calls, requires) {
+  var adopt, attributes, externals, generate, handle, include, isDangling, library, lookup, process, required, symbols, uniforms, varyings;
   generate = language.generate;
   externals = {};
+  symbols = [];
   uniforms = {};
   varyings = {};
   attributes = {};
   library = {};
   process = function() {
-    var body, code, includes, lib, main, ns, sorted, _ref;
+    var body, code, includes, lib, main, ns, r, sorted, _ref;
+    for (ns in requires) {
+      r = requires[ns];
+      required(r.node, r.module);
+    }
     _ref = handle(calls), body = _ref[0], calls = _ref[1];
     if (namespace != null) {
       body.entry = namespace;
@@ -3150,6 +3279,7 @@ assemble = function(language, namespace, calls) {
       code: code,
       main: main,
       entry: main.name,
+      symbols: symbols,
       externals: externals,
       uniforms: uniforms,
       varyings: varyings,
@@ -3205,7 +3335,7 @@ assemble = function(language, namespace, calls) {
     }
   };
   include = function(node, module, priority) {
-    var def, key, lib, ns, _ref, _ref1, _ref2, _ref3, _ref4, _results;
+    var def, key, lib, ns, _ref, _ref1, _ref2, _ref3;
     priority = Priority.make(priority);
     _ref = module.library;
     for (ns in _ref) {
@@ -3228,12 +3358,24 @@ assemble = function(language, namespace, calls) {
       def = _ref3[key];
       attributes[key] = def;
     }
-    _ref4 = module.externals;
+    return required(node, module);
+  };
+  required = function(node, module) {
+    var copy, ext, k, key, v, _i, _len, _ref, _results;
+    _ref = module.symbols;
     _results = [];
-    for (key in _ref4) {
-      def = _ref4[key];
-      if (isDangling(node, def.name)) {
-        _results.push(externals[key] = def);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      key = _ref[_i];
+      ext = module.externals[key];
+      if (isDangling(node, ext.name)) {
+        copy = {};
+        for (k in ext) {
+          v = ext[k];
+          copy[k] = v;
+        }
+        copy.name = lookup(node, ext.name);
+        externals[key] = copy;
+        _results.push(symbols.push(key));
       } else {
         _results.push(void 0);
       }
@@ -3304,8 +3446,9 @@ debug = false;
  */
 
 Layout = (function() {
-  function Layout(language) {
+  function Layout(language, graph) {
     this.language = language;
+    this.graph = graph;
     this.links = [];
     this.includes = [];
     this.modules = {};
@@ -3351,6 +3494,7 @@ Layout = (function() {
     for (key in data) {
       snippet[key] = data[key];
     }
+    snippet.graph = this.graph;
     return snippet;
   };
 
@@ -3378,9 +3522,10 @@ Priority = require('./priority');
  */
 
 link = function(language, links, modules, exported) {
-  var adopt, attributes, externals, generate, include, includes, isDangling, library, process, uniforms, varyings;
+  var adopt, attributes, externals, generate, include, includes, isDangling, library, process, symbols, uniforms, varyings;
   generate = language.generate;
   includes = [];
+  symbols = [];
   externals = {};
   uniforms = {};
   attributes = {};
@@ -3446,7 +3591,7 @@ link = function(language, links, modules, exported) {
     }
   };
   include = function(node, module, priority) {
-    var def, key, lib, ns, _ref, _ref1, _ref2, _ref3, _ref4, _results;
+    var def, ext, key, lib, ns, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _results;
     priority = Priority.make(priority);
     _ref = module.library;
     for (ns in _ref) {
@@ -3469,12 +3614,14 @@ link = function(language, links, modules, exported) {
       def = _ref3[key];
       attributes[key] = def;
     }
-    _ref4 = module.externals;
+    _ref4 = module.symbols;
     _results = [];
-    for (key in _ref4) {
-      def = _ref4[key];
-      if (isDangling(node, def.name)) {
-        _results.push(externals[key] = def);
+    for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
+      key = _ref4[_i];
+      ext = module.externals[key];
+      if (isDangling(node, ext.name)) {
+        externals[key] = ext;
+        _results.push(symbols.push(key));
       } else {
         _results.push(void 0);
       }
@@ -3577,10 +3724,12 @@ Program = (function() {
     return "_pg_" + (++Program.index) + "_";
   };
 
-  function Program(language, namespace) {
+  function Program(language, namespace, graph) {
     this.language = language;
     this.namespace = namespace;
+    this.graph = graph;
     this.calls = {};
+    this.requires = {};
   }
 
   Program.prototype.call = function(node, module, priority) {
@@ -3598,13 +3747,23 @@ Program = (function() {
     return this;
   };
 
+  Program.prototype.require = function(node, module) {
+    var ns;
+    ns = module.namespace;
+    return this.requires[ns] = {
+      node: node,
+      module: module
+    };
+  };
+
   Program.prototype.assemble = function() {
     var data, key, snippet, _ref;
-    data = assemble(this.language, (_ref = this.namespace) != null ? _ref : Program.entry, this.calls);
+    data = assemble(this.language, (_ref = this.namespace) != null ? _ref : Program.entry, this.calls, this.requires);
     snippet = new Snippet;
     for (key in data) {
       snippet[key] = data[key];
     }
+    snippet.graph = this.graph;
     return snippet;
   };
 
@@ -3645,6 +3804,7 @@ Snippet = (function() {
     this.entry = null;
     this.uniforms = null;
     this.externals = null;
+    this.symbols = null;
     this.attributes = null;
     this.varyings = null;
     if (!this.language) {
@@ -3679,9 +3839,10 @@ Snippet = (function() {
     this.namespace = (_ref2 = namespace != null ? namespace : this.namespace) != null ? _ref2 : Snippet.namespace();
     this.entry = this.namespace + this.main.name;
     this.uniforms = {};
-    this.externals = {};
-    this.attributes = {};
     this.varyings = {};
+    this.attributes = {};
+    this.externals = {};
+    this.symbols = [];
     exist = {};
     exceptions = {};
     global = function(name) {
@@ -3719,14 +3880,17 @@ Snippet = (function() {
         return _this.varyings[_v(def.name)] = def;
       };
     })(this);
-    e = (function(_this) {
-      return function(def) {
-        return _this.externals[_e(def.name)] = def;
-      };
-    })(this);
     a = (function(_this) {
       return function(def) {
         return _this.attributes[_a(def.name)] = def;
+      };
+    })(this);
+    e = (function(_this) {
+      return function(def) {
+        var name;
+        name = _e(def.name);
+        _this.externals[name] = def;
+        return _this.symbols.push(name);
       };
     })(this);
     redef = function(def) {
@@ -3789,8 +3953,14 @@ exports.markup = markup = require('./markup');
 
 visualize = function(graph) {
   var data;
+  if (!graph) {
+    return;
+  }
   if (graph._graph != null) {
     graph = graph._graph;
+  }
+  if (!graph.nodes) {
+    return graph;
   }
   data = serialize(graph);
   return markup.process(data);
@@ -3803,7 +3973,9 @@ exports.visualize = function() {
     _results = [];
     for (_i = 0, _len = arguments.length; _i < _len; _i++) {
       graph = arguments[_i];
-      _results.push(visualize(graph));
+      if (graph) {
+        _results.push(visualize(graph));
+      }
     }
     return _results;
   }).apply(this, arguments));
@@ -3811,7 +3983,7 @@ exports.visualize = function() {
 
 exports.inspect = function() {
   var contents, element;
-  contents = visualize.apply(null, arguments);
+  contents = exports.visualize.apply(null, arguments);
   element = markup.overlay(contents);
   document.body.appendChild(element);
   contents.update();
@@ -3820,7 +3992,7 @@ exports.inspect = function() {
 
 
 },{"../Graph":2,"./markup":37,"./serialize":38}],37:[function(require,module,exports){
-var connect, cssColor, escapeText, hash, hashColor, makeSVG, merge, overlay, path, process, sqr, trim, _activate, _markup, _order;
+var connect, cssColor, escapeText, hash, hashColor, makeSVG, merge, overlay, path, process, sqr, trim, wrap, _activate, _markup, _order;
 
 hash = require('../factory/hash');
 
@@ -4093,26 +4265,36 @@ overlay = function(contents) {
   return div;
 };
 
+wrap = function(markup) {
+  var div;
+  if (markup instanceof Node) {
+    return markup;
+  }
+  div = document.createElement('div');
+  div.innerText = markup != null ? markup : '';
+  return div;
+};
+
 merge = function(markup) {
   var div, el, _i, _len;
   if (markup.length !== 1) {
     div = document.createElement('div');
     for (_i = 0, _len = markup.length; _i < _len; _i++) {
       el = markup[_i];
-      div.appendChild(el);
+      div.appendChild(wrap(el));
     }
     div.update = function() {
       var _j, _len1, _results;
       _results = [];
       for (_j = 0, _len1 = markup.length; _j < _len1; _j++) {
         el = markup[_j];
-        _results.push(el.update());
+        _results.push(typeof el.update === "function" ? el.update() : void 0);
       }
       return _results;
     };
     return div;
   } else {
-    return markup[0];
+    return wrap(markup[0]);
   }
 };
 

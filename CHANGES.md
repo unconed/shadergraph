@@ -1,4 +1,4 @@
-_2.0.4-dev_
+_2.0.4_
  * Ensure correct ordering of snippet callbacks in all cases
  * Refactor outlet creation / handling
  * Allow multiple open 'return' and 'callback' outlets in one graph

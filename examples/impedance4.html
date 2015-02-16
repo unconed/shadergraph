@@ -2,35 +2,48 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>ShaderGraph - Fragment Shader with Uniform</title>
+  <title>ShaderGraph - Impedance Matching 4</title>
   <link rel="stylesheet" href="../build/shadergraph.css" />
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
-<script type="application/x-glsl" id="getRampColor">
-vec3 getRampColor(float ramp) {
-  return vec3(ramp, ramp * ramp, ramp * ramp * ramp);
-}
-</script>
-
-<script type="application/x-glsl" id="getColor">
-uniform vec3 diffuseColor;
-vec3 getRampColor(float ramp);
-
+<script type="application/x-glsl" id="code1">
 vec3 getColor() {
-  return diffuseColor * getRampColor(length(diffuseColor));
+  return vec3(0.2, 0.3, 0.4);
 }
 </script>
 
-<script type="application/x-glsl" id="setColor">
+<script type="application/x-glsl" id="code2">
+vec3 getColor1();
+vec3 getColor2();
+vec3 getColorSum() {
+  return getColor1() + getColor2();
+}
+</script>
+
+<script type="application/x-glsl" id="code3">
+vec3 getColor();
+void main() {
+  gl_FragColor = vec4(getColor(), 1.0);
+}
+</script>
+
+<script type="application/x-glsl" id="code4">
 void setColor(vec3 color) {
   gl_FragColor = vec4(color, 1.0);
 }
 </script>
 
+<script type="application/x-glsl" id="code5">
+vec3 getColor(out vec3 color) {
+  color = vec3(1.0, 0.5, 0.2);
+  return vec3(0.2, 0.3, 0.4);
+}
+</script>
+
 </head>
 <body>
-  <h4>Fragment Shader with Uniform</h4>
-  <p>One callback linked to a chain of two snippets, with a uniform.</p>
+  <h4>Impedance Matching 4</h4>
+  <p>Two callbacks bundled up into one block.</p>
 
   <div class="graph"></div>
   <h5>View Source for Code</h5>
@@ -47,29 +60,15 @@ void setColor(vec3 color) {
 
   // Load ShaderGraph with given fetch function
   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  shadergraph = ShaderGraph(fetch, { autoInspect: true });
+  var shadergraph = ShaderGraph(fetch, { autoInspect: true });
 
-  // Prepare new shader
-  shader = shadergraph.shader()
-
-  // Prepare uniform (three.js style)
-  uniforms = {
-    diffuseColor: { type: 'v3', value: { x: 0.5, y: 0.75, z: 1.0 }}
-  };
-
-  // Build shader graph
-  shader
-    // Require a callback
-    .require('getRampColor')
-
-    // Equivalent to
-    //.callback()
-    //  .pipe('getRampColor')
-    //.end()
-
-    // Build two-step chain that uses the callback and the uniform
-    .pipe('getColor')
-    .pipe('setColor')
+  var shader = shadergraph.shader()
+                .isolate()
+                  .require('code1')
+                  .require('code1')
+                .end()
+                .pipe('code2')
+                .pipe('code4')
 
   // Finalize graph (optional, can call shader.link())
   graph   = shader.graph();

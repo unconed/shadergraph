@@ -2,17 +2,17 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>ShaderGraph - Require Shaders</title>
+  <title>ShaderGraph - Floating Inspector</title>
   <link rel="stylesheet" href="../build/shadergraph.css" />
   <script type="text/javascript" src="../build/shadergraph.js"></script>
 
-<script type="application/x-glsl" id="getColor">
+<script type="application/x-glsl" id="code1">
 vec3 getColor() {
   return vec3(0.2, 0.3, 0.4);
 }
 </script>
 
-<script type="application/x-glsl" id="getColorSum">
+<script type="application/x-glsl" id="code2">
 vec3 getColor1();
 vec3 getColor2();
 vec3 getColorSum() {
@@ -20,17 +20,30 @@ vec3 getColorSum() {
 }
 </script>
 
-<script type="application/x-glsl" id="setColor">
+<script type="application/x-glsl" id="code3">
 vec3 getColor();
 void main() {
   gl_FragColor = vec4(getColor(), 1.0);
 }
 </script>
 
+<script type="application/x-glsl" id="code4">
+void setColor(vec3 color) {
+  gl_FragColor = vec4(color, 1.0);
+}
+</script>
+
+<script type="application/x-glsl" id="code5">
+vec3 getColor(out vec3 color) {
+  color = vec3(1.0, 0.5, 0.2);
+  return vec3(0.2, 0.3, 0.4);
+}
+</script>
+
 </head>
 <body>
-  <h4>Require Shaders</h4>
-  <p>A pipe of required nodes.</p>
+  <h4>Floating Inspector</h4>
+  <p>Can set autoInspect: true to pop up for compilation errors.</p>
 
   <div class="graph"></div>
   <h5>View Source for Code</h5>
@@ -49,28 +62,25 @@ void main() {
   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
   var shadergraph = ShaderGraph(fetch, { autoInspect: true });
 
-  // Build shader graph
-  var shader = shadergraph.shader();
-  shader.require('getColor');        // Require unique instance of callback
-  shader.require('getColor');        // Require unique instance of callback
-  shader.require('getColorSum');     // Hook up both callbacks and output a new callback
-  shader.pipe('setColor');           // Connect to main snippet
+  var shader = shadergraph.shader()
+                .isolate()
+                  .require('code1')
+                  .require('code1')
+                .end()
+                .pipe('code2')
+                .pipe('code2')
+                .pipe('code4')
 
   // Finalize graph (optional, can call shader.link())
   graph   = shader.graph();
 
   // Link entire shader into a main() function
-  snippet = graph.link('main');
+  snippet = graph.link();
 
   // Show in document body
   document.querySelector('pre').innerText = snippet.code;
 
-  // Generate visualization of graph
-  visualize = shadergraph.visualize(graph);
-  document.querySelector('.graph').appendChild(visualize);
-  visualize.update();
-
-  console.log("shader.link('main') = ", snippet);
+  console.log("shader.link() = ", snippet);
 
   </script>
   

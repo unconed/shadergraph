@@ -1,8 +1,6 @@
 Graph   = require '../graph'
 Block   = require './block'
 
-isCallback = (outlet) -> return outlet.type[0] == '('
-
 ###
   Re-use a subgraph as a callback
 ###
@@ -18,6 +16,8 @@ class Callback extends Block
     new Callback @graph
 
   makeOutlets: () ->
+    @make()
+
     outlets = []
     ins     = []
     outs    = []
@@ -25,10 +25,14 @@ class Callback extends Block
     # Pass-through existing callbacks
     # Collect open inputs/outputs
     handle = (outlet, list) =>
-      if isCallback outlet
+      if outlet.meta.callback
         if outlet.inout == Graph.IN
-          # Export open callback inputs
-          outlets.push outlet.dupe outlet.name
+          # Dupe outlet and create two-way link between cloned outlets
+          dupe = outlet.dupe()
+          dupe  .meta.child ?= outlet
+          outlet.meta.parent = dupe
+
+          outlets.push dupe
       else
         list.push outlet.type
 
@@ -44,25 +48,25 @@ class Callback extends Block
       name:  'callback'
       type:  type
       inout: Graph.OUT
+      meta:
+        callback: true
+        def: @subroutine.main
 
     outlets
 
   make: () ->
     @subroutine = @graph.compile @namespace
 
-  fetch: (outlet) ->
-    @make() if !@subroutine?
-    @subroutine
-
   export: (layout, depth) ->
     return unless layout.visit @namespace, depth
-    @make() if !@subroutine?
 
     @_link     @subroutine, layout, depth
     @graph.export layout, depth
 
+  call: (program, depth) ->
+    @_require  @subroutine, program, depth
+
   callback: (layout, depth, name, external, outlet) ->
-    @make() if !@subroutine?
     @_include  @subroutine, layout, depth
     @_callback @subroutine, layout, depth, name, external, outlet
 

@@ -12,6 +12,7 @@ class Node
     @graph   = null
     @inputs  = []
     @outputs = []
+    @all     = []
     @outlets = null
     @id      = Node.id()
 
@@ -31,18 +32,13 @@ class Node
 
   # Set new outlet definition
   setOutlets: (outlets) ->
-    make = (outlet) ->
-      new Outlet outlet.inout,
-                 outlet.name,
-                 outlet.hint,
-                 outlet.type,
-                 outlet.meta
     if outlets?
       # First init
       if !@outlets?
         @outlets = {}
         for outlet in outlets
-          @_add make outlet
+          outlet = Outlet.make outlet if outlet !instanceof Outlet
+          @_add outlet
         return
 
       # Return new/old outlet matching hash key
@@ -71,7 +67,8 @@ class Node
           @_morph existing, outlet
         else
           # Spawn new outlet
-          @_add make outlet
+          outlet = Outlet.make outlet if outlet !instanceof Outlet
+          @_add outlet
 
       @
     @outlets
@@ -144,6 +141,7 @@ class Node
     # Add to name hash and inout list
     @inputs.push(outlet)  if outlet.inout == Graph.IN
     @outputs.push(outlet) if outlet.inout == Graph.OUT
+    @all.push(outlet)
     @outlets[key] = outlet
 
   # Morph outlet to other
@@ -174,7 +172,7 @@ class Node
     delete @outlets[key]
     @inputs .splice(@inputs .indexOf(outlet), 1) if outlet.inout == Graph.IN
     @outputs.splice(@outputs.indexOf(outlet), 1) if outlet.inout == Graph.OUT
-
+    @all    .splice(@all    .indexOf(outlet), 1)
     @
 
 module.exports = Node

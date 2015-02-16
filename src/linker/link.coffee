@@ -14,6 +14,7 @@ link = (language, links, modules, exported) ->
   generate = language.generate
   includes   = []
 
+  symbols    = []
   externals  = {}
   uniforms   = {}
   attributes = {}
@@ -72,9 +73,11 @@ link = (language, links, modules, exported) ->
     (varyings[key]   = def) for key, def of module.varyings
     (attributes[key] = def) for key, def of module.attributes
 
-    for key, def of module.externals
-      if isDangling node, def.name
-        externals[key] = def
+    for key in module.symbols
+      ext = module.externals[key]
+      if isDangling node, ext.name
+        externals[key] = ext
+        symbols.push key
 
   # Check for dangling input/output
   isDangling = (node, name) ->

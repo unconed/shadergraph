@@ -176,19 +176,27 @@
 .shadergraph-overlay .shadergraph-inside {
   width: 4000px;
   min-height: 100%;
+  padding-top: 10px;
+  box-sizing: border-box;
 }
 .shadergraph-overlay .shadergraph-close {
   position: absolute;
-  top: 0px;
-  right: 0px;
-  padding: 10px;
-  color: #ccc;
+  top: 5px;
+  right: 5px;
+  padding: 4px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.3);
+  color: rgba(0, 0, 0, .3);
   cursor: pointer;
   font-size: 24px;
+  line-height: 24px;
+  width: 24px;
+  text-align: center;
   vertical-align: middle;
 }
 .shadergraph-overlay .shadergraph-close:hover {
-  color: #000;
+  background: rgba(255,255,255,1);
+  color: rgba(0, 0, 0, 1);
 }
 .shadergraph-overlay .shadergraph-graph {
   overflow: visible;

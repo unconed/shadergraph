@@ -1,3 +1,11 @@
+_2.0.4-dev_
+ * Ensure correct ordering of snippet callbacks in all cases
+ * Refactor outlet creation / handling
+ * Allow multiple open 'return' and 'callback' outlets in one graph
+ * Simplify .isolate() / .callback() interactions
+ * Improve autoInspect with error message
+ * Keep graphs around as `program.graph`, `material.vertexGraph`, `material.fragmentGraph`. Call `graph.inspect()` to inspect.
+
 _2.0.3_
 
  * `material.build()` is now `.link()` to be consistent. The old name will continue to work.

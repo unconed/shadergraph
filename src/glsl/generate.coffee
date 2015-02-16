@@ -26,6 +26,8 @@ module.exports = _ =
     return:    ''
     vars:      {}
     calls:     []
+    post:      []
+    chain:     {}
 
   # Symbol define
   define: (a, b) ->
@@ -57,36 +59,66 @@ module.exports = _ =
     rets      = 1
 
     for arg in signature
-      param = arg.param
       name  = arg.name
 
-      continue if _.unshadow name
-      id = lookup name
+      copy = id = lookup name
+      other = null
+      meta  = null
+      omit  = false
+      inout = arg.inout
 
-      if name == $.RETURN_ARG
-        ret = id
-      else
-        args.push id
+      isReturn = name == $.RETURN_ARG
 
-      if body
-        if dangling name
+      # Shadowed inout: input side
+      if shadow = arg.meta?.shadowed
+        other = lookup shadow
+        if other
+          body.vars[other] = "  " + arg.param(other)
+          body.calls.push    "  #{other} = #{id}"
 
-          if name == $.RETURN_ARG
-            if body.return == ''
-              body.type     = arg.spec
-              body.return   = "  return #{id}"
-              body.vars[id] = "  " + param(id)
-              body.signature.push arg
-            else
-              body.vars[id] = "  " + param(id)
-              body.params.push param(id, true)
-              body.signature.push arg.copy id
+          if !dangling shadow
+            arg = arg.split()
           else
-            body.params.push param(id, true)
-            body.signature.push arg.copy id
+            meta = shadowed: other
 
+      # Shadowed inout: output side
+      if shadow = arg.meta?.shadow
+        other = lookup shadow
+        if other
+          if !dangling shadow
+            arg = arg.split()
+            omit = true
+          else
+            meta = shadow: other
+            continue
+
+      if isReturn
+        # Capture return value
+        ret = id
+      else if !omit
+        # Pass all non return, non shadow args in
+        args.push other ? id
+
+      # Export argument if unconnected
+      if dangling name
+        if isReturn
+          if body.return == ''
+            # Preserve 'return' arg name
+            copy = name
+            body.type     = arg.spec
+            body.return   = "  return #{id}"
+            body.vars[id] = "  " + arg.param(id)
+          else
+            body.vars[id] = "  " + arg.param(id)
+            body.params.push arg.param(id, true)
         else
-          body.vars[id] = "  " + param(id)
+          body.params.push arg.param(id, true)
+
+        # Copy argument into new signature
+        arg = arg.copy copy, meta
+        body.signature.push arg
+      else
+        body.vars[id] = "  " + arg.param(id)
 
     body.calls.push _.invoke ret, entry, args
 
@@ -97,7 +129,7 @@ module.exports = _ =
 
     # Check if we're only calling one snippet with identical signature
     # and not building void main();
-    if calls && body.calls.length == 1 && entry != 'main'
+    if calls && calls.length == 1 && entry != 'main'
       a = body
       b = calls[0].module
 
@@ -107,11 +139,13 @@ module.exports = _ =
     # Otherwise build function body
     if !code?
       vars    = (decl for v, decl of body.vars)
-      calls   = body.calls.slice()
+      calls   = body.calls
+      post    = body.post
       params  = body.params
       type    = body.type
       ret     = body.return
 
+      calls = calls.concat post
       calls.push ret if ret != ''
       calls.push ''
 

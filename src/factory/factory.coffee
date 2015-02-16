@@ -30,7 +30,7 @@ class Factory
     else
       @callback()
       @_call name, uniforms, namespace, defines
-      @join()
+      @end()
     @
 
   # Old name
@@ -67,7 +67,7 @@ class Factory
   # Connect branches to previous tail and add pass-through from end
   pass: () ->
     pass = @_stack[2].end
-    @join()
+    @end()
     @_state.end = @_state.end.concat pass
     @
 
@@ -87,7 +87,7 @@ class Factory
   # Return finalized graph / reset factory
   graph: () ->
     # Pop remaining stack
-    @join() while @_stack?.length > 1
+    @end() while @_stack?.length > 1
 
     # Remember terminating node(s) of graph
     if @_graph
@@ -113,28 +113,41 @@ class Factory
   serialize: () ->
     Visualize.serialize @_graph
 
+  # Return true if empty
+  empty: () -> @_graph.nodes.length == 0
+
   # Concatenate existing factory onto tail
   # Retains original factory
   _concat: (factory) ->
-    block = new Block.Isolate factory._graph
-
     @_tail factory._state, factory._graph
+
+    try
+      block = new Block.Isolate factory._graph
+    catch error
+      Visualize.inspect error, @_graph, factory if @config.autoInspect
+      throw error
+
     @_auto block
     @
 
   # Add existing factory as callback
   # Retains original factory
   _import: (factory) ->
-    block = new Block.Callback factory._graph
+    @_tail factory._state, factory._graph
 
-    @_tail   factory._state, factory._graph
+    try
+      block = new Block.Callback factory._graph
+    catch error
+      Visualize.inspect error, @_graph, factory if @config.autoInspect
+      throw error
+
     @_auto block
     @
 
   # Connect parallel branches to tail
   _combine: (sub, main) ->
     for to in sub.start
-      from.connect to, sub.empty for from in main.end
+      from.connect to, sub.multi for from in main.end
 
     main.end   = sub.end
     main.nodes = main.nodes.concat sub.nodes
@@ -143,18 +156,28 @@ class Factory
   _isolate: (sub, main) ->
     if sub.nodes.length
       subgraph = @_subgraph sub
-      block = new Block.Isolate subgraph
-
       @_tail sub, subgraph
+
+      try
+        block = new Block.Isolate subgraph
+      catch error
+        Visualize.inspect error, @_graph, subgraph if @config.autoInspect
+        throw error
+
       @_auto block
 
   # Convert to callback and connect to tail
   _callback: (sub, main) ->
     if sub.nodes.length
       subgraph = @_subgraph sub
-      block = new Block.Callback subgraph
-
       @_tail sub, subgraph
+
+      try
+        block = new Block.Callback subgraph
+      catch error
+        Visualize.inspect error, @_graph, subgraph if @config.autoInspect
+        throw error
+
       @_auto block
 
   # Create next call block
@@ -189,19 +212,30 @@ class Factory
     if !graph.tail
       throw "Cannot finalize empty graph"
 
-    # Add compile/link/export shortcut methods
+    # Add compile/link/export/inspect shortcut methods
     graph.compile = (namespace = 'main') =>
-      graph.tail.owner.compile @language, namespace
+      try
+        graph.tail.owner.compile @language, namespace
+      catch error
+        graph.inspect(error) if @config.autoInspect
+        throw error
 
     graph.link    = (namespace = 'main') =>
-      graph.tail.owner.link    @language, namespace
+      try
+        graph.tail.owner.link    @language, namespace
+      catch error
+        graph.inspect(error) if @config.autoInspect
+        throw error
 
     graph.export  = (layout, depth) =>
       graph.tail.owner.export  layout, depth
 
+    graph.inspect = (message = null) ->
+      Visualize.inspect message, graph
+
   # Create group for branches or callbacks
-  _group: (op, empty) ->
-    @_push op, empty # Accumulator
+  _group: (op, multi) ->
+    @_push op, multi # Accumulator
     @_push()         # Current
     @
 
@@ -223,8 +257,8 @@ class Factory
     [@_pop(), @_state]
 
   # State stack
-  _push: (op, empty) ->
-    @_stack.unshift new State op, empty
+  _push: (op, multi) ->
+    @_stack.unshift new State op, multi
     @_state = @_stack[0]
 
   _pop: () ->
@@ -277,6 +311,6 @@ class Factory
     @_state.tail .push node if !node.outputs.length
 
 class State
-  constructor: (@op = null, @empty = false, @start = [], @end = [], @nodes = [], @tail = []) ->
+  constructor: (@op = null, @multi = false, @start = [], @end = [], @nodes = [], @tail = []) ->
 
 module.exports = Factory

@@ -98,13 +98,13 @@ decl.param = (dir, storage, spec, quant, count) ->
   prefix.push ''
 
   prefix = prefix.join ' '
-
   suffix = if quant then '[' + count + ']' else ''
-
   dir += ' ' if dir != ''
 
-  (name, long) ->
-    (if long then dir else '') + "#{prefix}#{name}#{suffix}"
+  f = (name, long) -> (if long then dir else '') + "#{prefix}#{name}#{suffix}"
+  f.split = (dir) -> decl.param dir, storage, spec, quant, count
+
+  f
 
 # Three.js sugar
 win = typeof window != 'undefined'
@@ -155,13 +155,19 @@ decl.type = (name, spec, quant, count, dir, storage) ->
   storage = storages[storage]
 
   param   = decl.param dir, storage, spec, quant, count
+  new Definition name, type, spec, param, value, inout
 
-  {name, type, spec, param, value, inout, copy: (name) -> decl.copy @, name}
+class Definition
+  constructor: (@name, @type, @spec, @param, @value, @inout, @meta) ->
 
-decl.copy = (type, _name) ->
-  {name, type, spec, param, value, inout, copy} = type
+  split: () ->
+    # Split inouts
+    isIn  = @meta.shadowed?
+    dir   = if isIn then 'in' else 'out'
+    inout = if isIn then decl.in else decl.out
+    param = @param.split dir
+    new Definition @name, @type, @spec, param, @value, inout
 
-  name = _name if _name?
-
-  {name, type, spec, param, value, inout, copy}
+  copy: (name, meta) ->
+    def = new Definition name ? @name, @type, @spec, @param, @value, @inout, meta
 

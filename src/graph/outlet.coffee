@@ -4,21 +4,30 @@ Graph = require './graph'
   In/out outlet on node
 ###
 class Outlet
-  @index: 0
-  @id: (name) ->
+  @make = (outlet, extra = {}) ->
+    meta = extra
+    meta[key] = value for key, value of outlet.meta if outlet.meta?
+    new Outlet outlet.inout,
+               outlet.name,
+               outlet.hint,
+               outlet.type,
+               meta
+
+  @index = 0
+  @id = (name) ->
     "_io_#{++Outlet.index}_#{name}"
 
-  @hint: (name) ->
+  @hint = (name) ->
     name = name.replace /^(_io_[0-9]+_)/, ''
     name = name.replace /(In|Out|Inout|InOut)$/, ''
 
-  constructor: (@inout, @name, @hint, @type, @meta) ->
+  constructor: (@inout, @name, @hint, @type, @meta = {}, @id) ->
     @hint  ?= Outlet.hint name
 
     @node   = null
     @input  = null
     @output = []
-    @id     = Outlet.id @hint
+    @id    ?= Outlet.id @hint
 
   # Change into given outlet without touching connections
   morph: (outlet) ->
@@ -28,10 +37,11 @@ class Outlet
     @type  = outlet.type
     @meta  = outlet.meta
 
-  # Copy with unique name
+  # Copy with unique name and cloned metadata
   dupe: (name = @id) ->
-    {inout, hint, type, meta} = @
-    {inout, hint, type, meta, name: name}
+    outlet = Outlet.make @
+    outlet.name = name
+    outlet
 
   # Connect to given outlet
   connect: (outlet) ->

@@ -9,11 +9,14 @@ class Call extends Block
     new Call @snippet
 
   makeOutlets: () ->
-    outlets = []
-    outlets = outlets.concat @snippet.main.signature
-    outlets.push external for key, external of @snippet.externals
+    main      = @snippet.main.signature
+    externals = @snippet.externals
+    symbols   = @snippet.symbols
 
-    outlets
+    params    = (@_outlet outlet,         callback: false for outlet in main)
+    callbacks = (@_outlet externals[key], callback: true  for key in symbols)
+
+    params.concat callbacks
 
   call: (program, depth) ->
     @_call   @snippet, program, depth

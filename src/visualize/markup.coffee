@@ -237,14 +237,20 @@ overlay = (contents) ->
 
   div
 
+wrap = (markup) ->
+  return markup if markup instanceof Node
+  div = document.createElement 'div'
+  div.innerText = markup ? ''
+  return div
+
 merge = (markup) ->
   if markup.length != 1
     div = document.createElement 'div'
-    div.appendChild el for el in markup
-    div.update = () -> el.update() for el in markup
+    div.appendChild wrap el for el in markup
+    div.update = () -> el.update?() for el in markup
     return div
   else
-    return markup[0]
+    return wrap markup[0]
 
 module.exports = {process, merge, overlay}
 

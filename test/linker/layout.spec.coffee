@@ -954,3 +954,136 @@ describe "layout", () ->
 
     expect(code).toBe(result)
 
+
+  it 'handles inouts inside isolates (isolate/pipe/end)', () ->
+
+    getColor = """
+    vec3 getColor() {
+      return vec3(1.0, 0.5, 0.25);
+    }
+    """
+
+    squareColor = """
+    void squareColor(inout vec3 color) {
+      color = color * color;
+    }
+    """
+
+    setColor = """
+    void setColor(vec3 color) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    """
+
+    snippets = {getColor, squareColor, setColor}
+
+    result = """
+    #define _pg_1_ _sn_1_squareColor
+    vec3 _sn_2_getColor() {
+      return vec3(1.0, 0.5, 0.25);
+    }
+    void _sn_1_squareColor(inout vec3 color) {
+      color = color * color;
+    }
+    void _sn_3_setColor(vec3 color) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    void main() {
+      vec3 _io_1_return;
+      vec3 _io_2_color_i_o;
+
+      _io_1_return = _sn_2_getColor();
+      _io_2_color_i_o = _io_1_return;
+      _pg_1_(_io_2_color_i_o);
+      _sn_3_setColor(_io_2_color_i_o);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .pipe('getColor')
+              .isolate()
+                .pipe('squareColor')
+              .end()
+              .pipe('setColor')
+              .graph()
+
+    snippet = graph.link()
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+
+
+  it 'splits piped inouts inside isolates (isolate/pipe/pipe/end)', () ->
+
+    getColor = """
+    vec3 getColor() {
+      return vec3(1.0, 0.5, 0.25);
+    }
+    """
+
+    squareColor = """
+    void squareColor(inout vec3 color) {
+      color = color * color;
+    }
+    """
+
+    setColor = """
+    void setColor(vec3 color) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    """
+
+    snippets = {getColor, squareColor, setColor}
+
+    result = """
+    vec3 _sn_1_getColor() {
+      return vec3(1.0, 0.5, 0.25);
+    }
+    void _sn_2_squareColor(inout vec3 color) {
+      color = color * color;
+    }
+    void _sn_3_squareColor(inout vec3 color) {
+      color = color * color;
+    }
+    void _pg_1_(in vec3 _io_1_color, out vec3 _io_2_color_i_o) {
+      vec3 _io_3_color_i_o;
+      vec3 _io_2_color_i_o;
+    
+      _io_3_color_i_o = _io_1_color;
+      _sn_2_squareColor(_io_3_color_i_o);
+      _io_2_color_i_o = _io_3_color_i_o;
+      _sn_3_squareColor(_io_2_color_i_o);
+    }
+    void _sn_4_setColor(vec3 color) {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    void main() {
+      vec3 _io_4_return;
+      vec3 _io_5_color_i_o;
+    
+      _io_4_return = _sn_1_getColor();
+      _pg_1_(_io_4_return, _io_5_color_i_o);
+      _sn_4_setColor(_io_5_color_i_o);
+    }
+    """
+
+    shadergraph = ShaderGraph snippets
+
+    shader  = shadergraph.shader()
+    graph   = shader
+              .pipe('getColor')
+              .isolate()
+                .pipe('squareColor')
+                .pipe('squareColor')
+              .end()
+              .pipe('setColor')
+              .graph()
+
+    snippet = graph.link()
+    code = normalize(snippet.code)
+
+    expect(code).toBe(result)
+

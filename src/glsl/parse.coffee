@@ -119,9 +119,11 @@ extractSignatures = (main, internals, externals) ->
       a = d
       b = d.copy()
 
-      a.inout = decl.in
-      b.inout = decl.out
-      b.name += $.SHADOW_ARG
+      a.inout  = decl.in
+      b.inout  = decl.out
+      b.meta   = shadow: a.name
+      b.name  += $.SHADOW_ARG
+      a.meta   = shadowed: b.name
 
       signature.push b
 

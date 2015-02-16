@@ -122,10 +122,6 @@ assemble = (language, namespace, calls, requires) ->
     outlet = outlet.input if outlet.input
     name   = outlet.name
 
-    # Look for shadowed (inout) output
-    #if shadow = outlet.meta.shadow
-    #  lookup outlet.node, shadow
-    #else
     outlet.id
 
   return process()

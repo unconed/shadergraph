@@ -39,11 +39,6 @@ class Isolate extends Block
         seen[name] = true if name?
         done[outlet.name] = dupe
 
-        # Make sure inout shadow outlets match the real one
-        #if (shadow = outlet.meta.shadow)?
-        #  real = done[shadow]
-        #  dupe.meta.shadow = real.name
-
         outlets.push dupe
 
     outlets

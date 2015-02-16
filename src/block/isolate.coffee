@@ -19,10 +19,10 @@ class Isolate extends Block
     @make()
 
     outlets = []
-    names = null
 
+    seen = {}
+    done = {}
     for set in ['inputs', 'outputs']
-      seen = {}
       for outlet in @graph[set]()
         # Preserve name of 'return' and 'callback' outlets
         name = undefined
@@ -31,12 +31,18 @@ class Isolate extends Block
 
         # Unless it already exists
         name = undefined  if seen[name]?
-        seen[name] = true if name?
 
         # Dupe outlet and remember link to original
         dupe = outlet.dupe name
         dupe  .meta.child ?= outlet
         outlet.meta.parent = dupe
+        seen[name] = true if name?
+        done[outlet.name] = dupe
+
+        # Make sure inout shadow outlets match the real one
+        #if (shadow = outlet.meta.shadow)?
+        #  real = done[shadow]
+        #  dupe.meta.shadow = real.name
 
         outlets.push dupe
 

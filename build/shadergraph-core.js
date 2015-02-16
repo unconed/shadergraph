@@ -873,14 +873,14 @@ Isolate = (function(_super) {
   };
 
   Isolate.prototype.makeOutlets = function() {
-    var dupe, name, names, outlet, outlets, seen, set, _base, _i, _j, _len, _len1, _ref, _ref1, _ref2;
+    var done, dupe, name, outlet, outlets, seen, set, _base, _i, _j, _len, _len1, _ref, _ref1, _ref2;
     this.make();
     outlets = [];
-    names = null;
+    seen = {};
+    done = {};
     _ref = ['inputs', 'outputs'];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       set = _ref[_i];
-      seen = {};
       _ref1 = this.graph[set]();
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         outlet = _ref1[_j];
@@ -891,14 +891,15 @@ Isolate = (function(_super) {
         if (seen[name] != null) {
           name = void 0;
         }
-        if (name != null) {
-          seen[name] = true;
-        }
         dupe = outlet.dupe(name);
         if ((_base = dupe.meta).child == null) {
           _base.child = outlet;
         }
         outlet.meta.parent = dupe;
+        if (name != null) {
+          seen[name] = true;
+        }
+        done[outlet.name] = dupe;
         outlets.push(dupe);
       }
     }
@@ -1160,6 +1161,10 @@ Factory = (function() {
     return Visualize.serialize(this._graph);
   };
 
+  Factory.prototype.empty = function() {
+    return this._graph.nodes.length === 0;
+  };
+
   Factory.prototype._concat = function(factory) {
     var block, error;
     this._tail(factory._state, factory._graph);
@@ -1200,7 +1205,7 @@ Factory = (function() {
       _ref1 = main.end;
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         from = _ref1[_j];
-        from.connect(to, sub.empty);
+        from.connect(to, sub.multi);
       }
     }
     main.end = sub.end;
@@ -1321,8 +1326,8 @@ Factory = (function() {
     };
   };
 
-  Factory.prototype._group = function(op, empty) {
-    this._push(op, empty);
+  Factory.prototype._group = function(op, multi) {
+    this._push(op, multi);
     this._push();
     return this;
   };
@@ -1343,8 +1348,8 @@ Factory = (function() {
     return [this._pop(), this._state];
   };
 
-  Factory.prototype._push = function(op, empty) {
-    this._stack.unshift(new State(op, empty));
+  Factory.prototype._push = function(op, multi) {
+    this._stack.unshift(new State(op, multi));
     return this._state = this._stack[0];
   };
 
@@ -1420,9 +1425,9 @@ Factory = (function() {
 })();
 
 State = (function() {
-  function State(op, empty, start, end, nodes, tail) {
+  function State(op, multi, start, end, nodes, tail) {
     this.op = op != null ? op : null;
-    this.empty = empty != null ? empty : false;
+    this.multi = multi != null ? multi : false;
     this.start = start != null ? start : [];
     this.end = end != null ? end : [];
     this.nodes = nodes != null ? nodes : [];
@@ -1811,13 +1816,13 @@ module.exports = compile;
 
 },{}],19:[function(require,module,exports){
 module.exports = {
-  SHADOW_ARG: '_i_n_o_u_t',
+  SHADOW_ARG: '_i_o',
   RETURN_ARG: 'return'
 };
 
 
 },{}],20:[function(require,module,exports){
-var decl, defaults, get, three, threejs, win;
+var Definition, decl, defaults, get, three, threejs, win;
 
 module.exports = decl = {};
 
@@ -1925,7 +1930,7 @@ decl.argument = function(node) {
 };
 
 decl.param = function(dir, storage, spec, quant, count) {
-  var prefix, suffix;
+  var f, prefix, suffix;
   prefix = [];
   if (storage != null) {
     prefix.push(storage);
@@ -1939,9 +1944,13 @@ decl.param = function(dir, storage, spec, quant, count) {
   if (dir !== '') {
     dir += ' ';
   }
-  return function(name, long) {
+  f = function(name, long) {
     return (long ? dir : '') + ("" + prefix + name + suffix);
   };
+  f.split = function(dir) {
+    return decl.param(dir, storage, spec, quant, count);
+  };
+  return f;
 };
 
 win = typeof window !== 'undefined';
@@ -1998,35 +2007,37 @@ decl.type = function(name, spec, quant, count, dir, storage) {
   inout = (_ref = dirs[dir]) != null ? _ref : dirs["in"];
   storage = storages[storage];
   param = decl.param(dir, storage, spec, quant, count);
-  return {
-    name: name,
-    type: type,
-    spec: spec,
-    param: param,
-    value: value,
-    inout: inout,
-    copy: function(name) {
-      return decl.copy(this, name);
-    }
-  };
+  return new Definition(name, type, spec, param, value, inout);
 };
 
-decl.copy = function(type, _name) {
-  var copy, inout, name, param, spec, value, _ref;
-  _ref = type, name = _ref.name, type = _ref.type, spec = _ref.spec, param = _ref.param, value = _ref.value, inout = _ref.inout, copy = _ref.copy;
-  if (_name != null) {
-    name = _name;
+Definition = (function() {
+  function Definition(name, type, spec, param, value, inout, meta) {
+    this.name = name;
+    this.type = type;
+    this.spec = spec;
+    this.param = param;
+    this.value = value;
+    this.inout = inout;
+    this.meta = meta;
   }
-  return {
-    name: name,
-    type: type,
-    spec: spec,
-    param: param,
-    value: value,
-    inout: inout,
-    copy: copy
+
+  Definition.prototype.split = function() {
+    var dir, inout, isIn, param;
+    isIn = this.meta.shadowed != null;
+    dir = isIn ? 'in' : 'out';
+    inout = isIn ? decl["in"] : decl.out;
+    param = this.param.split(dir);
+    return new Definition(this.name, this.type, this.spec, param, this.value, inout);
   };
-};
+
+  Definition.prototype.copy = function(name, meta) {
+    var def;
+    return def = new Definition(name != null ? name : this.name, this.type, this.spec, this.param, this.value, this.inout, meta);
+  };
+
+  return Definition;
+
+})();
 
 
 },{}],21:[function(require,module,exports){
@@ -2068,7 +2079,9 @@ module.exports = _ = {
       signature: [],
       "return": '',
       vars: {},
-      calls: []
+      calls: [],
+      post: [],
+      chain: {}
     };
   },
   define: function(a, b) {
@@ -2100,52 +2113,79 @@ module.exports = _ = {
     return true;
   },
   call: function(lookup, dangling, entry, signature, body) {
-    var arg, args, id, name, param, ret, rets, _i, _len;
+    var arg, args, copy, id, inout, isReturn, meta, name, omit, other, ret, rets, shadow, _i, _len, _ref, _ref1;
     args = [];
     ret = '';
     rets = 1;
     for (_i = 0, _len = signature.length; _i < _len; _i++) {
       arg = signature[_i];
-      param = arg.param;
       name = arg.name;
-      if (_.unshadow(name)) {
-        continue;
-      }
-      id = lookup(name);
-      if (name === $.RETURN_ARG) {
-        ret = id;
-      } else {
-        args.push(id);
-      }
-      if (body) {
-        if (dangling(name)) {
-          if (name === $.RETURN_ARG) {
-            if (body["return"] === '') {
-              body.type = arg.spec;
-              body["return"] = "  return " + id;
-              body.vars[id] = "  " + param(id);
-              body.signature.push(arg);
-            } else {
-              body.vars[id] = "  " + param(id);
-              body.params.push(param(id, true));
-              body.signature.push(arg.copy(id));
-            }
+      copy = id = lookup(name);
+      other = null;
+      meta = null;
+      omit = false;
+      inout = arg.inout;
+      isReturn = name === $.RETURN_ARG;
+      if (shadow = (_ref = arg.meta) != null ? _ref.shadowed : void 0) {
+        other = lookup(shadow);
+        if (other) {
+          body.vars[other] = "  " + arg.param(other);
+          body.calls.push("  " + other + " = " + id);
+          if (!dangling(shadow)) {
+            arg = arg.split();
           } else {
-            body.params.push(param(id, true));
-            body.signature.push(arg.copy(id));
+            meta = {
+              shadowed: other
+            };
+          }
+        }
+      }
+      if (shadow = (_ref1 = arg.meta) != null ? _ref1.shadow : void 0) {
+        other = lookup(shadow);
+        if (other) {
+          if (!dangling(shadow)) {
+            arg = arg.split();
+            omit = true;
+          } else {
+            meta = {
+              shadow: other
+            };
+            continue;
+          }
+        }
+      }
+      if (isReturn) {
+        ret = id;
+      } else if (!omit) {
+        args.push(other != null ? other : id);
+      }
+      if (dangling(name)) {
+        if (isReturn) {
+          if (body["return"] === '') {
+            copy = name;
+            body.type = arg.spec;
+            body["return"] = "  return " + id;
+            body.vars[id] = "  " + arg.param(id);
+          } else {
+            body.vars[id] = "  " + arg.param(id);
+            body.params.push(arg.param(id, true));
           }
         } else {
-          body.vars[id] = "  " + param(id);
+          body.params.push(arg.param(id, true));
         }
+        arg = arg.copy(copy, meta);
+        body.signature.push(arg);
+      } else {
+        body.vars[id] = "  " + arg.param(id);
       }
     }
     return body.calls.push(_.invoke(ret, entry, args));
   },
   build: function(body, calls) {
-    var a, b, code, decl, entry, params, ret, type, v, vars;
+    var a, b, code, decl, entry, params, post, ret, type, v, vars;
     entry = body.entry;
     code = null;
-    if (calls && body.calls.length === 1 && entry !== 'main') {
+    if (calls && calls.length === 1 && entry !== 'main') {
       a = body;
       b = calls[0].module;
       if (_.same(body.signature, b.main.signature)) {
@@ -2163,10 +2203,12 @@ module.exports = _ = {
         }
         return _results;
       })();
-      calls = body.calls.slice();
+      calls = body.calls;
+      post = body.post;
       params = body.params;
       type = body.type;
       ret = body["return"];
+      calls = calls.concat(post);
       if (ret !== '') {
         calls.push(ret);
       }
@@ -2509,7 +2551,13 @@ extractSignatures = function(main, internals, externals) {
       b = d.copy();
       a.inout = decl["in"];
       b.inout = decl.out;
+      b.meta = {
+        shadow: a.name
+      };
       b.name += $.SHADOW_ARG;
+      a.meta = {
+        shadowed: b.name
+      };
       signature.push(b);
     }
     if (symbol.type !== 'void') {
@@ -3194,19 +3242,11 @@ ShaderGraph = (function() {
   ShaderGraph.Visualize = Visualize;
 
   ShaderGraph.inspect = function(shader) {
-    if (shader instanceof Factory.Material) {
-      return inspect(shader.vertex, shader.fragment);
-    } else {
-      return inspect(shader);
-    }
+    return inspect(shader);
   };
 
   ShaderGraph.visualize = function(shader) {
-    if (shader instanceof Factory.Material) {
-      return visualize(shader.vertex, shader.fragment);
-    } else {
-      return visualize(shader);
-    }
+    return visualize(shader);
   };
 
   return ShaderGraph;
@@ -3392,18 +3432,16 @@ assemble = function(language, namespace, calls, requires) {
     }
   };
   lookup = function(node, name) {
-    var input, outlet;
+    var outlet;
     outlet = node.get(name);
+    if (!outlet) {
+      return null;
+    }
     if (outlet.input) {
       outlet = outlet.input;
     }
     name = outlet.name;
-    input = generate.unshadow(name);
-    if (input) {
-      return lookup(outlet.node, input);
-    } else {
-      return outlet.id;
-    }
+    return outlet.id;
   };
   return process();
 };
@@ -3943,7 +3981,7 @@ module.exports = Snippet;
 
 
 },{}],36:[function(require,module,exports){
-var Graph, markup, serialize, visualize;
+var Graph, markup, merge, resolve, serialize, visualize;
 
 Graph = require('../Graph').Graph;
 
@@ -3956,9 +3994,6 @@ visualize = function(graph) {
   if (!graph) {
     return;
   }
-  if (graph._graph != null) {
-    graph = graph._graph;
-  }
   if (!graph.nodes) {
     return graph;
   }
@@ -3966,19 +4001,50 @@ visualize = function(graph) {
   return markup.process(data);
 };
 
+resolve = function(arg) {
+  if (arg == null) {
+    return arg;
+  }
+  if (arg instanceof Array) {
+    return arg.map(resolve);
+  }
+  if ((arg.vertex != null) && (arg.fragment != null)) {
+    return [resolve(arg.vertex, resolve(arg.fragment))];
+  }
+  if (arg._graph != null) {
+    return arg._graph;
+  }
+  return arg;
+};
+
+merge = function(args) {
+  var arg, out, _i, _len;
+  out = [];
+  for (_i = 0, _len = args.length; _i < _len; _i++) {
+    arg = args[_i];
+    if (arg instanceof Array) {
+      out = out.concat(merge(arg));
+    } else if (arg != null) {
+      out.push(arg);
+    }
+  }
+  return out;
+};
+
 exports.visualize = function() {
-  var graph;
+  var graph, list;
+  list = merge(resolve([].slice.call(arguments)));
   return markup.merge((function() {
     var _i, _len, _results;
     _results = [];
-    for (_i = 0, _len = arguments.length; _i < _len; _i++) {
-      graph = arguments[_i];
+    for (_i = 0, _len = list.length; _i < _len; _i++) {
+      graph = list[_i];
       if (graph) {
         _results.push(visualize(graph));
       }
     }
     return _results;
-  }).apply(this, arguments));
+  })());
 };
 
 exports.inspect = function() {

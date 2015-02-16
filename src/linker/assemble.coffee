@@ -117,15 +117,16 @@ assemble = (language, namespace, calls, requires) ->
 
     # Traverse graph edge
     outlet = node.get name
+    return null unless outlet
+
     outlet = outlet.input if outlet.input
     name   = outlet.name
 
     # Look for shadowed (inout) output
-    input  = generate.unshadow name
-    if input
-      lookup outlet.node, input
-    else
-      outlet.id
+    #if shadow = outlet.meta.shadow
+    #  lookup outlet.node, shadow
+    #else
+    outlet.id
 
   return process()
 

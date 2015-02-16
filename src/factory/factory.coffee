@@ -113,6 +113,9 @@ class Factory
   serialize: () ->
     Visualize.serialize @_graph
 
+  # Return true if empty
+  empty: () -> @_graph.nodes.length == 0
+
   # Concatenate existing factory onto tail
   # Retains original factory
   _concat: (factory) ->
@@ -144,7 +147,7 @@ class Factory
   # Connect parallel branches to tail
   _combine: (sub, main) ->
     for to in sub.start
-      from.connect to, sub.empty for from in main.end
+      from.connect to, sub.multi for from in main.end
 
     main.end   = sub.end
     main.nodes = main.nodes.concat sub.nodes
@@ -231,8 +234,8 @@ class Factory
       Visualize.inspect message, graph
 
   # Create group for branches or callbacks
-  _group: (op, empty) ->
-    @_push op, empty # Accumulator
+  _group: (op, multi) ->
+    @_push op, multi # Accumulator
     @_push()         # Current
     @
 
@@ -254,8 +257,8 @@ class Factory
     [@_pop(), @_state]
 
   # State stack
-  _push: (op, empty) ->
-    @_stack.unshift new State op, empty
+  _push: (op, multi) ->
+    @_stack.unshift new State op, multi
     @_state = @_stack[0]
 
   _pop: () ->
@@ -308,6 +311,6 @@ class Factory
     @_state.tail .push node if !node.outputs.length
 
 class State
-  constructor: (@op = null, @empty = false, @start = [], @end = [], @nodes = [], @tail = []) ->
+  constructor: (@op = null, @multi = false, @start = [], @end = [], @nodes = [], @tail = []) ->
 
 module.exports = Factory

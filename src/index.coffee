@@ -50,17 +50,8 @@ class ShaderGraph
   @Visualize: Visualize
 
   # Static visualization method
-  @inspect   = (shader) ->
-    if shader instanceof Factory.Material
-      inspect shader.vertex, shader.fragment
-    else
-      inspect shader
-
-  @visualize = (shader) ->
-    if shader instanceof Factory.Material
-      visualize shader.vertex, shader.fragment
-    else
-      visualize shader
+  @inspect   = (shader) -> inspect shader
+  @visualize = (shader) -> visualize shader
 
 module.exports = ShaderGraph
 window.ShaderGraph = ShaderGraph if typeof window != 'undefined'

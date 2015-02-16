@@ -115,10 +115,12 @@ describe "program", () ->
     }
     void main() {
       vec3 _io_1_color;
-
+      vec3 _io_2_color_i_o;
+    
       _sn_1_first(_io_1_color);
-      _sn_2_second(_io_1_color);
-      _sn_3_third(_io_1_color);
+      _io_2_color_i_o = _io_1_color;
+      _sn_2_second(_io_2_color_i_o);
+      _sn_3_third(_io_2_color_i_o);
     }
     """
 
@@ -178,11 +180,15 @@ describe "program", () ->
     void main() {
       vec3 _io_1_color1;
       vec3 _io_2_color2;
-
+      vec3 _io_3_color_i_o;
+      vec3 _io_4_color_i_o;
+    
       _sn_1_split(_io_1_color1, _io_2_color2);
-      _sn_2_map(_io_1_color1);
-      _sn_3_map(_io_2_color2);
-      _sn_4_join(_io_1_color1, _io_2_color2);
+      _io_3_color_i_o = _io_1_color1;
+      _sn_2_map(_io_3_color_i_o);
+      _io_4_color_i_o = _io_2_color2;
+      _sn_3_map(_io_4_color_i_o);
+      _sn_4_join(_io_3_color_i_o, _io_4_color_i_o);
     }
     """
 
@@ -247,11 +253,15 @@ describe "program", () ->
       vec3 _io_1_color1;
       vec3 _io_2_color2;
       mat4 _io_3_passthrough;
+      vec3 _io_4_color_i_o;
+      vec3 _io_5_color_i_o;
 
       _sn_1_split(_io_1_color1, _io_2_color2, _io_3_passthrough);
-      _sn_2_map(_io_1_color1);
-      _sn_3_map(_io_2_color2);
-      _sn_4_join(_io_1_color1, _io_2_color2, _io_3_passthrough);
+      _io_4_color_i_o = _io_1_color1;
+      _sn_2_map(_io_4_color_i_o);
+      _io_5_color_i_o = _io_2_color2;
+      _sn_3_map(_io_5_color_i_o);
+      _sn_4_join(_io_4_color_i_o, _io_5_color_i_o, _io_3_passthrough);
     }
     """
 
@@ -463,11 +473,15 @@ describe "program", () ->
     void main(in vec4 _io_1_color, out vec4 _io_2_color) {
       vec3 _io_3_color1;
       vec3 _io_4_color2;
+      vec3 _io_5_color_i_o;
+      vec3 _io_6_color_i_o;
 
       _sn_1_split(_io_3_color1, _io_4_color2, _io_1_color);
-      _sn_3_map(_io_3_color1);
-      _sn_5_map(_io_4_color2);
-      _sn_6_join(_io_3_color1, _io_4_color2, _io_2_color);
+      _io_5_color_i_o = _io_3_color1;
+      _sn_3_map(_io_5_color_i_o);
+      _io_6_color_i_o = _io_4_color2;
+      _sn_5_map(_io_6_color_i_o);
+      _sn_6_join(_io_5_color_i_o, _io_6_color_i_o, _io_2_color);
     }
     """
 

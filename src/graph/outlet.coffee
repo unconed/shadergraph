@@ -18,7 +18,8 @@ class Outlet
     "_io_#{++Outlet.index}_#{name}"
 
   @hint = (name) ->
-    name = name.replace /^(_io_[0-9]+_)/, ''
+    name = name.replace /^_io_[0-9]+_/, ''
+    name = name.replace /_i_o$/, ''
     name = name.replace /(In|Out|Inout|InOut)$/, ''
 
   constructor: (@inout, @name, @hint, @type, @meta = {}, @id) ->

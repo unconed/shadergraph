@@ -418,7 +418,8 @@ Outlet = (function() {
   };
 
   Outlet.hint = function(name) {
-    name = name.replace(/^(_io_[0-9]+_)/, '');
+    name = name.replace(/^_io_[0-9]+_/, '');
+    name = name.replace(/_i_o$/, '');
     return name = name.replace(/(In|Out|Inout|InOut)$/, '');
   };
 
@@ -3069,7 +3070,8 @@ Outlet = (function() {
   };
 
   Outlet.hint = function(name) {
-    name = name.replace(/^(_io_[0-9]+_)/, '');
+    name = name.replace(/^_io_[0-9]+_/, '');
+    name = name.replace(/_i_o$/, '');
     return name = name.replace(/(In|Out|Inout|InOut)$/, '');
   };
 

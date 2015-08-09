@@ -990,12 +990,12 @@ describe "layout", () ->
     }
     void main() {
       vec3 _io_1_return;
-      vec3 _io_2_color_i_o;
+      vec3 _io_2_color;
 
       _io_1_return = _sn_2_getColor();
-      _io_2_color_i_o = _io_1_return;
-      _pg_1_(_io_2_color_i_o);
-      _sn_3_setColor(_io_2_color_i_o);
+      _io_2_color = _io_1_return;
+      _pg_1_(_io_2_color);
+      _sn_3_setColor(_io_2_color);
     }
     """
 
@@ -1048,25 +1048,25 @@ describe "layout", () ->
     void _sn_3_squareColor(inout vec3 color) {
       color = color * color;
     }
-    void _pg_1_(in vec3 _io_1_color, out vec3 _io_2_color_i_o) {
-      vec3 _io_3_color_i_o;
-      vec3 _io_2_color_i_o;
+    void _pg_1_(in vec3 _io_1_color, out vec3 _io_2_color) {
+      vec3 _io_3_color;
+      vec3 _io_2_color;
     
-      _io_3_color_i_o = _io_1_color;
-      _sn_2_squareColor(_io_3_color_i_o);
-      _io_2_color_i_o = _io_3_color_i_o;
-      _sn_3_squareColor(_io_2_color_i_o);
+      _io_3_color = _io_1_color;
+      _sn_2_squareColor(_io_3_color);
+      _io_2_color = _io_3_color;
+      _sn_3_squareColor(_io_2_color);
     }
     void _sn_4_setColor(vec3 color) {
       gl_FragColor = vec4(color, 1.0);
     }
     void main() {
       vec3 _io_4_return;
-      vec3 _io_5_color_i_o;
+      vec3 _io_5_color;
     
       _io_4_return = _sn_1_getColor();
-      _pg_1_(_io_4_return, _io_5_color_i_o);
-      _sn_4_setColor(_io_5_color_i_o);
+      _pg_1_(_io_4_return, _io_5_color);
+      _sn_4_setColor(_io_5_color);
     }
     """
 

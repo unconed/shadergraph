@@ -1,3 +1,6 @@
+_2.0.6_
+ * Remove unnecessary _i_o suffix from inout registers.
+
 _2.0.5_
  * Fix graph not being returned with material in case of automatic tail block.
  

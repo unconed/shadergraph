@@ -1,6 +1,6 @@
 {
   "name": "shadergraph",
-  "version": "2.0.5",
+  "version": "2.0.6-dev",
   "description": "GLSL linker",
   "repository": {
     "type": "git",

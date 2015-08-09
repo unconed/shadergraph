@@ -1258,7 +1258,7 @@ Factory = (function() {
 
   Factory.prototype._subgraph = function(sub) {
     var subgraph;
-    subgraph = new Graph;
+    subgraph = new Graph(null, this._graph);
     subgraph.adopt(sub.nodes);
     return subgraph;
   };
@@ -1272,6 +1272,7 @@ Factory = (function() {
     if (tail.length > 1) {
       tail = new Block.Join(tail);
       tail = [tail.node];
+      this._graph.add(tail);
     }
     graph.tail = tail[0];
     state.end = tail;
@@ -1559,7 +1560,7 @@ library = function(language, snippets, load) {
     return inline;
   }
   return function(name) {
-    if (name.match(/[{;(#]/)) {
+    if (name.match(/[{;]/)) {
       return inline(name);
     }
     return callback(name);

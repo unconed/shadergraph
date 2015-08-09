@@ -1,3 +1,6 @@
+_2.0.5_
+ * Fix graph not being returned with material in case of automatic tail block.
+ 
 _2.0.4_
  * Ensure correct ordering of snippet callbacks in all cases
  * Refactor outlet creation / handling

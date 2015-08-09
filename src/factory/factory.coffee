@@ -189,7 +189,7 @@ class Factory
 
   # Move current state into subgraph
   _subgraph: (sub) ->
-    subgraph = new Graph
+    subgraph = new Graph null, @_graph
     subgraph.adopt sub.nodes
     subgraph
 
@@ -203,6 +203,7 @@ class Factory
     if tail.length > 1
       tail = new Block.Join tail
       tail = [tail.node]
+      @_graph.add tail
 
     # Save single endpoint
     graph.tail = tail[0]

@@ -38,7 +38,7 @@
 }
 .shadergraph-node {
   margin: 5px 15px 25px; 
-  background: rgba(0, 0, 0, .08);
+  background: rgba(0, 0, 0, .1);
   border-radius: 5px;
   box-shadow: 0 1px  2px rgba(0, 0, 0, .2),
               0 1px  10px rgba(0, 0, 0, .2);
@@ -54,7 +54,7 @@
   font-weight: bold;
   text-align: center;
   height: 25px;
-  background: rgba(0, 0, 0, .2);
+  background: rgba(0, 0, 0, .3);
   text-shadow: 0 1px 2px rgba(0, 0, 0, .25);
   color: #fff;
   border-top-left-radius: 5px;
@@ -97,30 +97,30 @@
 }
 
 .shadergraph-node-callback {
-  background: rgba(0, 20, 80, .08);
+  background: rgba(0, 20, 80, .1);
   box-shadow: 0 1px  2px rgba(0, 10, 40, .2),
               0 1px  10px rgba(0, 10, 40, .2);
 }
 .shadergraph-node-callback > .shadergraph-header {
-  background: rgba(0, 20, 80, .2);
+  background: rgba(0, 20, 80, .3);
 }
 
 .shadergraph-node-call {
-  background: rgba(20, 80, 0, .08);
+  background: rgba(20, 80, 0, .1);
   box-shadow: 0 1px  2px rgba(10, 40, 0, .2),
               0 1px  10px rgba(10, 40, 0, .2);
 }
 .shadergraph-node-call > .shadergraph-header {
-  background: rgba(20, 80, 0, .2);
+  background: rgba(20, 80, 0, .3);
 }
 
 .shadergraph-node-isolate {
-  background: rgba(80, 0, 20, .08);
+  background: rgba(80, 0, 20, .1);
   box-shadow: 0 1px  2px rgba(40, 0, 10, .2),
               0 1px  10px rgba(40, 0, 10, .2);
 }
 .shadergraph-node-isolate > .shadergraph-header {
-  background: rgba(80, 0, 20, .2);
+  background: rgba(80, 0, 20, .3);
 }
 
 .shadergraph-node.shadergraph-has-code {

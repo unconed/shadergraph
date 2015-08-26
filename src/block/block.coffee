@@ -76,7 +76,7 @@ class Block
     for key in module.symbols
       ext = module.externals[key]
       outlet = @node.get ext.name
-      throw Error("OutletError: External not found on #{@_info ext.name}") if !outlet
+      throw new OutletError("External not found on #{@_info ext.name}") if !outlet
 
       continue if outlet.meta.child?
 
@@ -85,7 +85,7 @@ class Block
         [parent, outlet] = [outlet.meta.parent, parent]
 
       block  = Block.previous outlet
-      throw Error("OutletError: Missing connection on #{@_info ext.name}") if !block
+      throw new OutletError("Missing connection on #{@_info ext.name}") if !block
 
       debug && console.log 'callback -> ', @.toString(), ext.name, outlet
       block.callback layout, depth + 1, key, ext, outlet.input
@@ -97,5 +97,12 @@ class Block
     for arg in module.main.signature
       outlet = @node.get arg.name
       Block.previous(outlet)?.export layout, depth + 1
+
+OutletError = (message) ->
+  e = new Error message
+  e.name = 'OutletError'
+  e
+
+OutletError.prototype = new Error
 
 module.exports = Block

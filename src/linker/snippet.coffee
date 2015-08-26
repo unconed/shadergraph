@@ -89,6 +89,11 @@ class Snippet
 
     @body = @code = @_compiler @namespace, exceptions, defines
 
+    # Adds defs to original snippet for inspection
+    if defines
+      defs = ("#define #{k} #{v}" for k, v of defines).join '\n'
+      @_original = [defs, "//----------------------------------------", @_original].join "\n" if defs.length
+
     null
 
 module.exports = Snippet

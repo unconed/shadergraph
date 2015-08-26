@@ -20,12 +20,22 @@ parseGLSL = (name, code) ->
   tock = tick() if debug
 
   # Sync stream hack (see /vendor/through)
-  [[ast], errors] = tokenizer().process parser(), code
+  try
+    [[ast], errors] = tokenizer().process parser(), code
+  catch e
+    errors = [{message:e}]
 
   tock 'GLSL Tokenize & Parse' if debug
 
+  fmt = (code) ->
+    code = code.split "\n"
+    max  = ("" + code.length).length
+    pad  = (v) -> if (v = "" + v).length < max then ("       " + v).slice -max else v
+    code.map((line, i) -> "#{pad i + 1}: #{line}").join "\n"
+
   if !ast || errors.length
     name = '(inline code)' if !name
+    console.warn fmt code
     console.error "[ShaderGraph] #{name} -", error.message for error in errors
     throw "GLSL parse error"
 

@@ -199,7 +199,7 @@ connect = (element, links) ->
   box = box.parentNode while box.parentNode && box.offsetHeight == 0
 
   svg = makeSVG()
-  svg.setAttribute('width', box.offsetWidth)
+  svg.setAttribute('width',  box.offsetWidth)
   svg.setAttribute('height', box.offsetHeight)
 
   for link in links
@@ -241,6 +241,8 @@ wrap = (markup) ->
   return markup if markup instanceof Node
   div = document.createElement 'div'
   div.innerText = markup ? ''
+  if markup.update
+    div.update = () -> markup.update?()
   return div
 
 merge = (markup) ->

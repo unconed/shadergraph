@@ -15,6 +15,7 @@ resolve = (arg) ->
   return arg.map resolve if arg instanceof Array
   return [resolve arg.vertex, resolve arg.fragment] if arg.vertex? && arg.fragment?
   return arg._graph if arg._graph?
+  return arg.graph  if arg.graph?
   return arg
 
 merge = (args) ->
@@ -34,6 +35,7 @@ exports.inspect = () ->
   contents = exports.visualize.apply null, arguments
   element  = markup.overlay contents
 
+  el.remove() for el in document.querySelectorAll '.shadergraph-overlay'
   document.body.appendChild element
   contents.update()
 

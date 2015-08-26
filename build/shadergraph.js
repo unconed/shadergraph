@@ -505,7 +505,7 @@ module.exports = Outlet;
 
 
 },{"./graph":1}],5:[function(require,module,exports){
-var Block, Graph, Layout, Program, debug;
+var Block, Graph, Layout, OutletError, Program, debug;
 
 Graph = require('../graph');
 
@@ -613,7 +613,7 @@ Block = (function() {
       ext = module.externals[key];
       outlet = this.node.get(ext.name);
       if (!outlet) {
-        throw Error("OutletError: External not found on " + (this._info(ext.name)));
+        throw new OutletError("External not found on " + (this._info(ext.name)));
       }
       if (outlet.meta.child != null) {
         continue;
@@ -624,7 +624,7 @@ Block = (function() {
       }
       block = Block.previous(outlet);
       if (!block) {
-        throw Error("OutletError: Missing connection on " + (this._info(ext.name)));
+        throw new OutletError("Missing connection on " + (this._info(ext.name)));
       }
       debug && console.log('callback -> ', this.toString(), ext.name, outlet);
       block.callback(layout, depth + 1, key, ext, outlet.input);
@@ -649,6 +649,15 @@ Block = (function() {
   return Block;
 
 })();
+
+OutletError = function(message) {
+  var e;
+  e = new Error(message);
+  e.name = 'OutletError';
+  return e;
+};
+
+OutletError.prototype = new Error;
 
 module.exports = Block;
 
@@ -1538,8 +1547,9 @@ exports.hash = require('./hash');
 var library;
 
 library = function(language, snippets, load) {
-  var callback, inline;
+  var callback, fetch, inline, used;
   callback = null;
+  used = {};
   if (snippets != null) {
     if (typeof snippets === 'function') {
       callback = function(name) {
@@ -1560,21 +1570,31 @@ library = function(language, snippets, load) {
   if (callback == null) {
     return inline;
   }
-  return function(name) {
+  fetch = function(name) {
     if (name.match(/[{;]/)) {
       return inline(name);
     }
+    used[name] = true;
     return callback(name);
   };
+  fetch.used = function(_used) {
+    if (_used == null) {
+      _used = used;
+    }
+    return used = _used;
+  };
+  return fetch;
 };
 
 module.exports = library;
 
 
 },{}],16:[function(require,module,exports){
-var Material, debug, tick;
+var Material, Visualize, debug, tick;
 
 debug = false;
+
+Visualize = require('../visualize');
 
 tick = function() {
   var now;
@@ -1636,10 +1656,17 @@ Material = (function() {
     options.attributes = attributes;
     options.uniforms = uniforms;
     options.varyings = varyings;
+    options.inspect = function() {
+      return Visualize.inspect('Vertex Shader', vertex, 'Fragment Shader', fragment.graph);
+    };
     if (debug) {
       this.tock('Material build');
     }
     return options;
+  };
+
+  Material.prototype.inspect = function() {
+    return Visualize.inspect('Vertex Shader', this.vertex, 'Fragment Shader', this.fragment.graph);
   };
 
   return Material;
@@ -1649,7 +1676,7 @@ Material = (function() {
 module.exports = Material;
 
 
-},{}],17:[function(require,module,exports){
+},{"../visualize":36}],17:[function(require,module,exports){
 var queue;
 
 queue = function(limit) {
@@ -2412,18 +2439,43 @@ parse = function(name, code) {
 };
 
 parseGLSL = function(name, code) {
-  var ast, error, errors, tock, _i, _len, _ref, _ref1;
+  var ast, e, error, errors, fmt, tock, _i, _len, _ref, _ref1;
   if (debug) {
     tock = tick();
   }
-  _ref = tokenizer().process(parser(), code), (_ref1 = _ref[0], ast = _ref1[0]), errors = _ref[1];
+  try {
+    _ref = tokenizer().process(parser(), code), (_ref1 = _ref[0], ast = _ref1[0]), errors = _ref[1];
+  } catch (_error) {
+    e = _error;
+    errors = [
+      {
+        message: e
+      }
+    ];
+  }
   if (debug) {
     tock('GLSL Tokenize & Parse');
   }
+  fmt = function(code) {
+    var max, pad;
+    code = code.split("\n");
+    max = ("" + code.length).length;
+    pad = function(v) {
+      if ((v = "" + v).length < max) {
+        return ("       " + v).slice(-max);
+      } else {
+        return v;
+      }
+    };
+    return code.map(function(line, i) {
+      return "" + (pad(i + 1)) + ": " + line;
+    }).join("\n");
+  };
   if (!ast || errors.length) {
     if (!name) {
       name = '(inline code)';
     }
+    console.warn(fmt(code));
     for (_i = 0, _len = errors.length; _i < _len; _i++) {
       error = errors[_i];
       console.error("[ShaderGraph] " + name + " -", error.message);
@@ -3870,7 +3922,7 @@ Snippet = (function() {
   };
 
   Snippet.prototype.bind = function(config, uniforms, namespace, defines) {
-    var a, def, e, exceptions, exist, global, key, local, name, redef, u, v, x, _a, _e, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _u, _v;
+    var a, def, defs, e, exceptions, exist, global, k, key, local, name, redef, u, v, x, _a, _e, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _u, _v;
     if (uniforms === '' + uniforms) {
       _ref = [uniforms, namespace != null ? namespace : {}, defines != null ? defines : {}], namespace = _ref[0], uniforms = _ref[1], defines = _ref[2];
     } else if (namespace !== '' + namespace) {
@@ -3973,6 +4025,20 @@ Snippet = (function() {
       }
     }
     this.body = this.code = this._compiler(this.namespace, exceptions, defines);
+    if (defines) {
+      defs = ((function() {
+        var _results;
+        _results = [];
+        for (k in defines) {
+          v = defines[k];
+          _results.push("#define " + k + " " + v);
+        }
+        return _results;
+      })()).join('\n');
+      if (defs.length) {
+        this._original = [defs, "//----------------------------------------", this._original].join("\n");
+      }
+    }
     return null;
   };
 
@@ -4017,6 +4083,9 @@ resolve = function(arg) {
   if (arg._graph != null) {
     return arg._graph;
   }
+  if (arg.graph != null) {
+    return arg.graph;
+  }
   return arg;
 };
 
@@ -4051,9 +4120,14 @@ exports.visualize = function() {
 };
 
 exports.inspect = function() {
-  var contents, element;
+  var contents, el, element, _i, _len, _ref;
   contents = exports.visualize.apply(null, arguments);
   element = markup.overlay(contents);
+  _ref = document.querySelectorAll('.shadergraph-overlay');
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    el = _ref[_i];
+    el.remove();
+  }
   document.body.appendChild(element);
   contents.update();
   return element;
@@ -4341,6 +4415,11 @@ wrap = function(markup) {
   }
   div = document.createElement('div');
   div.innerText = markup != null ? markup : '';
+  if (markup.update) {
+    div.update = function() {
+      return typeof markup.update === "function" ? markup.update() : void 0;
+    };
+  }
   return div;
 };
 

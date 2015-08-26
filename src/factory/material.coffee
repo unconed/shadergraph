@@ -1,4 +1,5 @@
 debug = false
+Visualize = require '../visualize'
 
 tick = () ->
   now = +new Date
@@ -32,9 +33,14 @@ class Material
     options.attributes     = attributes
     options.uniforms       = uniforms
     options.varyings       = varyings
+    options.inspect        = () ->
+      Visualize.inspect 'Vertex Shader', vertex, 'Fragment Shader', fragment.graph
 
     @tock 'Material build' if debug
 
     options
+
+  inspect: () ->
+    Visualize.inspect 'Vertex Shader', @vertex, 'Fragment Shader', @fragment.graph
 
 module.exports = Material

@@ -11,6 +11,7 @@
 library = (language, snippets, load) ->
 
   callback = null
+  used = {}
 
   if snippets?
     if typeof snippets == 'function'
@@ -26,9 +27,14 @@ library = (language, snippets, load) ->
 
   return inline if !callback?
 
-  (name) ->
+  fetch = (name) ->
     return inline name if name.match /[{;]/
+    used[name] = true
     callback name
+
+  fetch.used = (_used = used) -> used = _used
+
+  fetch
 
 
 module.exports = library

@@ -211,7 +211,7 @@ class Factory
     state.tail = []
 
     if !graph.tail
-      throw "Cannot finalize empty graph"
+      throw new Error "Cannot finalize empty graph"
 
     # Add compile/link/export/inspect shortcut methods
     graph.compile = (namespace = 'main') =>

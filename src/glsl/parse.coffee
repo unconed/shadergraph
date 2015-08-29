@@ -36,8 +36,8 @@ parseGLSL = (name, code) ->
   if !ast || errors.length
     name = '(inline code)' if !name
     console.warn fmt code
-    console.error "[ShaderGraph] #{name} -", error.message for error in errors
-    throw "GLSL parse error"
+    console.error "#{name} -", error.message for error in errors
+    throw new Error "GLSL parse error"
 
   ast
 

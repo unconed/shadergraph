@@ -132,8 +132,8 @@ class Node
     key = @_key outlet
 
     # Sanity checks
-    throw "Adding outlet to two nodes at once." if outlet.node
-    throw "Adding two identical outlets to same node. (#{key})" if @outlets[key]
+    throw new Error "Adding outlet to two nodes at once." if outlet.node
+    throw new Error "Adding two identical outlets to same node. (#{key})" if @outlets[key]
 
     # Link back outlet
     outlet.node = @
@@ -160,7 +160,7 @@ class Node
     inout = outlet.inout
 
     # Sanity checks
-    throw "Removing outlet from wrong node." if outlet.node != @
+    throw new Error "Removing outlet from wrong node." if outlet.node != @
 
     # Disconnect outlet.
     outlet.disconnect()

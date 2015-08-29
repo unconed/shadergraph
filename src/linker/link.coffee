@@ -85,7 +85,7 @@ link = (language, links, modules, exported) ->
 
     if !outlet
       module = node.owner.snippet?._name ? node.owner.namespace
-      throw "Unable to link program. Unlinked callback `#{name}` on `#{module}`"
+      throw new Error "Unable to link program. Unlinked callback `#{name}` on `#{module}`"
 
     if outlet.inout == Graph.IN
       outlet.input == null

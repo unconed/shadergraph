@@ -53,7 +53,7 @@ class Outlet
 
     # Disallow bad combinations
     if @inout != Graph.OUT || outlet.inout != Graph.IN
-      throw "Can only connect out to in."
+      throw new Error "Can only connect out to in."
 
     # Check for existing connection
     return if outlet.input == @

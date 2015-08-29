@@ -99,7 +99,7 @@ Graph = (function() {
       return;
     }
     if (node.graph && !ignore) {
-      throw "Adding node to two graphs at once";
+      throw new Error("Adding node to two graphs at once");
     }
     node.graph = this;
     return this.nodes.push(node);
@@ -115,7 +115,7 @@ Graph = (function() {
       return;
     }
     if (node.graph !== this) {
-      throw "Removing node from wrong graph.";
+      throw new Error("Removing node from wrong graph.");
     }
     ignore || node.disconnect();
     this.nodes.splice(this.nodes.indexOf(node), 1);
@@ -332,10 +332,10 @@ Node = (function() {
     var key;
     key = this._key(outlet);
     if (outlet.node) {
-      throw "Adding outlet to two nodes at once.";
+      throw new Error("Adding outlet to two nodes at once.");
     }
     if (this.outlets[key]) {
-      throw "Adding two identical outlets to same node. (" + key + ")";
+      throw new Error("Adding two identical outlets to same node. (" + key + ")");
     }
     outlet.node = this;
     if (outlet.inout === Graph.IN) {
@@ -362,7 +362,7 @@ Node = (function() {
     key = this._key(outlet);
     inout = outlet.inout;
     if (outlet.node !== this) {
-      throw "Removing outlet from wrong node.";
+      throw new Error("Removing outlet from wrong node.");
     }
     outlet.disconnect();
     outlet.node = null;
@@ -464,7 +464,7 @@ Outlet = (function() {
       return outlet.connect(this);
     }
     if (this.inout !== Graph.OUT || outlet.inout !== Graph.IN) {
-      throw "Can only connect out to in.";
+      throw new Error("Can only connect out to in.");
     }
     if (outlet.input === this) {
       return;
@@ -1288,7 +1288,7 @@ Factory = (function() {
     state.end = tail;
     state.tail = [];
     if (!graph.tail) {
-      throw "Cannot finalize empty graph";
+      throw new Error("Cannot finalize empty graph");
     }
     graph.compile = (function(_this) {
       return function(namespace) {
@@ -1558,7 +1558,7 @@ library = function(language, snippets, load) {
     } else if (typeof snippets === 'object') {
       callback = function(name) {
         if (snippets[name] == null) {
-          throw "Unknown snippet `" + name + "`";
+          throw new Error("Unknown snippet `" + name + "`");
         }
         return load(language, name, snippets[name]);
       };
@@ -2478,9 +2478,9 @@ parseGLSL = function(name, code) {
     console.warn(fmt(code));
     for (_i = 0, _len = errors.length; _i < _len; _i++) {
       error = errors[_i];
-      console.error("[ShaderGraph] " + name + " -", error.message);
+      console.error("" + name + " -", error.message);
     }
-    throw "GLSL parse error";
+    throw new Error("GLSL parse error");
   }
   return ast;
 };
@@ -2803,7 +2803,7 @@ Graph = (function() {
       return;
     }
     if (node.graph && !ignore) {
-      throw "Adding node to two graphs at once";
+      throw new Error("Adding node to two graphs at once");
     }
     node.graph = this;
     return this.nodes.push(node);
@@ -2819,7 +2819,7 @@ Graph = (function() {
       return;
     }
     if (node.graph !== this) {
-      throw "Removing node from wrong graph.";
+      throw new Error("Removing node from wrong graph.");
     }
     ignore || node.disconnect();
     this.nodes.splice(this.nodes.indexOf(node), 1);
@@ -3036,10 +3036,10 @@ Node = (function() {
     var key;
     key = this._key(outlet);
     if (outlet.node) {
-      throw "Adding outlet to two nodes at once.";
+      throw new Error("Adding outlet to two nodes at once.");
     }
     if (this.outlets[key]) {
-      throw "Adding two identical outlets to same node. (" + key + ")";
+      throw new Error("Adding two identical outlets to same node. (" + key + ")");
     }
     outlet.node = this;
     if (outlet.inout === Graph.IN) {
@@ -3066,7 +3066,7 @@ Node = (function() {
     key = this._key(outlet);
     inout = outlet.inout;
     if (outlet.node !== this) {
-      throw "Removing outlet from wrong node.";
+      throw new Error("Removing outlet from wrong node.");
     }
     outlet.disconnect();
     outlet.node = null;
@@ -3168,7 +3168,7 @@ Outlet = (function() {
       return outlet.connect(this);
     }
     if (this.inout !== Graph.OUT || outlet.inout !== Graph.IN) {
-      throw "Can only connect out to in.";
+      throw new Error("Can only connect out to in.");
     }
     if (outlet.input === this) {
       return;
@@ -3726,7 +3726,7 @@ link = function(language, links, modules, exported) {
     outlet = node.get(name);
     if (!outlet) {
       module = (_ref = (_ref1 = node.owner.snippet) != null ? _ref1._name : void 0) != null ? _ref : node.owner.namespace;
-      throw "Unable to link program. Unlinked callback `" + name + "` on `" + module + "`";
+      throw new Error("Unable to link program. Unlinked callback `" + name + "` on `" + module + "`");
     }
     if (outlet.inout === Graph.IN) {
       return outlet.input === null;

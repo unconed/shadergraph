@@ -19,7 +19,7 @@ library = (language, snippets, load) ->
         load language, name, snippets(name)
     else if typeof snippets == 'object'
       callback = (name) ->
-        throw "Unknown snippet `#{name}`" if !snippets[name]?
+        throw new Error "Unknown snippet `#{name}`" if !snippets[name]?
         load language, name, snippets[name]
 
   inline = (code) ->

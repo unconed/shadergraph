@@ -34,7 +34,7 @@ class Graph
       @add(_node) for _node in node
       return
 
-    throw "Adding node to two graphs at once" if node.graph and !ignore
+    throw new Error "Adding node to two graphs at once" if node.graph and !ignore
 
     node.graph = @
     @nodes.push node
@@ -44,7 +44,7 @@ class Graph
       @remove(_node) for _node in node
       return
 
-    throw "Removing node from wrong graph." if node.graph != @
+    throw new Error "Removing node from wrong graph." if node.graph != @
 
     ignore || node.disconnect()
 

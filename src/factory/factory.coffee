@@ -15,7 +15,7 @@ class Factory
   pipe: (name, uniforms, namespace, defines) ->
     if name instanceof Factory
       @_concat name
-    else
+    else if name?
       @_call name, uniforms, namespace, defines
     @
 
@@ -27,7 +27,7 @@ class Factory
   require: (name, uniforms, namespace, defines) ->
     if name instanceof Factory
       @_import name
-    else
+    else if name?
       @callback()
       @_call name, uniforms, namespace, defines
       @end()

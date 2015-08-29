@@ -1066,7 +1066,7 @@ Factory = (function() {
   Factory.prototype.pipe = function(name, uniforms, namespace, defines) {
     if (name instanceof Factory) {
       this._concat(name);
-    } else {
+    } else if (name != null) {
       this._call(name, uniforms, namespace, defines);
     }
     return this;
@@ -1079,7 +1079,7 @@ Factory = (function() {
   Factory.prototype.require = function(name, uniforms, namespace, defines) {
     if (name instanceof Factory) {
       this._import(name);
-    } else {
+    } else if (name != null) {
       this.callback();
       this._call(name, uniforms, namespace, defines);
       this.end();

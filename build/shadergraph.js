@@ -1177,6 +1177,9 @@ Factory = (function() {
 
   Factory.prototype._concat = function(factory) {
     var block, error;
+    if (factory._state.nodes.length === 0) {
+      return this;
+    }
     this._tail(factory._state, factory._graph);
     try {
       block = new Block.Isolate(factory._graph);
@@ -1193,6 +1196,9 @@ Factory = (function() {
 
   Factory.prototype._import = function(factory) {
     var block, error;
+    if (factory._state.nodes.length === 0) {
+      throw "Can't import empty callback";
+    }
     this._tail(factory._state, factory._graph);
     try {
       block = new Block.Callback(factory._graph);

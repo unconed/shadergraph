@@ -119,6 +119,9 @@ class Factory
   # Concatenate existing factory onto tail
   # Retains original factory
   _concat: (factory) ->
+    # Ignore empty concat
+    return @ if factory._state.nodes.length == 0
+
     @_tail factory._state, factory._graph
 
     try
@@ -133,6 +136,9 @@ class Factory
   # Add existing factory as callback
   # Retains original factory
   _import: (factory) ->
+    # Check for empty require
+    throw "Can't import empty callback" if factory._state.nodes.length == 0
+
     @_tail factory._state, factory._graph
 
     try

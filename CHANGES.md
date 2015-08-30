@@ -1,6 +1,8 @@
 _2.0.6_
  * Remove unnecessary _i_o suffix from inout registers.
  * Append programmatic defines to bound snippet._original
+ * Make return argument first instead of last output
+ * Improved auto-connection logic, always match hints first
 
 _2.0.5_
  * Fix graph not being returned with material in case of automatic tail block.

@@ -101,8 +101,10 @@ module.exports = _ =
 
       # Export argument if unconnected
       if dangling name
+        op = 'push'
         if isReturn
           if body.return == ''
+            op = 'unshift'
             # Preserve 'return' arg name
             copy = name
             body.type     = arg.spec
@@ -116,7 +118,7 @@ module.exports = _ =
 
         # Copy argument into new signature
         arg = arg.copy copy, meta
-        body.signature.push arg
+        body.signature[op] arg
       else
         body.vars[id] = "  " + arg.param(id)
 
@@ -214,7 +216,7 @@ module.exports = _ =
 
       map[arg.name] = _name
 
-    # Build call to invoke the other side
+    # Build function prototype to invoke the other side
     _lookup = (name) -> map[name]
     _dangling = () -> true
 

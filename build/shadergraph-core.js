@@ -270,40 +270,53 @@ Node = (function() {
   };
 
   Node.prototype.connect = function(node, empty, force) {
-    var hint, hints, others, outlet, outlets, type, _i, _j, _len, _len1, _ref, _ref1;
+    var dest, dests, hint, hints, list, outlets, source, sources, type, typeHint, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
     outlets = {};
     hints = {};
+    typeHint = function(outlet) {
+      return type + '/' + outlet.hint;
+    };
     _ref = node.inputs;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      outlet = _ref[_i];
-      if (!force && outlet.input) {
+      dest = _ref[_i];
+      if (!force && dest.input) {
         continue;
       }
-      type = outlet.type;
-      hint = [type, outlet.hint].join('-');
+      type = dest.type;
+      hint = typeHint(dest);
       if (!hints[hint]) {
-        hints[hint] = outlet;
+        hints[hint] = dest;
       }
-      outlets[type] = outlets[type] || [];
-      outlets[type].push(outlet);
+      outlets[type] = list = outlets[type] || [];
+      list.push(dest);
     }
-    _ref1 = this.outputs;
+    sources = this.outputs;
+    sources = sources.filter(function(outlet) {
+      return !(empty && outlet.output.length);
+    });
+    _ref1 = sources.slice();
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      outlet = _ref1[_j];
-      if (empty && outlet.output.length) {
-        continue;
-      }
-      type = outlet.type;
-      hint = [type, outlet.hint].join('-');
-      others = outlets[type];
-      if (hints[hint]) {
-        hints[hint].connect(outlet);
+      source = _ref1[_j];
+      type = source.type;
+      hint = typeHint(source);
+      dests = outlets[type];
+      if (dest = hints[hint]) {
+        source.connect(dest);
         delete hints[hint];
-        others.splice(others.indexOf(outlet), 1);
-        continue;
+        dests.splice(dests.indexOf(dest), 1);
+        sources.splice(sources.indexOf(source), 1);
       }
-      if (others && others.length) {
-        others.shift().connect(outlet);
+    }
+    if (!sources.length) {
+      return this;
+    }
+    _ref2 = sources.slice();
+    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+      source = _ref2[_k];
+      type = source.type;
+      dests = outlets[type];
+      if (dests && dests.length) {
+        source.connect(dests.shift());
       }
     }
     return this;
@@ -1178,7 +1191,7 @@ Factory = (function() {
   Factory.prototype._concat = function(factory) {
     var block, error;
     if (factory._state.nodes.length === 0) {
-      return this;
+      throw "Can't pipe empty callback";
     }
     this._tail(factory._state, factory._graph);
     try {
@@ -2148,7 +2161,7 @@ module.exports = _ = {
     return true;
   },
   call: function(lookup, dangling, entry, signature, body) {
-    var arg, args, copy, id, inout, isReturn, meta, name, omit, other, ret, rets, shadow, _i, _len, _ref, _ref1;
+    var arg, args, copy, id, inout, isReturn, meta, name, omit, op, other, ret, rets, shadow, _i, _len, _ref, _ref1;
     args = [];
     ret = '';
     rets = 1;
@@ -2195,8 +2208,10 @@ module.exports = _ = {
         args.push(other != null ? other : id);
       }
       if (dangling(name)) {
+        op = 'push';
         if (isReturn) {
           if (body["return"] === '') {
+            op = 'unshift';
             copy = name;
             body.type = arg.spec;
             body["return"] = "  return " + id;
@@ -2209,7 +2224,7 @@ module.exports = _ = {
           body.params.push(arg.param(id, true));
         }
         arg = arg.copy(copy, meta);
-        body.signature.push(arg);
+        body.signature[op](arg);
       } else {
         body.vars[id] = "  " + arg.param(id);
       }
@@ -2591,7 +2606,7 @@ extractSignatures = function(main, internals, externals) {
     return decl.type(symbol.ident, symbol.type, symbol.quant, symbol.count, symbol.inout, symbol.storage);
   };
   func = function(symbol, inout) {
-    var a, arg, b, d, def, ins, outs, signature, type, _i, _len;
+    var a, arg, b, d, def, inTypes, outTypes, signature, type, _i, _len;
     signature = (function() {
       var _i, _len, _ref, _results;
       _ref = symbol.args;
@@ -2621,9 +2636,9 @@ extractSignatures = function(main, internals, externals) {
       signature.push(b);
     }
     if (symbol.type !== 'void') {
-      signature.push(decl.type($.RETURN_ARG, symbol.type, false, '', 'out'));
+      signature.unshift(decl.type($.RETURN_ARG, symbol.type, false, '', 'out'));
     }
-    ins = ((function() {
+    inTypes = ((function() {
       var _j, _len1, _results;
       _results = [];
       for (_j = 0, _len1 = signature.length; _j < _len1; _j++) {
@@ -2634,7 +2649,7 @@ extractSignatures = function(main, internals, externals) {
       }
       return _results;
     })()).join(',');
-    outs = ((function() {
+    outTypes = ((function() {
       var _j, _len1, _results;
       _results = [];
       for (_j = 0, _len1 = signature.length; _j < _len1; _j++) {
@@ -2645,7 +2660,7 @@ extractSignatures = function(main, internals, externals) {
       }
       return _results;
     })()).join(',');
-    type = "(" + ins + ")(" + outs + ")";
+    type = "(" + inTypes + ")(" + outTypes + ")";
     return def = {
       name: symbol.ident,
       type: type,
@@ -2980,40 +2995,53 @@ Node = (function() {
   };
 
   Node.prototype.connect = function(node, empty, force) {
-    var hint, hints, others, outlet, outlets, type, _i, _j, _len, _len1, _ref, _ref1;
+    var dest, dests, hint, hints, list, outlets, source, sources, type, typeHint, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
     outlets = {};
     hints = {};
+    typeHint = function(outlet) {
+      return type + '/' + outlet.hint;
+    };
     _ref = node.inputs;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      outlet = _ref[_i];
-      if (!force && outlet.input) {
+      dest = _ref[_i];
+      if (!force && dest.input) {
         continue;
       }
-      type = outlet.type;
-      hint = [type, outlet.hint].join('-');
+      type = dest.type;
+      hint = typeHint(dest);
       if (!hints[hint]) {
-        hints[hint] = outlet;
+        hints[hint] = dest;
       }
-      outlets[type] = outlets[type] || [];
-      outlets[type].push(outlet);
+      outlets[type] = list = outlets[type] || [];
+      list.push(dest);
     }
-    _ref1 = this.outputs;
+    sources = this.outputs;
+    sources = sources.filter(function(outlet) {
+      return !(empty && outlet.output.length);
+    });
+    _ref1 = sources.slice();
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      outlet = _ref1[_j];
-      if (empty && outlet.output.length) {
-        continue;
-      }
-      type = outlet.type;
-      hint = [type, outlet.hint].join('-');
-      others = outlets[type];
-      if (hints[hint]) {
-        hints[hint].connect(outlet);
+      source = _ref1[_j];
+      type = source.type;
+      hint = typeHint(source);
+      dests = outlets[type];
+      if (dest = hints[hint]) {
+        source.connect(dest);
         delete hints[hint];
-        others.splice(others.indexOf(outlet), 1);
-        continue;
+        dests.splice(dests.indexOf(dest), 1);
+        sources.splice(sources.indexOf(source), 1);
       }
-      if (others && others.length) {
-        others.shift().connect(outlet);
+    }
+    if (!sources.length) {
+      return this;
+    }
+    _ref2 = sources.slice();
+    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+      source = _ref2[_k];
+      type = source.type;
+      dests = outlets[type];
+      if (dests && dests.length) {
+        source.connect(dests.shift());
       }
     }
     return this;

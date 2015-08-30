@@ -139,12 +139,12 @@ extractSignatures = (main, internals, externals) ->
 
     # Add output for return type
     if symbol.type != 'void'
-      signature.push decl.type $.RETURN_ARG, symbol.type, false, '', 'out'
+      signature.unshift decl.type $.RETURN_ARG, symbol.type, false, '', 'out'
 
     # Make type string
-    ins = (d.type for d in signature when d.inout == decl.in).join ','
-    outs = (d.type for d in signature when d.inout == decl.out).join ','
-    type = "(#{ins})(#{outs})"
+    inTypes  = (d.type for d in signature when d.inout == decl.in ).join ','
+    outTypes = (d.type for d in signature when d.inout == decl.out).join ','
+    type     = "(#{inTypes})(#{outTypes})"
 
     def =
       name: symbol.ident

@@ -78,41 +78,55 @@ class Node
     outlets = {}
     hints = {}
 
-    # Build hash keys of target outlets.
-    for outlet in node.inputs
+    typeHint = (outlet) -> type + '/' + outlet.hint
+
+    # Hash the types/hints of available target outlets.
+    for dest in node.inputs
       # Only autoconnect if not already connected
-      continue if !force && outlet.input
+      continue if !force && dest.input
 
       # Match outlets by type/name hint, then type/position key
-      type = outlet.type
-      hint = [type, outlet.hint].join('-')
+      type = dest.type
+      hint = typeHint dest
 
-      hints[hint] = outlet if !hints[hint]
-      outlets[type] = outlets[type] || []
-      outlets[type].push outlet
+      hints[hint] = dest if !hints[hint]
+      outlets[type] = list = outlets[type] || []
+      list.push dest
 
-    # Build hash keys of source outlets
-    for outlet in @outputs
-      # Ignore this outlet if only matching empties.
-      continue if empty && outlet.output.length
+    # Available source outlets
+    sources = @outputs
+
+    # Ignore connected source if only matching empties.
+    sources = sources.filter (outlet) -> !(empty and outlet.output.length)
+
+    # Match hints first
+    for source in sources.slice()
 
       # Match outlets by type and name
-      type = outlet.type
-      hint = [type, outlet.hint].join('-')
-      others = outlets[type]
+      type = source.type
+      hint = typeHint source
+      dests = outlets[type]
 
       # Connect if found
-      if hints[hint]
-        hints[hint].connect(outlet)
+      if dest = hints[hint]
+        source.connect dest
 
+        # Remove from potential set
         delete hints[hint]
-        others.splice others.indexOf(outlet), 1
-        continue
+        dests  .splice dests.indexOf(dest),     1
+        sources.splice sources.indexOf(source), 1
+
+    # Match what's left
+    return @ unless sources.length
+    for source in sources.slice()
+
+      type = source.type
+      dests = outlets[type]
 
       # Match outlets by type and order
-      # Link up corresponding outlets
-      if others && others.length
-        others.shift().connect outlet
+      if dests && dests.length
+        # Link up and remove from potential set
+        source.connect dests.shift()
 
     @
 

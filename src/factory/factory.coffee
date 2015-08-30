@@ -121,6 +121,7 @@ class Factory
   _concat: (factory) ->
     # Ignore empty concat
     return @ if factory._state.nodes.length == 0
+    #throw "Can't pipe empty callback" if factory._state.nodes.length == 0
 
     @_tail factory._state, factory._graph
 

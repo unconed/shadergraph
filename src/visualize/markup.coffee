@@ -239,11 +239,9 @@ overlay = (contents) ->
 
 wrap = (markup) ->
   return markup if markup instanceof Node
-  div = document.createElement 'div'
-  div.innerText = markup ? ''
-  if markup.update
-    div.update = () -> markup.update?()
-  return div
+  p = document.createElement 'span'
+  p.innerText = markup ? ''
+  return p
 
 merge = (markup) ->
   if markup.length != 1

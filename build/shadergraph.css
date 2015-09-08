@@ -97,30 +97,39 @@
 }
 
 .shadergraph-node-callback {
-  background: rgba(0, 20, 80, .1);
+  background: rgba(205, 209, 221, .5);
   box-shadow: 0 1px  2px rgba(0, 10, 40, .2),
               0 1px  10px rgba(0, 10, 40, .2);
 }
 .shadergraph-node-callback > .shadergraph-header {
   background: rgba(0, 20, 80, .3);
 }
+.shadergraph-graph .shadergraph-graph .shadergraph-node-callback {
+  background: rgba(0, 20, 80, .1);
+}
 
 .shadergraph-node-call {
-  background: rgba(20, 80, 0, .1);
+  background: rgba(209, 221, 205, .5);
   box-shadow: 0 1px  2px rgba(10, 40, 0, .2),
               0 1px  10px rgba(10, 40, 0, .2);
 }
 .shadergraph-node-call > .shadergraph-header {
   background: rgba(20, 80, 0, .3);
 }
+.shadergraph-graph .shadergraph-graph .shadergraph-node-call {
+  background: rgba(20, 80, 0, .1);
+}
 
 .shadergraph-node-isolate {
-  background: rgba(80, 0, 20, .1);
+  background: rgba(221, 205, 209, .5);
   box-shadow: 0 1px  2px rgba(40, 0, 10, .2),
               0 1px  10px rgba(40, 0, 10, .2);
 }
 .shadergraph-node-isolate > .shadergraph-header {
   background: rgba(80, 0, 20, .3);
+}
+.shadergraph-graph .shadergraph-graph .shadergraph-node-isolate {
+  background: rgba(80, 0, 20, .1);
 }
 
 .shadergraph-node.shadergraph-has-code {
@@ -176,7 +185,6 @@
 .shadergraph-overlay .shadergraph-inside {
   width: 4000px;
   min-height: 100%;
-  padding-top: 10px;
   box-sizing: border-box;
 }
 .shadergraph-overlay .shadergraph-close {
@@ -199,6 +207,15 @@
   color: rgba(0, 0, 0, 1);
 }
 .shadergraph-overlay .shadergraph-graph {
+  padding-top: 10px;
   overflow: visible;
   min-height: 100%;
+}
+.shadergraph-overlay span {
+  display: block;
+  padding: 5px 15px;
+  margin: 0;
+  background: rgba(0, 0, 0, .1);
+  font-weight: bold;
+  font-family: sans-serif;
 }

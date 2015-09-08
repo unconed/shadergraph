@@ -1191,7 +1191,7 @@ Factory = (function() {
   Factory.prototype._concat = function(factory) {
     var block, error;
     if (factory._state.nodes.length === 0) {
-      throw "Can't pipe empty callback";
+      return this;
     }
     this._tail(factory._state, factory._graph);
     try {
@@ -4443,18 +4443,13 @@ overlay = function(contents) {
 };
 
 wrap = function(markup) {
-  var div;
+  var p;
   if (markup instanceof Node) {
     return markup;
   }
-  div = document.createElement('div');
-  div.innerText = markup != null ? markup : '';
-  if (markup.update) {
-    div.update = function() {
-      return typeof markup.update === "function" ? markup.update() : void 0;
-    };
-  }
-  return div;
+  p = document.createElement('span');
+  p.innerText = markup != null ? markup : '';
+  return p;
 };
 
 merge = function(markup) {

@@ -37,13 +37,16 @@ ShaderGraph
  * [Deep Callback](http://acko.net/files/shadergraph2/examples/deepcallback.html)
  * [Isolated require](http://acko.net/files/shadergraph2/examples/wrap.html)
 
-ShaderGraph 2 drives all shaders in MathBox² (in development). Demos: [Vertex Colors](http://acko.net/files/dump/mathbox2/vertexcolor.html), [Volume of Vectors](http://acko.net/files/dump/mathbox2/volume.html), [Waves of Quads](http://acko.net/files/dump/mathbox2/face.html)
+ShaderGraph 2 drives all shaders in MathBox² (in development). For more info, see the articles on acko.net:
+
+ * [ShaderGraph 2](http://acko.net/blog/shadergraph-2)
+ * [MathBox²](http://acko.net/blog/mathbox2)
 
 Here's a real-world vertex shader for a line primitive, sampling color and position from two textures:
 
 <a href="http://acko.net/files/shadergraph2/vertex-color-shader-tidy.png"><img src="http://acko.net/files/shadergraph2/vertex-color-shader-tidy.png"></a>
 
-<a href="http://acko.net/files/dump/mathbox2/vertexcolor.html"><img src="http://acko.net/files/dump/mathbox2/vertexcolor.jpg" alt="MathBox 2 - Vertex color example"></a>
+<a href="http://acko.net/files/mathbox2/iframe-readyornot.html"><img src="http://acko.net/files/mathbox2/cover2.jpg" alt="MathBox 2 - Audio Visualizer example"></a>
 
 Basic Use
 ---

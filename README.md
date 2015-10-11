@@ -48,6 +48,10 @@ Here's a real-world vertex shader for a line primitive, sampling color and posit
 
 <a href="http://acko.net/files/mathbox2/iframe-readyornot.html"><img src="http://acko.net/files/mathbox2/cover2.jpg" alt="MathBox 2 - Audio Visualizer example"></a>
 
+You can also use ShaderGraph's graph visualizer directly for other purposes:
+
+ * [Raw Graph](http://acko.net/files/shadergraph2/examples/graph.html)
+
 Basic Use
 ---
 

@@ -123,7 +123,7 @@
   node1.getOut('alpha') .connect(node3.getIn('alpha'));
 
   // Create subgraph
-  var subnode = new Graph.Node({type: 'call', name: 'Child'}, def3);
+  var subnode = new Graph.Node({type: 'call', name: 'Child', code: "//\n// Hello World\n//"}, def3);
   subgraph.add(subnode);
 
   // Generate visualization of graph

@@ -4571,6 +4571,9 @@ serialize = function(graph) {
       if (record.type == null) {
         record.type = block.type;
       }
+      if (record.code == null) {
+        record.code = block.code;
+      }
       if (block.graph != null) {
         record.graph = serialize(block.graph);
       }

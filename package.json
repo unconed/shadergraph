@@ -1,6 +1,6 @@
 {
   "name": "shadergraph",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "GLSL linker",
   "repository": {
     "type": "git",
@@ -11,22 +11,26 @@
     "test": "gulp test"
   },
   "dependencies": {
-    "three": ">=0.58.10"
+    "three": "^0.72.0"
   },
   "devDependencies": {
-    "coffeeify": "^0.7.0",
-    "gulp": "~3.4.0",
-    "gulp-browserify": "^0.5.0",
-    "gulp-concat": "~2.1.7",
-    "gulp-karma": "0.0.2",
-    "gulp-rename": "~0.2.2",
-    "gulp-uglify": "~0.1.0",
-    "gulp-watch": "^0.6.9",
-    "jison": "^0.4.13",
-    "karma": "^0.10.9",
-    "karma-browserify": "^0.1.0",
-    "karma-phantomjs-launcher": "^0.1.2",
-    "run-sequence": "~0.3.1"
+    "coffee-script": "^1.10.0",
+    "coffeeify": "^1.1.0",
+    "gulp": "^3.9.0",
+    "gulp-browserify": "^0.5.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-karma": "0.0.5",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^1.4.1",
+    "gulp-watch": "^4.3.5",
+    "jasmine-core": "^2.3.4",
+    "jison": "^0.4.15",
+    "karma": "^0.13.10",
+    "karma-browserify": "^4.4.0",
+    "karma-chrome-launcher": "^0.2.1",
+    "karma-coffee-preprocessor": "^0.3.0",
+    "karma-jasmine": "^0.3.6",
+    "run-sequence": "^1.1.4"
   },
   "author": "Steven Wittens",
   "license": "MIT"

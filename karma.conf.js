@@ -4,6 +4,11 @@
 module.exports = function(config) {
   config.set({
 
+    // preprocess coffeescript
+    preprocessors: {
+      '**/*.coffee': ['coffee']
+    },
+
     // base path, that will be used to resolve files and exclude
     basePath: '',
 
@@ -12,7 +17,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      // Defined by gulp
+      // set by gulp
     ],
 
 

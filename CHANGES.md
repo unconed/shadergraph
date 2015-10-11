@@ -1,3 +1,9 @@
+_2.0.7_
+ * Clean state NPM dependencies / karma
+ * CoffeeScript 1.10 compatibility
+ * Make graph visualizer take raw properties
+ * Add raw graph example (`graph.html`)
+
 _2.0.6_
  * Remove unnecessary _i_o suffix from inout registers.
  * Append programmatic defines to bound snippet._original

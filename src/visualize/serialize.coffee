@@ -45,6 +45,11 @@ serialize = (graph) ->
       record.name  = 'Join'
       record.type  = 'join'
 
+    else if block?
+      record.name ?= block.name ? block.type
+      record.type ?= block.type
+      record.graph = serialize block.graph if block.graph?
+
     format = (type) ->
       type = type.replace ")(", ")→("
       type = type.replace "()", ""

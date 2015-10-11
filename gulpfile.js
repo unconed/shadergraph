@@ -2,10 +2,10 @@ var gulp = require('gulp');
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
 var rename = require("gulp-rename");
-var karma = require('gulp-karma');
 var runSequence = require('run-sequence');
 var browserify = require('gulp-browserify');
 var watch = require('gulp-watch');
+var KarmaServer = require('karma').Server;
 
 var builds = {
   core:   'build/shadergraph-core.js',
@@ -36,7 +36,7 @@ var coffees = [
 var bundle = vendor.concat(core);
 
 var test = [
-  'vendor/three.js',
+  'node_modules/three/three.js',
 ].concat(bundle).concat([
   'test/**/*.spec.coffee',
 ]);
@@ -51,7 +51,7 @@ gulp.task('browserify', function () {
         extensions: ['.coffee'],
       }))
       .pipe(rename({
-        ext: ".js"
+        extname: ".js"
       }))
       .pipe(gulp.dest('.tmp/'))
 });
@@ -78,17 +78,17 @@ gulp.task('uglify', function () {
   return gulp.src(products)
     .pipe(uglify())
     .pipe(rename({
-      ext: ".min.js"
+      extname: ".min.js"
     }))
     .pipe(gulp.dest('build'));
 });
 
-gulp.task('karma', function() {
-  return gulp.src(test)
-    .pipe(karma({
-      configFile: 'karma.conf.js',
-      action: 'single',
-    }));
+gulp.task('karma', function (done) {
+  new KarmaServer({
+    configFile: __dirname + '/karma.conf.js',
+    files: test,
+    singleRun: true,
+  }, done).start();
 });
 
 gulp.task('watch-karma', function() {

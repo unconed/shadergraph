@@ -24,14 +24,14 @@ Graph = (function() {
   }
 
   Graph.prototype.inputs = function() {
-    var inputs, node, outlet, _i, _j, _len, _len1, _ref, _ref1;
+    var i, inputs, j, len, len1, node, outlet, ref, ref1;
     inputs = [];
-    _ref = this.nodes;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      node = _ref[_i];
-      _ref1 = node.inputs;
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        outlet = _ref1[_j];
+    ref = this.nodes;
+    for (i = 0, len = ref.length; i < len; i++) {
+      node = ref[i];
+      ref1 = node.inputs;
+      for (j = 0, len1 = ref1.length; j < len1; j++) {
+        outlet = ref1[j];
         if (outlet.input === null) {
           inputs.push(outlet);
         }
@@ -41,14 +41,14 @@ Graph = (function() {
   };
 
   Graph.prototype.outputs = function() {
-    var node, outlet, outputs, _i, _j, _len, _len1, _ref, _ref1;
+    var i, j, len, len1, node, outlet, outputs, ref, ref1;
     outputs = [];
-    _ref = this.nodes;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      node = _ref[_i];
-      _ref1 = node.outputs;
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        outlet = _ref1[_j];
+    ref = this.nodes;
+    for (i = 0, len = ref.length; i < len; i++) {
+      node = ref[i];
+      ref1 = node.outputs;
+      for (j = 0, len1 = ref1.length; j < len1; j++) {
+        outlet = ref1[j];
         if (outlet.output.length === 0) {
           outputs.push(outlet);
         }
@@ -60,40 +60,40 @@ Graph = (function() {
   Graph.prototype.getIn = function(name) {
     var outlet;
     return ((function() {
-      var _i, _len, _ref, _results;
-      _ref = this.inputs();
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        outlet = _ref[_i];
+      var i, len, ref, results;
+      ref = this.inputs();
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        outlet = ref[i];
         if (outlet.name === name) {
-          _results.push(outlet);
+          results.push(outlet);
         }
       }
-      return _results;
+      return results;
     }).call(this))[0];
   };
 
   Graph.prototype.getOut = function(name) {
     var outlet;
     return ((function() {
-      var _i, _len, _ref, _results;
-      _ref = this.outputs();
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        outlet = _ref[_i];
+      var i, len, ref, results;
+      ref = this.outputs();
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        outlet = ref[i];
         if (outlet.name === name) {
-          _results.push(outlet);
+          results.push(outlet);
         }
       }
-      return _results;
+      return results;
     }).call(this))[0];
   };
 
   Graph.prototype.add = function(node, ignore) {
-    var _i, _len, _node;
+    var _node, i, len;
     if (node.length) {
-      for (_i = 0, _len = node.length; _i < _len; _i++) {
-        _node = node[_i];
+      for (i = 0, len = node.length; i < len; i++) {
+        _node = node[i];
         this.add(_node);
       }
       return;
@@ -106,10 +106,10 @@ Graph = (function() {
   };
 
   Graph.prototype.remove = function(node, ignore) {
-    var _i, _len, _node;
+    var _node, i, len;
     if (node.length) {
-      for (_i = 0, _len = node.length; _i < _len; _i++) {
-        _node = node[_i];
+      for (i = 0, len = node.length; i < len; i++) {
+        _node = node[i];
         this.remove(_node);
       }
       return;
@@ -123,10 +123,10 @@ Graph = (function() {
   };
 
   Graph.prototype.adopt = function(node) {
-    var _i, _len, _node;
+    var _node, i, len;
     if (node.length) {
-      for (_i = 0, _len = node.length; _i < _len; _i++) {
-        _node = node[_i];
+      for (i = 0, len = node.length; i < len; i++) {
+        _node = node[i];
         this.adopt(_node);
       }
       return;
@@ -142,6 +142,7 @@ Graph = (function() {
 module.exports = Graph;
 
 
+
 },{}],2:[function(require,module,exports){
 exports.Graph = require('./graph');
 
@@ -152,6 +153,7 @@ exports.Outlet = require('./outlet');
 exports.IN = exports.Graph.IN;
 
 exports.OUT = exports.Graph.OUT;
+
 
 
 },{"./graph":1,"./node":3,"./outlet":4}],3:[function(require,module,exports){
@@ -187,32 +189,32 @@ Node = (function() {
   Node.prototype.getIn = function(name) {
     var outlet;
     return ((function() {
-      var _i, _len, _ref, _results;
-      _ref = this.inputs;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        outlet = _ref[_i];
+      var i, len, ref, results;
+      ref = this.inputs;
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        outlet = ref[i];
         if (outlet.name === name) {
-          _results.push(outlet);
+          results.push(outlet);
         }
       }
-      return _results;
+      return results;
     }).call(this))[0];
   };
 
   Node.prototype.getOut = function(name) {
     var outlet;
     return ((function() {
-      var _i, _len, _ref, _results;
-      _ref = this.outputs;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        outlet = _ref[_i];
+      var i, len, ref, results;
+      ref = this.outputs;
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        outlet = ref[i];
         if (outlet.name === name) {
-          _results.push(outlet);
+          results.push(outlet);
         }
       }
-      return _results;
+      return results;
     }).call(this))[0];
   };
 
@@ -221,12 +223,12 @@ Node = (function() {
   };
 
   Node.prototype.setOutlets = function(outlets) {
-    var existing, hash, key, match, outlet, _i, _j, _k, _len, _len1, _len2, _ref;
+    var existing, hash, i, j, k, key, len, len1, len2, match, outlet, ref;
     if (outlets != null) {
       if (this.outlets == null) {
         this.outlets = {};
-        for (_i = 0, _len = outlets.length; _i < _len; _i++) {
-          outlet = outlets[_i];
+        for (i = 0, len = outlets.length; i < len; i++) {
+          outlet = outlets[i];
           if (!(outlet instanceof Outlet)) {
             outlet = Outlet.make(outlet);
           }
@@ -238,13 +240,13 @@ Node = (function() {
         return [outlet.name, outlet.inout, outlet.type].join('-');
       };
       match = {};
-      for (_j = 0, _len1 = outlets.length; _j < _len1; _j++) {
-        outlet = outlets[_j];
+      for (j = 0, len1 = outlets.length; j < len1; j++) {
+        outlet = outlets[j];
         match[hash(outlet)] = true;
       }
-      _ref = this.outlets;
-      for (key in _ref) {
-        outlet = _ref[key];
+      ref = this.outlets;
+      for (key in ref) {
+        outlet = ref[key];
         key = hash(outlet);
         if (match[key]) {
           match[key] = outlet;
@@ -252,8 +254,8 @@ Node = (function() {
           this._remove(outlet);
         }
       }
-      for (_k = 0, _len2 = outlets.length; _k < _len2; _k++) {
-        outlet = outlets[_k];
+      for (k = 0, len2 = outlets.length; k < len2; k++) {
+        outlet = outlets[k];
         existing = match[hash(outlet)];
         if (existing instanceof Outlet) {
           this._morph(existing, outlet);
@@ -270,15 +272,15 @@ Node = (function() {
   };
 
   Node.prototype.connect = function(node, empty, force) {
-    var dest, dests, hint, hints, list, outlets, source, sources, type, typeHint, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+    var dest, dests, hint, hints, i, j, k, len, len1, len2, list, outlets, ref, ref1, ref2, source, sources, type, typeHint;
     outlets = {};
     hints = {};
     typeHint = function(outlet) {
       return type + '/' + outlet.hint;
     };
-    _ref = node.inputs;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      dest = _ref[_i];
+    ref = node.inputs;
+    for (i = 0, len = ref.length; i < len; i++) {
+      dest = ref[i];
       if (!force && dest.input) {
         continue;
       }
@@ -294,9 +296,9 @@ Node = (function() {
     sources = sources.filter(function(outlet) {
       return !(empty && outlet.output.length);
     });
-    _ref1 = sources.slice();
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      source = _ref1[_j];
+    ref1 = sources.slice();
+    for (j = 0, len1 = ref1.length; j < len1; j++) {
+      source = ref1[j];
       type = source.type;
       hint = typeHint(source);
       dests = outlets[type];
@@ -310,9 +312,9 @@ Node = (function() {
     if (!sources.length) {
       return this;
     }
-    _ref2 = sources.slice();
-    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-      source = _ref2[_k];
+    ref2 = sources.slice();
+    for (k = 0, len2 = ref2.length; k < len2; k++) {
+      source = ref2[k];
       type = source.type;
       dests = outlets[type];
       if (dests && dests.length) {
@@ -323,15 +325,15 @@ Node = (function() {
   };
 
   Node.prototype.disconnect = function(node) {
-    var outlet, _i, _j, _len, _len1, _ref, _ref1;
-    _ref = this.inputs;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      outlet = _ref[_i];
+    var i, j, len, len1, outlet, ref, ref1;
+    ref = this.inputs;
+    for (i = 0, len = ref.length; i < len; i++) {
+      outlet = ref[i];
       outlet.disconnect();
     }
-    _ref1 = this.outputs;
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      outlet = _ref1[_j];
+    ref1 = this.outputs;
+    for (j = 0, len1 = ref1.length; j < len1; j++) {
+      outlet = ref1[j];
       outlet.disconnect();
     }
     return this;
@@ -397,6 +399,7 @@ Node = (function() {
 module.exports = Node;
 
 
+
 },{"./graph":1,"./outlet":4}],4:[function(require,module,exports){
 var Graph, Outlet;
 
@@ -409,15 +412,15 @@ Graph = require('./graph');
 
 Outlet = (function() {
   Outlet.make = function(outlet, extra) {
-    var key, meta, value, _ref;
+    var key, meta, ref, value;
     if (extra == null) {
       extra = {};
     }
     meta = extra;
     if (outlet.meta != null) {
-      _ref = outlet.meta;
-      for (key in _ref) {
-        value = _ref[key];
+      ref = outlet.meta;
+      for (key in ref) {
+        value = ref[key];
         meta[key] = value;
       }
     }
@@ -436,15 +439,15 @@ Outlet = (function() {
     return name = name.replace(/(In|Out|Inout|InOut)$/, '');
   };
 
-  function Outlet(inout, name, hint, type, meta, id) {
+  function Outlet(inout, name1, hint, type, meta1, id) {
     this.inout = inout;
-    this.name = name;
+    this.name = name1;
     this.hint = hint;
     this.type = type;
-    this.meta = meta != null ? meta : {};
+    this.meta = meta1 != null ? meta1 : {};
     this.id = id;
     if (this.hint == null) {
-      this.hint = Outlet.hint(name);
+      this.hint = Outlet.hint(this.name);
     }
     this.node = null;
     this.input = null;
@@ -488,7 +491,7 @@ Outlet = (function() {
   };
 
   Outlet.prototype.disconnect = function(outlet) {
-    var index, _i, _len, _ref;
+    var i, index, len, ref;
     if (this.input) {
       this.input.disconnect(this);
     }
@@ -500,9 +503,9 @@ Outlet = (function() {
           return outlet.input = null;
         }
       } else {
-        _ref = this.output;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          outlet = _ref[_i];
+        ref = this.output;
+        for (i = 0, len = ref.length; i < len; i++) {
+          outlet = ref[i];
           outlet.input = null;
         }
         return this.output = [];
@@ -515,6 +518,7 @@ Outlet = (function() {
 })();
 
 module.exports = Outlet;
+
 
 
 },{"./graph":1}],5:[function(require,module,exports){
@@ -530,21 +534,21 @@ debug = false;
 
 Block = (function() {
   Block.previous = function(outlet) {
-    var _ref;
-    return (_ref = outlet.input) != null ? _ref.node.owner : void 0;
+    var ref;
+    return (ref = outlet.input) != null ? ref.node.owner : void 0;
   };
 
   function Block() {
-    var _ref;
+    var ref;
     if (this.namespace == null) {
       this.namespace = Program.entry();
     }
-    this.node = new Graph.Node(this, (_ref = typeof this.makeOutlets === "function" ? this.makeOutlets() : void 0) != null ? _ref : {});
+    this.node = new Graph.Node(this, (ref = typeof this.makeOutlets === "function" ? this.makeOutlets() : void 0) != null ? ref : {});
   }
 
   Block.prototype.refresh = function() {
-    var _ref;
-    return this.node.setOutlets((_ref = typeof this.makeOutlets === "function" ? this.makeOutlets() : void 0) != null ? _ref : {});
+    var ref;
+    return this.node.setOutlets((ref = typeof this.makeOutlets === "function" ? this.makeOutlets() : void 0) != null ? ref : {});
   };
 
   Block.prototype.clone = function() {
@@ -574,8 +578,8 @@ Block = (function() {
   Block.prototype["export"] = function(layout, depth) {};
 
   Block.prototype._info = function(suffix) {
-    var string, _ref, _ref1;
-    string = (_ref = (_ref1 = this.node.owner.snippet) != null ? _ref1._name : void 0) != null ? _ref : this.node.owner.namespace;
+    var ref, ref1, string;
+    string = (ref = (ref1 = this.node.owner.snippet) != null ? ref1._name : void 0) != null ? ref : this.node.owner.namespace;
     if (suffix != null) {
       return string += '.' + suffix;
     }
@@ -597,15 +601,15 @@ Block = (function() {
   };
 
   Block.prototype._inputs = function(module, program, depth) {
-    var arg, outlet, _i, _len, _ref, _ref1, _results;
-    _ref = module.main.signature;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      arg = _ref[_i];
+    var arg, i, len, outlet, ref, ref1, results;
+    ref = module.main.signature;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      arg = ref[i];
       outlet = this.node.get(arg.name);
-      _results.push((_ref1 = Block.previous(outlet)) != null ? _ref1.call(program, depth + 1) : void 0);
+      results.push((ref1 = Block.previous(outlet)) != null ? ref1.call(program, depth + 1) : void 0);
     }
-    return _results;
+    return results;
   };
 
   Block.prototype._callback = function(module, layout, depth, name, external, outlet) {
@@ -617,12 +621,12 @@ Block = (function() {
   };
 
   Block.prototype._link = function(module, layout, depth) {
-    var block, ext, key, orig, outlet, parent, _i, _len, _ref, _ref1, _ref2, _results;
+    var block, ext, i, key, len, orig, outlet, parent, ref, ref1, ref2, results;
     debug && console.log('block::_link', this.toString(), module.namespace);
-    _ref = module.symbols;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      key = _ref[_i];
+    ref = module.symbols;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      key = ref[i];
       ext = module.externals[key];
       outlet = this.node.get(ext.name);
       if (!outlet) {
@@ -631,9 +635,9 @@ Block = (function() {
       if (outlet.meta.child != null) {
         continue;
       }
-      _ref1 = [outlet, outlet, null], orig = _ref1[0], parent = _ref1[1], block = _ref1[2];
+      ref1 = [outlet, outlet, null], orig = ref1[0], parent = ref1[1], block = ref1[2];
       while (!block && parent) {
-        _ref2 = [outlet.meta.parent, parent], parent = _ref2[0], outlet = _ref2[1];
+        ref2 = [outlet.meta.parent, parent], parent = ref2[0], outlet = ref2[1];
       }
       block = Block.previous(outlet);
       if (!block) {
@@ -641,22 +645,22 @@ Block = (function() {
       }
       debug && console.log('callback -> ', this.toString(), ext.name, outlet);
       block.callback(layout, depth + 1, key, ext, outlet.input);
-      _results.push(block != null ? block["export"](layout, depth + 1) : void 0);
+      results.push(block != null ? block["export"](layout, depth + 1) : void 0);
     }
-    return _results;
+    return results;
   };
 
   Block.prototype._trace = function(module, layout, depth) {
-    var arg, outlet, _i, _len, _ref, _ref1, _results;
+    var arg, i, len, outlet, ref, ref1, results;
     debug && console.log('block::_trace', this.toString(), module.namespace);
-    _ref = module.main.signature;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      arg = _ref[_i];
+    ref = module.main.signature;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      arg = ref[i];
       outlet = this.node.get(arg.name);
-      _results.push((_ref1 = Block.previous(outlet)) != null ? _ref1["export"](layout, depth + 1) : void 0);
+      results.push((ref1 = Block.previous(outlet)) != null ? ref1["export"](layout, depth + 1) : void 0);
     }
-    return _results;
+    return results;
   };
 
   return Block;
@@ -675,15 +679,16 @@ OutletError.prototype = new Error;
 module.exports = Block;
 
 
+
 },{"../graph":25,"../linker":30}],6:[function(require,module,exports){
 var Block, Call,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
 
 Block = require('./block');
 
-Call = (function(_super) {
-  __extends(Call, _super);
+Call = (function(superClass) {
+  extend(Call, superClass);
 
   function Call(snippet) {
     this.snippet = snippet;
@@ -701,26 +706,26 @@ Call = (function(_super) {
     externals = this.snippet.externals;
     symbols = this.snippet.symbols;
     params = (function() {
-      var _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = main.length; _i < _len; _i++) {
-        outlet = main[_i];
-        _results.push(this._outlet(outlet, {
+      var i, len, results;
+      results = [];
+      for (i = 0, len = main.length; i < len; i++) {
+        outlet = main[i];
+        results.push(this._outlet(outlet, {
           callback: false
         }));
       }
-      return _results;
+      return results;
     }).call(this);
     callbacks = (function() {
-      var _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = symbols.length; _i < _len; _i++) {
-        key = symbols[_i];
-        _results.push(this._outlet(externals[key], {
+      var i, len, results;
+      results = [];
+      for (i = 0, len = symbols.length; i < len; i++) {
+        key = symbols[i];
+        results.push(this._outlet(externals[key], {
           callback: true
         }));
       }
-      return _results;
+      return results;
     }).call(this);
     return params.concat(callbacks);
   };
@@ -745,10 +750,11 @@ Call = (function(_super) {
 module.exports = Call;
 
 
+
 },{"./block":5}],7:[function(require,module,exports){
 var Block, Callback, Graph,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
 
 Graph = require('../graph');
 
@@ -759,8 +765,8 @@ Block = require('./block');
   Re-use a subgraph as a callback
  */
 
-Callback = (function(_super) {
-  __extends(Callback, _super);
+Callback = (function(superClass) {
+  extend(Callback, superClass);
 
   function Callback(graph) {
     this.graph = graph;
@@ -777,19 +783,19 @@ Callback = (function(_super) {
   };
 
   Callback.prototype.makeOutlets = function() {
-    var handle, ins, outlet, outlets, outs, type, _i, _j, _len, _len1, _ref, _ref1;
+    var handle, i, ins, j, len, len1, outlet, outlets, outs, ref, ref1, type;
     this.make();
     outlets = [];
     ins = [];
     outs = [];
     handle = (function(_this) {
       return function(outlet, list) {
-        var dupe, _base;
+        var base, dupe;
         if (outlet.meta.callback) {
           if (outlet.inout === Graph.IN) {
             dupe = outlet.dupe();
-            if ((_base = dupe.meta).child == null) {
-              _base.child = outlet;
+            if ((base = dupe.meta).child == null) {
+              base.child = outlet;
             }
             outlet.meta.parent = dupe;
             return outlets.push(dupe);
@@ -799,14 +805,14 @@ Callback = (function(_super) {
         }
       };
     })(this);
-    _ref = this.graph.inputs();
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      outlet = _ref[_i];
+    ref = this.graph.inputs();
+    for (i = 0, len = ref.length; i < len; i++) {
+      outlet = ref[i];
       handle(outlet, ins);
     }
-    _ref1 = this.graph.outputs();
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      outlet = _ref1[_j];
+    ref1 = this.graph.outputs();
+    for (j = 0, len1 = ref1.length; j < len1; j++) {
+      outlet = ref1[j];
       handle(outlet, outs);
     }
     ins = ins.join(',');
@@ -852,6 +858,7 @@ Callback = (function(_super) {
 module.exports = Callback;
 
 
+
 },{"../graph":25,"./block":5}],8:[function(require,module,exports){
 exports.Block = require('./block');
 
@@ -864,10 +871,11 @@ exports.Isolate = require('./isolate');
 exports.Join = require('./join');
 
 
+
 },{"./block":5,"./call":6,"./callback":7,"./isolate":9,"./join":10}],9:[function(require,module,exports){
 var Block, Graph, Isolate,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
 
 Graph = require('../graph');
 
@@ -878,8 +886,8 @@ Block = require('./block');
   Isolate a subgraph as a single node
  */
 
-Isolate = (function(_super) {
-  __extends(Isolate, _super);
+Isolate = (function(superClass) {
+  extend(Isolate, superClass);
 
   function Isolate(graph) {
     this.graph = graph;
@@ -896,27 +904,27 @@ Isolate = (function(_super) {
   };
 
   Isolate.prototype.makeOutlets = function() {
-    var done, dupe, name, outlet, outlets, seen, set, _base, _i, _j, _len, _len1, _ref, _ref1, _ref2;
+    var base, done, dupe, i, j, len, len1, name, outlet, outlets, ref, ref1, ref2, seen, set;
     this.make();
     outlets = [];
     seen = {};
     done = {};
-    _ref = ['inputs', 'outputs'];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      set = _ref[_i];
-      _ref1 = this.graph[set]();
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        outlet = _ref1[_j];
+    ref = ['inputs', 'outputs'];
+    for (i = 0, len = ref.length; i < len; i++) {
+      set = ref[i];
+      ref1 = this.graph[set]();
+      for (j = 0, len1 = ref1.length; j < len1; j++) {
+        outlet = ref1[j];
         name = void 0;
-        if (((_ref2 = outlet.hint) === 'return' || _ref2 === 'callback') && outlet.inout === Graph.OUT) {
+        if (((ref2 = outlet.hint) === 'return' || ref2 === 'callback') && outlet.inout === Graph.OUT) {
           name = outlet.hint;
         }
         if (seen[name] != null) {
           name = void 0;
         }
         dupe = outlet.dupe(name);
-        if ((_base = dupe.meta).child == null) {
-          _base.child = outlet;
+        if ((base = dupe.meta).child == null) {
+          base.child = outlet;
         }
         outlet.meta.parent = dupe;
         if (name != null) {
@@ -959,10 +967,11 @@ Isolate = (function(_super) {
 module.exports = Isolate;
 
 
+
 },{"../graph":25,"./block":5}],10:[function(require,module,exports){
 var Block, Join,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
 
 Block = require('./block');
 
@@ -971,8 +980,8 @@ Block = require('./block');
   Join multiple disconnected nodes
  */
 
-Join = (function(_super) {
-  __extends(Join, _super);
+Join = (function(superClass) {
+  extend(Join, superClass);
 
   function Join(nodes) {
     this.nodes = nodes;
@@ -988,27 +997,27 @@ Join = (function(_super) {
   };
 
   Join.prototype.call = function(program, depth) {
-    var block, node, _i, _len, _ref, _results;
-    _ref = this.nodes;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      node = _ref[_i];
+    var block, i, len, node, ref, results;
+    ref = this.nodes;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      node = ref[i];
       block = node.owner;
-      _results.push(block.call(program, depth));
+      results.push(block.call(program, depth));
     }
-    return _results;
+    return results;
   };
 
   Join.prototype["export"] = function(layout, depth) {
-    var block, node, _i, _len, _ref, _results;
-    _ref = this.nodes;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      node = _ref[_i];
+    var block, i, len, node, ref, results;
+    ref = this.nodes;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      node = ref[i];
       block = node.owner;
-      _results.push(block["export"](layout, depth));
+      results.push(block["export"](layout, depth));
     }
-    return _results;
+    return results;
   };
 
   return Join;
@@ -1016,6 +1025,7 @@ Join = (function(_super) {
 })(Block);
 
 module.exports = Join;
+
 
 
 },{"./block":5}],11:[function(require,module,exports){
@@ -1050,6 +1060,7 @@ cache = function(fetch) {
 };
 
 module.exports = cache;
+
 
 
 },{"./hash":13,"./queue":17}],12:[function(require,module,exports){
@@ -1138,8 +1149,8 @@ Factory = (function() {
   };
 
   Factory.prototype.end = function() {
-    var main, op, sub, _ref;
-    _ref = this._exit(), sub = _ref[0], main = _ref[1];
+    var main, op, ref, sub;
+    ref = this._exit(), sub = ref[0], main = ref[1];
     op = sub.op;
     if (this[op]) {
       this[op](sub, main);
@@ -1152,8 +1163,8 @@ Factory = (function() {
   };
 
   Factory.prototype.graph = function() {
-    var graph, _ref;
-    while (((_ref = this._stack) != null ? _ref.length : void 0) > 1) {
+    var graph, ref;
+    while (((ref = this._stack) != null ? ref.length : void 0) > 1) {
       this.end();
     }
     if (this._graph) {
@@ -1189,15 +1200,15 @@ Factory = (function() {
   };
 
   Factory.prototype._concat = function(factory) {
-    var block, error;
+    var block, error, error1;
     if (factory._state.nodes.length === 0) {
       return this;
     }
     this._tail(factory._state, factory._graph);
     try {
       block = new Block.Isolate(factory._graph);
-    } catch (_error) {
-      error = _error;
+    } catch (error1) {
+      error = error1;
       if (this.config.autoInspect) {
         Visualize.inspect(error, this._graph, factory);
       }
@@ -1208,15 +1219,15 @@ Factory = (function() {
   };
 
   Factory.prototype._import = function(factory) {
-    var block, error;
+    var block, error, error1;
     if (factory._state.nodes.length === 0) {
       throw "Can't import empty callback";
     }
     this._tail(factory._state, factory._graph);
     try {
       block = new Block.Callback(factory._graph);
-    } catch (_error) {
-      error = _error;
+    } catch (error1) {
+      error = error1;
       if (this.config.autoInspect) {
         Visualize.inspect(error, this._graph, factory);
       }
@@ -1227,13 +1238,13 @@ Factory = (function() {
   };
 
   Factory.prototype._combine = function(sub, main) {
-    var from, to, _i, _j, _len, _len1, _ref, _ref1;
-    _ref = sub.start;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      to = _ref[_i];
-      _ref1 = main.end;
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        from = _ref1[_j];
+    var from, j, k, len, len1, ref, ref1, to;
+    ref = sub.start;
+    for (j = 0, len = ref.length; j < len; j++) {
+      to = ref[j];
+      ref1 = main.end;
+      for (k = 0, len1 = ref1.length; k < len1; k++) {
+        from = ref1[k];
         from.connect(to, sub.multi);
       }
     }
@@ -1242,14 +1253,14 @@ Factory = (function() {
   };
 
   Factory.prototype._isolate = function(sub, main) {
-    var block, error, subgraph;
+    var block, error, error1, subgraph;
     if (sub.nodes.length) {
       subgraph = this._subgraph(sub);
       this._tail(sub, subgraph);
       try {
         block = new Block.Isolate(subgraph);
-      } catch (_error) {
-        error = _error;
+      } catch (error1) {
+        error = error1;
         if (this.config.autoInspect) {
           Visualize.inspect(error, this._graph, subgraph);
         }
@@ -1260,14 +1271,14 @@ Factory = (function() {
   };
 
   Factory.prototype._callback = function(sub, main) {
-    var block, error, subgraph;
+    var block, error, error1, subgraph;
     if (sub.nodes.length) {
       subgraph = this._subgraph(sub);
       this._tail(sub, subgraph);
       try {
         block = new Block.Callback(subgraph);
-      } catch (_error) {
-        error = _error;
+      } catch (error1) {
+        error = error1;
         if (this.config.autoInspect) {
           Visualize.inspect(error, this._graph, subgraph);
         }
@@ -1311,14 +1322,14 @@ Factory = (function() {
     }
     graph.compile = (function(_this) {
       return function(namespace) {
-        var error;
+        var error, error1;
         if (namespace == null) {
           namespace = 'main';
         }
         try {
           return graph.tail.owner.compile(_this.language, namespace);
-        } catch (_error) {
-          error = _error;
+        } catch (error1) {
+          error = error1;
           if (_this.config.autoInspect) {
             graph.inspect(error);
           }
@@ -1328,14 +1339,14 @@ Factory = (function() {
     })(this);
     graph.link = (function(_this) {
       return function(namespace) {
-        var error;
+        var error, error1;
         if (namespace == null) {
           namespace = 'main';
         }
         try {
           return graph.tail.owner.link(_this.language, namespace);
-        } catch (_error) {
-          error = _error;
+        } catch (error1) {
+          error = error1;
           if (_this.config.autoInspect) {
             graph.inspect(error);
           }
@@ -1384,12 +1395,12 @@ Factory = (function() {
   };
 
   Factory.prototype._pop = function() {
-    var _ref;
+    var ref;
     this._state = this._stack[1];
     if (this._state == null) {
       this._state = new State;
     }
-    return (_ref = this._stack.shift()) != null ? _ref : new State;
+    return (ref = this._stack.shift()) != null ? ref : new State;
   };
 
   Factory.prototype._auto = function(block) {
@@ -1401,12 +1412,12 @@ Factory = (function() {
   };
 
   Factory.prototype._append = function(block) {
-    var end, node, _i, _len, _ref;
+    var end, j, len, node, ref;
     node = block.node;
     this._graph.add(node);
-    _ref = this._state.end;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      end = _ref[_i];
+    ref = this._state.end;
+    for (j = 0, len = ref.length; j < len; j++) {
+      end = ref[j];
       end.connect(node);
     }
     if (!this._state.start.length) {
@@ -1420,12 +1431,12 @@ Factory = (function() {
   };
 
   Factory.prototype._prepend = function(block) {
-    var node, start, _i, _len, _ref;
+    var j, len, node, ref, start;
     node = block.node;
     this._graph.add(node);
-    _ref = this._state.start;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      start = _ref[_i];
+    ref = this._state.start;
+    for (j = 0, len = ref.length; j < len; j++) {
+      start = ref[j];
       node.connect(start);
     }
     if (!this._state.end.length) {
@@ -1455,13 +1466,13 @@ Factory = (function() {
 })();
 
 State = (function() {
-  function State(op, multi, start, end, nodes, tail) {
-    this.op = op != null ? op : null;
-    this.multi = multi != null ? multi : false;
-    this.start = start != null ? start : [];
-    this.end = end != null ? end : [];
+  function State(op1, multi1, start1, end1, nodes, tail1) {
+    this.op = op1 != null ? op1 : null;
+    this.multi = multi1 != null ? multi1 : false;
+    this.start = start1 != null ? start1 : [];
+    this.end = end1 != null ? end1 : [];
     this.nodes = nodes != null ? nodes : [];
-    this.tail = tail != null ? tail : [];
+    this.tail = tail1 != null ? tail1 : [];
   }
 
   return State;
@@ -1469,6 +1480,7 @@ State = (function() {
 })();
 
 module.exports = Factory;
+
 
 
 },{"../block":8,"../graph":25,"../visualize":36}],13:[function(require,module,exports){
@@ -1537,6 +1549,7 @@ hash = function(string) {
 module.exports = hash;
 
 
+
 },{}],14:[function(require,module,exports){
 exports.Factory = require('./factory');
 
@@ -1549,6 +1562,7 @@ exports.cache = require('./cache');
 exports.queue = require('./queue');
 
 exports.hash = require('./hash');
+
 
 
 },{"./cache":11,"./factory":12,"./hash":13,"./library":15,"./material":16,"./queue":17}],15:[function(require,module,exports){
@@ -1608,6 +1622,7 @@ library = function(language, snippets, load) {
 module.exports = library;
 
 
+
 },{}],16:[function(require,module,exports){
 var Material, Visualize, debug, tick;
 
@@ -1627,9 +1642,9 @@ tick = function() {
 };
 
 Material = (function() {
-  function Material(vertex, fragment) {
-    this.vertex = vertex;
-    this.fragment = fragment;
+  function Material(vertex1, fragment1) {
+    this.vertex = vertex1;
+    this.fragment = fragment1;
     if (debug) {
       this.tock = tick();
     }
@@ -1640,7 +1655,7 @@ Material = (function() {
   };
 
   Material.prototype.link = function(options) {
-    var attributes, fragment, key, shader, uniforms, value, varyings, vertex, _i, _len, _ref, _ref1, _ref2, _ref3;
+    var attributes, fragment, i, key, len, ref, ref1, ref2, ref3, shader, uniforms, value, varyings, vertex;
     if (options == null) {
       options = {};
     }
@@ -1649,22 +1664,22 @@ Material = (function() {
     attributes = {};
     vertex = this.vertex.link('main');
     fragment = this.fragment.link('main');
-    _ref = [vertex, fragment];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      shader = _ref[_i];
-      _ref1 = shader.uniforms;
-      for (key in _ref1) {
-        value = _ref1[key];
+    ref = [vertex, fragment];
+    for (i = 0, len = ref.length; i < len; i++) {
+      shader = ref[i];
+      ref1 = shader.uniforms;
+      for (key in ref1) {
+        value = ref1[key];
         uniforms[key] = value;
       }
-      _ref2 = shader.varyings;
-      for (key in _ref2) {
-        value = _ref2[key];
+      ref2 = shader.varyings;
+      for (key in ref2) {
+        value = ref2[key];
         varyings[key] = value;
       }
-      _ref3 = shader.attributes;
-      for (key in _ref3) {
-        value = _ref3[key];
+      ref3 = shader.attributes;
+      for (key in ref3) {
+        value = ref3[key];
         attributes[key] = value;
       }
     }
@@ -1693,6 +1708,7 @@ Material = (function() {
 })();
 
 module.exports = Material;
+
 
 
 },{"../visualize":36}],17:[function(require,module,exports){
@@ -1763,6 +1779,7 @@ queue = function(limit) {
 module.exports = queue;
 
 
+
 },{}],18:[function(require,module,exports){
 
 /*
@@ -1790,18 +1807,18 @@ tick = function() {
 };
 
 replaced = function(signatures) {
-  var key, out, s, sig, _i, _j, _len, _len1, _ref, _ref1;
+  var i, j, key, len, len1, out, ref, ref1, s, sig;
   out = {};
   s = function(sig) {
     return out[sig.name] = true;
   };
   s(signatures.main);
-  _ref = ['external', 'internal', 'varying', 'uniform', 'attribute'];
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    key = _ref[_i];
-    _ref1 = signatures[key];
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      sig = _ref1[_j];
+  ref = ['external', 'internal', 'varying', 'uniform', 'attribute'];
+  for (i = 0, len = ref.length; i < len; i++) {
+    key = ref[i];
+    ref1 = signatures[key];
+    for (j = 0, len1 = ref1.length; j < len1; j++) {
+      sig = ref1[j];
       s(sig);
     }
   }
@@ -1816,12 +1833,12 @@ String-replacement based compiler
 string_compiler = function(code, placeholders) {
   var key, re;
   re = new RegExp('\\b(' + ((function() {
-    var _results;
-    _results = [];
+    var results;
+    results = [];
     for (key in placeholders) {
-      _results.push(key);
+      results.push(key);
     }
-    return _results;
+    return results;
   })()).join('|') + ')\\b', 'g');
   code = code.replace(/\/\/[^\n]*/g, '');
   code = code.replace(/\/\*([^*]|\*[^\/])*\*\//g, '');
@@ -1844,13 +1861,13 @@ string_compiler = function(code, placeholders) {
       return replace[key];
     });
     defs = (function() {
-      var _results;
-      _results = [];
+      var results;
+      results = [];
       for (key in defines) {
         value = defines[key];
-        _results.push("#define " + key + " " + value);
+        results.push("#define " + key + " " + value);
       }
-      return _results;
+      return results;
     })();
     if (defs.length) {
       defs.push('');
@@ -1862,11 +1879,13 @@ string_compiler = function(code, placeholders) {
 module.exports = compile;
 
 
+
 },{}],19:[function(require,module,exports){
 module.exports = {
   SHADOW_ARG: '_i_o',
   RETURN_ARG: 'return'
 };
+
 
 
 },{}],20:[function(require,module,exports){
@@ -1885,16 +1904,16 @@ get = function(n) {
 };
 
 decl.node = function(node) {
-  var _ref, _ref1;
-  if (((_ref = node.children[5]) != null ? _ref.type : void 0) === 'function') {
+  var ref, ref1;
+  if (((ref = node.children[5]) != null ? ref.type : void 0) === 'function') {
     return decl["function"](node);
-  } else if (((_ref1 = node.token) != null ? _ref1.type : void 0) === 'keyword') {
+  } else if (((ref1 = node.token) != null ? ref1.type : void 0) === 'keyword') {
     return decl.external(node);
   }
 };
 
 decl.external = function(node) {
-  var c, i, ident, list, next, out, quant, storage, struct, type, _i, _len, _ref;
+  var c, i, ident, j, len, list, next, out, quant, ref, storage, struct, type;
   c = node.children;
   storage = get(c[1]);
   struct = get(c[3]);
@@ -1904,9 +1923,9 @@ decl.external = function(node) {
     storage = 'global';
   }
   out = [];
-  _ref = list.children;
-  for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-    c = _ref[i];
+  ref = list.children;
+  for (i = j = 0, len = ref.length; j < len; i = ++j) {
+    c = ref[i];
     if (c.type === 'ident') {
       ident = get(c);
       next = list.children[i + 1];
@@ -1935,14 +1954,14 @@ decl["function"] = function(node) {
   args = func.children[1];
   body = func.children[2];
   decls = (function() {
-    var _i, _len, _ref, _results;
-    _ref = args.children;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      child = _ref[_i];
-      _results.push(decl.argument(child));
+    var j, len, ref, results;
+    ref = args.children;
+    results = [];
+    for (j = 0, len = ref.length; j < len; j++) {
+      child = ref[j];
+      results.push(decl.argument(child));
     }
-    return _results;
+    return results;
   })();
   return [
     {
@@ -2032,7 +2051,7 @@ three = {
 };
 
 decl.type = function(name, spec, quant, count, dir, storage) {
-  var dirs, inout, param, storages, type, value, _ref;
+  var dirs, inout, param, ref, storages, type, value;
   dirs = {
     "in": decl["in"],
     out: decl.out,
@@ -2052,21 +2071,21 @@ decl.type = function(name, spec, quant, count, dir, storage) {
   if (quant) {
     value = [value];
   }
-  inout = (_ref = dirs[dir]) != null ? _ref : dirs["in"];
+  inout = (ref = dirs[dir]) != null ? ref : dirs["in"];
   storage = storages[storage];
   param = decl.param(dir, storage, spec, quant, count);
   return new Definition(name, type, spec, param, value, inout);
 };
 
 Definition = (function() {
-  function Definition(name, type, spec, param, value, inout, meta) {
-    this.name = name;
-    this.type = type;
-    this.spec = spec;
-    this.param = param;
-    this.value = value;
-    this.inout = inout;
-    this.meta = meta;
+  function Definition(name1, type1, spec1, param1, value1, inout1, meta1) {
+    this.name = name1;
+    this.type = type1;
+    this.spec = spec1;
+    this.param = param1;
+    this.value = value1;
+    this.inout = inout1;
+    this.meta = meta1;
   }
 
   Definition.prototype.split = function() {
@@ -2086,6 +2105,7 @@ Definition = (function() {
   return Definition;
 
 })();
+
 
 
 },{}],21:[function(require,module,exports){
@@ -2136,16 +2156,16 @@ module.exports = _ = {
     return "#define " + a + " " + b;
   },
   "function": function(type, entry, params, vars, calls) {
-    return "" + type + " " + entry + "(" + params + ") {\n" + vars + calls + "}";
+    return type + " " + entry + "(" + params + ") {\n" + vars + calls + "}";
   },
   invoke: function(ret, entry, args) {
-    ret = ret ? "" + ret + " = " : '';
+    ret = ret ? ret + " = " : '';
     args = _.list(args);
     return "  " + ret + entry + "(" + args + ")";
   },
   same: function(a, b) {
-    var A, B, i, _i, _len;
-    for (i = _i = 0, _len = a.length; _i < _len; i = ++_i) {
+    var A, B, i, k, len;
+    for (i = k = 0, len = a.length; k < len; i = ++k) {
       A = a[i];
       B = b[i];
       if (!B) {
@@ -2161,12 +2181,12 @@ module.exports = _ = {
     return true;
   },
   call: function(lookup, dangling, entry, signature, body) {
-    var arg, args, copy, id, inout, isReturn, meta, name, omit, op, other, ret, rets, shadow, _i, _len, _ref, _ref1;
+    var arg, args, copy, id, inout, isReturn, k, len, meta, name, omit, op, other, ref, ref1, ret, rets, shadow;
     args = [];
     ret = '';
     rets = 1;
-    for (_i = 0, _len = signature.length; _i < _len; _i++) {
-      arg = signature[_i];
+    for (k = 0, len = signature.length; k < len; k++) {
+      arg = signature[k];
       name = arg.name;
       copy = id = lookup(name);
       other = null;
@@ -2174,7 +2194,7 @@ module.exports = _ = {
       omit = false;
       inout = arg.inout;
       isReturn = name === $.RETURN_ARG;
-      if (shadow = (_ref = arg.meta) != null ? _ref.shadowed : void 0) {
+      if (shadow = (ref = arg.meta) != null ? ref.shadowed : void 0) {
         other = lookup(shadow);
         if (other) {
           body.vars[other] = "  " + arg.param(other);
@@ -2188,7 +2208,7 @@ module.exports = _ = {
           }
         }
       }
-      if (shadow = (_ref1 = arg.meta) != null ? _ref1.shadow : void 0) {
+      if (shadow = (ref1 = arg.meta) != null ? ref1.shadow : void 0) {
         other = lookup(shadow);
         if (other) {
           if (!dangling(shadow)) {
@@ -2244,14 +2264,14 @@ module.exports = _ = {
     }
     if (code == null) {
       vars = (function() {
-        var _ref, _results;
-        _ref = body.vars;
-        _results = [];
-        for (v in _ref) {
-          decl = _ref[v];
-          _results.push(decl);
+        var ref, results;
+        ref = body.vars;
+        results = [];
+        for (v in ref) {
+          decl = ref[v];
+          results.push(decl);
         }
-        return _results;
+        return results;
       })();
       calls = body.calls;
       post = body.post;
@@ -2280,13 +2300,13 @@ module.exports = _ = {
     };
   },
   links: function(links) {
-    var l, out, _i, _len;
+    var k, l, len, out;
     out = {
       defs: [],
       bodies: []
     };
-    for (_i = 0, _len = links.length; _i < _len; _i++) {
-      l = links[_i];
+    for (k = 0, len = links.length; k < len; k++) {
+      l = links[k];
       _.link(l, out);
     }
     out.defs = _.lines(out.defs);
@@ -2301,7 +2321,7 @@ module.exports = _ = {
   },
   link: (function(_this) {
     return function(link, out) {
-      var arg, entry, external, inner, ins, list, main, map, module, name, other, outer, outs, returnVar, wrapper, _dangling, _i, _j, _len, _len1, _lookup, _name, _ref, _ref1;
+      var _dangling, _lookup, _name, arg, entry, external, inner, ins, k, len, len1, list, main, map, module, n, name, other, outer, outs, ref, ref1, returnVar, wrapper;
       module = link.module, name = link.name, external = link.external;
       main = module.main;
       entry = module.entry;
@@ -2312,15 +2332,15 @@ module.exports = _ = {
       outs = [];
       map = {};
       returnVar = [module.namespace, $.RETURN_ARG].join('');
-      _ref = external.signature;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        arg = _ref[_i];
+      ref = external.signature;
+      for (k = 0, len = ref.length; k < len; k++) {
+        arg = ref[k];
         list = arg.inout === Graph.IN ? ins : outs;
         list.push(arg);
       }
-      _ref1 = main.signature;
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        arg = _ref1[_j];
+      ref1 = main.signature;
+      for (n = 0, len1 = ref1.length; n < len1; n++) {
+        arg = ref1[n];
         list = arg.inout === Graph.IN ? ins : outs;
         other = list.shift();
         _name = other.name;
@@ -2342,8 +2362,8 @@ module.exports = _ = {
         "return": returnVar
       };
       _lookup = function(name) {
-        var _ref2;
-        return (_ref2 = map[name]) != null ? _ref2 : name;
+        var ref2;
+        return (ref2 = map[name]) != null ? ref2 : name;
       };
       outer = _.body();
       wrapper = _.call(_lookup, _dangling, entry, external.signature, outer);
@@ -2354,7 +2374,7 @@ module.exports = _ = {
     };
   })(this),
   defuse: function(code) {
-    var b, blocks, hash, head, i, j, level, line, re, rest, strip, _i, _j, _len, _len1;
+    var b, blocks, hash, head, i, j, k, len, len1, level, line, n, re, rest, strip;
     re = /([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg;
     strip = function(code) {
       return code.replace(re, function(m) {
@@ -2363,7 +2383,7 @@ module.exports = _ = {
     };
     blocks = code.split(/(?=[{}])/g);
     level = 0;
-    for (i = _i = 0, _len = blocks.length; _i < _len; i = ++_i) {
+    for (i = k = 0, len = blocks.length; k < len; i = ++k) {
       b = blocks[i];
       switch (b[0]) {
         case '{':
@@ -2374,7 +2394,7 @@ module.exports = _ = {
       }
       if (level === 0) {
         hash = b.split(/^[ \t]*#/m);
-        for (j = _j = 0, _len1 = hash.length; _j < _len1; j = ++_j) {
+        for (j = n = 0, len1 = hash.length; n < len1; j = ++n) {
           line = hash[j];
           if (j > 0) {
             line = line.split(/\n/);
@@ -2403,13 +2423,13 @@ module.exports = _ = {
     });
   },
   hoist: function(code) {
-    var defs, line, lines, list, out, re, _i, _len;
+    var defs, k, len, line, lines, list, out, re;
     re = /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/;
     lines = code.split(/\n/g);
     defs = [];
     out = [];
-    for (_i = 0, _len = lines.length; _i < _len; _i++) {
-      line = lines[_i];
+    for (k = 0, len = lines.length; k < len; k++) {
+      line = lines[k];
       list = line.match(re) ? defs : out;
       list.push(line);
     }
@@ -2418,8 +2438,9 @@ module.exports = _ = {
 };
 
 
+
 },{"../graph":25,"./constants":19}],22:[function(require,module,exports){
-var k, v, _i, _len, _ref;
+var i, k, len, ref, v;
 
 exports.compile = require('./compile');
 
@@ -2427,11 +2448,12 @@ exports.parse = require('./parse');
 
 exports.generate = require('./generate');
 
-_ref = require('./constants');
-for (v = _i = 0, _len = _ref.length; _i < _len; v = ++_i) {
-  k = _ref[v];
+ref = require('./constants');
+for (v = i = 0, len = ref.length; i < len; v = ++i) {
+  k = ref[v];
   exports[k] = v;
 }
+
 
 
 },{"./compile":18,"./constants":19,"./generate":21,"./parse":23}],23:[function(require,module,exports){
@@ -2460,14 +2482,14 @@ parse = function(name, code) {
 };
 
 parseGLSL = function(name, code) {
-  var ast, e, error, errors, fmt, tock, _i, _len, _ref, _ref1;
+  var ast, e, error, error1, errors, fmt, j, len, ref, ref1, tock;
   if (debug) {
     tock = tick();
   }
   try {
-    _ref = tokenizer().process(parser(), code), (_ref1 = _ref[0], ast = _ref1[0]), errors = _ref[1];
-  } catch (_error) {
-    e = _error;
+    ref = tokenizer().process(parser(), code), (ref1 = ref[0], ast = ref1[0]), errors = ref[1];
+  } catch (error1) {
+    e = error1;
     errors = [
       {
         message: e
@@ -2489,7 +2511,7 @@ parseGLSL = function(name, code) {
       }
     };
     return code.map(function(line, i) {
-      return "" + (pad(i + 1)) + ": " + line;
+      return (pad(i + 1)) + ": " + line;
     }).join("\n");
   };
   if (!ast || errors.length) {
@@ -2497,9 +2519,9 @@ parseGLSL = function(name, code) {
       name = '(inline code)';
     }
     console.warn(fmt(code));
-    for (_i = 0, _len = errors.length; _i < _len; _i++) {
-      error = errors[_i];
-      console.error("" + name + " -", error.message);
+    for (j = 0, len = errors.length; j < len; j++) {
+      error = errors[j];
+      console.error(name + " -", error.message);
     }
     throw new Error("GLSL parse error");
   }
@@ -2507,13 +2529,13 @@ parseGLSL = function(name, code) {
 };
 
 processAST = function(ast, code) {
-  var externals, internals, main, signatures, symbols, tock, _ref;
+  var externals, internals, main, ref, signatures, symbols, tock;
   if (debug) {
     tock = tick();
   }
   symbols = [];
   walk(mapSymbols, collect(symbols), ast, '');
-  _ref = sortSymbols(symbols), main = _ref[0], internals = _ref[1], externals = _ref[2];
+  ref = sortSymbols(symbols), main = ref[0], internals = ref[1], externals = ref[2];
   signatures = extractSignatures(main, internals, externals);
   if (debug) {
     tock('GLSL AST');
@@ -2536,27 +2558,27 @@ mapSymbols = function(node, collect) {
 
 collect = function(out) {
   return function(value) {
-    var obj, _i, _len, _results;
+    var j, len, obj, results;
     if (value != null) {
-      _results = [];
-      for (_i = 0, _len = value.length; _i < _len; _i++) {
-        obj = value[_i];
-        _results.push(out.push(obj));
+      results = [];
+      for (j = 0, len = value.length; j < len; j++) {
+        obj = value[j];
+        results.push(out.push(obj));
       }
-      return _results;
+      return results;
     }
   };
 };
 
 sortSymbols = function(symbols) {
-  var e, externals, found, internals, main, maybe, s, _i, _len;
+  var e, externals, found, internals, j, len, main, maybe, s;
   main = null;
   internals = [];
   externals = [];
   maybe = {};
   found = false;
-  for (_i = 0, _len = symbols.length; _i < _len; _i++) {
-    s = symbols[_i];
+  for (j = 0, len = symbols.length; j < len; j++) {
+    s = symbols[j];
     if (!s.body) {
       if (s.storage === 'global') {
         internals.push(s);
@@ -2567,15 +2589,15 @@ sortSymbols = function(symbols) {
     } else {
       if (maybe[s.ident]) {
         externals = (function() {
-          var _j, _len1, _results;
-          _results = [];
-          for (_j = 0, _len1 = externals.length; _j < _len1; _j++) {
-            e = externals[_j];
+          var k, len1, results;
+          results = [];
+          for (k = 0, len1 = externals.length; k < len1; k++) {
+            e = externals[k];
             if (e.ident !== s.ident) {
-              _results.push(e);
+              results.push(e);
             }
           }
-          return _results;
+          return results;
         })();
         delete maybe[s.ident];
       }
@@ -2592,7 +2614,7 @@ sortSymbols = function(symbols) {
 };
 
 extractSignatures = function(main, internals, externals) {
-  var def, defn, func, sigs, symbol, _i, _j, _len, _len1;
+  var def, defn, func, j, k, len, len1, sigs, symbol;
   sigs = {
     uniform: [],
     attribute: [],
@@ -2606,19 +2628,19 @@ extractSignatures = function(main, internals, externals) {
     return decl.type(symbol.ident, symbol.type, symbol.quant, symbol.count, symbol.inout, symbol.storage);
   };
   func = function(symbol, inout) {
-    var a, arg, b, d, def, inTypes, outTypes, signature, type, _i, _len;
+    var a, arg, b, d, def, inTypes, j, len, outTypes, signature, type;
     signature = (function() {
-      var _i, _len, _ref, _results;
-      _ref = symbol.args;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        arg = _ref[_i];
-        _results.push(defn(arg));
+      var j, len, ref, results;
+      ref = symbol.args;
+      results = [];
+      for (j = 0, len = ref.length; j < len; j++) {
+        arg = ref[j];
+        results.push(defn(arg));
       }
-      return _results;
+      return results;
     })();
-    for (_i = 0, _len = signature.length; _i < _len; _i++) {
-      d = signature[_i];
+    for (j = 0, len = signature.length; j < len; j++) {
+      d = signature[j];
       if (!(d.inout === decl.inout)) {
         continue;
       }
@@ -2639,26 +2661,26 @@ extractSignatures = function(main, internals, externals) {
       signature.unshift(decl.type($.RETURN_ARG, symbol.type, false, '', 'out'));
     }
     inTypes = ((function() {
-      var _j, _len1, _results;
-      _results = [];
-      for (_j = 0, _len1 = signature.length; _j < _len1; _j++) {
-        d = signature[_j];
+      var k, len1, results;
+      results = [];
+      for (k = 0, len1 = signature.length; k < len1; k++) {
+        d = signature[k];
         if (d.inout === decl["in"]) {
-          _results.push(d.type);
+          results.push(d.type);
         }
       }
-      return _results;
+      return results;
     })()).join(',');
     outTypes = ((function() {
-      var _j, _len1, _results;
-      _results = [];
-      for (_j = 0, _len1 = signature.length; _j < _len1; _j++) {
-        d = signature[_j];
+      var k, len1, results;
+      results = [];
+      for (k = 0, len1 = signature.length; k < len1; k++) {
+        d = signature[k];
         if (d.inout === decl.out) {
-          _results.push(d.type);
+          results.push(d.type);
         }
       }
-      return _results;
+      return results;
     })()).join(',');
     type = "(" + inTypes + ")(" + outTypes + ")";
     return def = {
@@ -2670,14 +2692,14 @@ extractSignatures = function(main, internals, externals) {
     };
   };
   sigs.main = func(main, decl.out);
-  for (_i = 0, _len = internals.length; _i < _len; _i++) {
-    symbol = internals[_i];
+  for (j = 0, len = internals.length; j < len; j++) {
+    symbol = internals[j];
     sigs.internal.push({
       name: symbol.ident
     });
   }
-  for (_j = 0, _len1 = externals.length; _j < _len1; _j++) {
-    symbol = externals[_j];
+  for (k = 0, len1 = externals.length; k < len1; k++) {
+    symbol = externals[k];
     switch (symbol.decl) {
       case 'external':
         def = defn(symbol);
@@ -2694,13 +2716,13 @@ extractSignatures = function(main, internals, externals) {
 debug = false;
 
 walk = function(map, collect, node, indent) {
-  var child, i, recurse, _i, _len, _ref, _ref1, _ref2;
-  debug && console.log(indent, node.type, (_ref = node.token) != null ? _ref.data : void 0, (_ref1 = node.token) != null ? _ref1.type : void 0);
+  var child, i, j, len, recurse, ref, ref1, ref2;
+  debug && console.log(indent, node.type, (ref = node.token) != null ? ref.data : void 0, (ref1 = node.token) != null ? ref1.type : void 0);
   recurse = map(node, collect);
   if (recurse) {
-    _ref2 = node.children;
-    for (i = _i = 0, _len = _ref2.length; _i < _len; i = ++_i) {
-      child = _ref2[i];
+    ref2 = node.children;
+    for (i = j = 0, len = ref2.length; j < len; i = ++j) {
+      child = ref2[i];
       walk(map, collect, child, indent + '  ', debug);
     }
   }
@@ -2721,6 +2743,7 @@ tick = function() {
 module.exports = walk;
 
 module.exports = parse;
+
 
 
 },{"../../vendor/glsl-parser":39,"../../vendor/glsl-tokenizer":43,"./constants":19,"./decl":20}],24:[function(require,module,exports){
@@ -2749,14 +2772,14 @@ Graph = (function() {
   }
 
   Graph.prototype.inputs = function() {
-    var inputs, node, outlet, _i, _j, _len, _len1, _ref, _ref1;
+    var i, inputs, j, len, len1, node, outlet, ref, ref1;
     inputs = [];
-    _ref = this.nodes;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      node = _ref[_i];
-      _ref1 = node.inputs;
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        outlet = _ref1[_j];
+    ref = this.nodes;
+    for (i = 0, len = ref.length; i < len; i++) {
+      node = ref[i];
+      ref1 = node.inputs;
+      for (j = 0, len1 = ref1.length; j < len1; j++) {
+        outlet = ref1[j];
         if (outlet.input === null) {
           inputs.push(outlet);
         }
@@ -2766,14 +2789,14 @@ Graph = (function() {
   };
 
   Graph.prototype.outputs = function() {
-    var node, outlet, outputs, _i, _j, _len, _len1, _ref, _ref1;
+    var i, j, len, len1, node, outlet, outputs, ref, ref1;
     outputs = [];
-    _ref = this.nodes;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      node = _ref[_i];
-      _ref1 = node.outputs;
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        outlet = _ref1[_j];
+    ref = this.nodes;
+    for (i = 0, len = ref.length; i < len; i++) {
+      node = ref[i];
+      ref1 = node.outputs;
+      for (j = 0, len1 = ref1.length; j < len1; j++) {
+        outlet = ref1[j];
         if (outlet.output.length === 0) {
           outputs.push(outlet);
         }
@@ -2785,40 +2808,40 @@ Graph = (function() {
   Graph.prototype.getIn = function(name) {
     var outlet;
     return ((function() {
-      var _i, _len, _ref, _results;
-      _ref = this.inputs();
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        outlet = _ref[_i];
+      var i, len, ref, results;
+      ref = this.inputs();
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        outlet = ref[i];
         if (outlet.name === name) {
-          _results.push(outlet);
+          results.push(outlet);
         }
       }
-      return _results;
+      return results;
     }).call(this))[0];
   };
 
   Graph.prototype.getOut = function(name) {
     var outlet;
     return ((function() {
-      var _i, _len, _ref, _results;
-      _ref = this.outputs();
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        outlet = _ref[_i];
+      var i, len, ref, results;
+      ref = this.outputs();
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        outlet = ref[i];
         if (outlet.name === name) {
-          _results.push(outlet);
+          results.push(outlet);
         }
       }
-      return _results;
+      return results;
     }).call(this))[0];
   };
 
   Graph.prototype.add = function(node, ignore) {
-    var _i, _len, _node;
+    var _node, i, len;
     if (node.length) {
-      for (_i = 0, _len = node.length; _i < _len; _i++) {
-        _node = node[_i];
+      for (i = 0, len = node.length; i < len; i++) {
+        _node = node[i];
         this.add(_node);
       }
       return;
@@ -2831,10 +2854,10 @@ Graph = (function() {
   };
 
   Graph.prototype.remove = function(node, ignore) {
-    var _i, _len, _node;
+    var _node, i, len;
     if (node.length) {
-      for (_i = 0, _len = node.length; _i < _len; _i++) {
-        _node = node[_i];
+      for (i = 0, len = node.length; i < len; i++) {
+        _node = node[i];
         this.remove(_node);
       }
       return;
@@ -2848,10 +2871,10 @@ Graph = (function() {
   };
 
   Graph.prototype.adopt = function(node) {
-    var _i, _len, _node;
+    var _node, i, len;
     if (node.length) {
-      for (_i = 0, _len = node.length; _i < _len; _i++) {
-        _node = node[_i];
+      for (i = 0, len = node.length; i < len; i++) {
+        _node = node[i];
         this.adopt(_node);
       }
       return;
@@ -2867,6 +2890,7 @@ Graph = (function() {
 module.exports = Graph;
 
 
+
 },{}],25:[function(require,module,exports){
 exports.Graph = require('./graph');
 
@@ -2877,6 +2901,7 @@ exports.Outlet = require('./outlet');
 exports.IN = exports.Graph.IN;
 
 exports.OUT = exports.Graph.OUT;
+
 
 
 },{"./graph":24,"./node":26,"./outlet":27}],26:[function(require,module,exports){
@@ -2912,32 +2937,32 @@ Node = (function() {
   Node.prototype.getIn = function(name) {
     var outlet;
     return ((function() {
-      var _i, _len, _ref, _results;
-      _ref = this.inputs;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        outlet = _ref[_i];
+      var i, len, ref, results;
+      ref = this.inputs;
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        outlet = ref[i];
         if (outlet.name === name) {
-          _results.push(outlet);
+          results.push(outlet);
         }
       }
-      return _results;
+      return results;
     }).call(this))[0];
   };
 
   Node.prototype.getOut = function(name) {
     var outlet;
     return ((function() {
-      var _i, _len, _ref, _results;
-      _ref = this.outputs;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        outlet = _ref[_i];
+      var i, len, ref, results;
+      ref = this.outputs;
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        outlet = ref[i];
         if (outlet.name === name) {
-          _results.push(outlet);
+          results.push(outlet);
         }
       }
-      return _results;
+      return results;
     }).call(this))[0];
   };
 
@@ -2946,12 +2971,12 @@ Node = (function() {
   };
 
   Node.prototype.setOutlets = function(outlets) {
-    var existing, hash, key, match, outlet, _i, _j, _k, _len, _len1, _len2, _ref;
+    var existing, hash, i, j, k, key, len, len1, len2, match, outlet, ref;
     if (outlets != null) {
       if (this.outlets == null) {
         this.outlets = {};
-        for (_i = 0, _len = outlets.length; _i < _len; _i++) {
-          outlet = outlets[_i];
+        for (i = 0, len = outlets.length; i < len; i++) {
+          outlet = outlets[i];
           if (!(outlet instanceof Outlet)) {
             outlet = Outlet.make(outlet);
           }
@@ -2963,13 +2988,13 @@ Node = (function() {
         return [outlet.name, outlet.inout, outlet.type].join('-');
       };
       match = {};
-      for (_j = 0, _len1 = outlets.length; _j < _len1; _j++) {
-        outlet = outlets[_j];
+      for (j = 0, len1 = outlets.length; j < len1; j++) {
+        outlet = outlets[j];
         match[hash(outlet)] = true;
       }
-      _ref = this.outlets;
-      for (key in _ref) {
-        outlet = _ref[key];
+      ref = this.outlets;
+      for (key in ref) {
+        outlet = ref[key];
         key = hash(outlet);
         if (match[key]) {
           match[key] = outlet;
@@ -2977,8 +3002,8 @@ Node = (function() {
           this._remove(outlet);
         }
       }
-      for (_k = 0, _len2 = outlets.length; _k < _len2; _k++) {
-        outlet = outlets[_k];
+      for (k = 0, len2 = outlets.length; k < len2; k++) {
+        outlet = outlets[k];
         existing = match[hash(outlet)];
         if (existing instanceof Outlet) {
           this._morph(existing, outlet);
@@ -2995,15 +3020,15 @@ Node = (function() {
   };
 
   Node.prototype.connect = function(node, empty, force) {
-    var dest, dests, hint, hints, list, outlets, source, sources, type, typeHint, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+    var dest, dests, hint, hints, i, j, k, len, len1, len2, list, outlets, ref, ref1, ref2, source, sources, type, typeHint;
     outlets = {};
     hints = {};
     typeHint = function(outlet) {
       return type + '/' + outlet.hint;
     };
-    _ref = node.inputs;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      dest = _ref[_i];
+    ref = node.inputs;
+    for (i = 0, len = ref.length; i < len; i++) {
+      dest = ref[i];
       if (!force && dest.input) {
         continue;
       }
@@ -3019,9 +3044,9 @@ Node = (function() {
     sources = sources.filter(function(outlet) {
       return !(empty && outlet.output.length);
     });
-    _ref1 = sources.slice();
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      source = _ref1[_j];
+    ref1 = sources.slice();
+    for (j = 0, len1 = ref1.length; j < len1; j++) {
+      source = ref1[j];
       type = source.type;
       hint = typeHint(source);
       dests = outlets[type];
@@ -3035,9 +3060,9 @@ Node = (function() {
     if (!sources.length) {
       return this;
     }
-    _ref2 = sources.slice();
-    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-      source = _ref2[_k];
+    ref2 = sources.slice();
+    for (k = 0, len2 = ref2.length; k < len2; k++) {
+      source = ref2[k];
       type = source.type;
       dests = outlets[type];
       if (dests && dests.length) {
@@ -3048,15 +3073,15 @@ Node = (function() {
   };
 
   Node.prototype.disconnect = function(node) {
-    var outlet, _i, _j, _len, _len1, _ref, _ref1;
-    _ref = this.inputs;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      outlet = _ref[_i];
+    var i, j, len, len1, outlet, ref, ref1;
+    ref = this.inputs;
+    for (i = 0, len = ref.length; i < len; i++) {
+      outlet = ref[i];
       outlet.disconnect();
     }
-    _ref1 = this.outputs;
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      outlet = _ref1[_j];
+    ref1 = this.outputs;
+    for (j = 0, len1 = ref1.length; j < len1; j++) {
+      outlet = ref1[j];
       outlet.disconnect();
     }
     return this;
@@ -3122,6 +3147,7 @@ Node = (function() {
 module.exports = Node;
 
 
+
 },{"./graph":24,"./outlet":27}],27:[function(require,module,exports){
 var Graph, Outlet;
 
@@ -3134,15 +3160,15 @@ Graph = require('./graph');
 
 Outlet = (function() {
   Outlet.make = function(outlet, extra) {
-    var key, meta, value, _ref;
+    var key, meta, ref, value;
     if (extra == null) {
       extra = {};
     }
     meta = extra;
     if (outlet.meta != null) {
-      _ref = outlet.meta;
-      for (key in _ref) {
-        value = _ref[key];
+      ref = outlet.meta;
+      for (key in ref) {
+        value = ref[key];
         meta[key] = value;
       }
     }
@@ -3161,15 +3187,15 @@ Outlet = (function() {
     return name = name.replace(/(In|Out|Inout|InOut)$/, '');
   };
 
-  function Outlet(inout, name, hint, type, meta, id) {
+  function Outlet(inout, name1, hint, type, meta1, id) {
     this.inout = inout;
-    this.name = name;
+    this.name = name1;
     this.hint = hint;
     this.type = type;
-    this.meta = meta != null ? meta : {};
+    this.meta = meta1 != null ? meta1 : {};
     this.id = id;
     if (this.hint == null) {
-      this.hint = Outlet.hint(name);
+      this.hint = Outlet.hint(this.name);
     }
     this.node = null;
     this.input = null;
@@ -3213,7 +3239,7 @@ Outlet = (function() {
   };
 
   Outlet.prototype.disconnect = function(outlet) {
-    var index, _i, _len, _ref;
+    var i, index, len, ref;
     if (this.input) {
       this.input.disconnect(this);
     }
@@ -3225,9 +3251,9 @@ Outlet = (function() {
           return outlet.input = null;
         }
       } else {
-        _ref = this.output;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          outlet = _ref[_i];
+        ref = this.output;
+        for (i = 0, len = ref.length; i < len; i++) {
+          outlet = ref[i];
           outlet.input = null;
         }
         return this.output = [];
@@ -3240,6 +3266,7 @@ Outlet = (function() {
 })();
 
 module.exports = Outlet;
+
 
 
 },{"./graph":24}],28:[function(require,module,exports){
@@ -3268,14 +3295,14 @@ inspect = Visualize.inspect;
 Snippet = Linker.Snippet;
 
 merge = function(a, b) {
-  var key, out, value, _ref;
+  var key, out, ref, value;
   if (b == null) {
     b = {};
   }
   out = {};
   for (key in a) {
     value = a[key];
-    out[key] = (_ref = b[key]) != null ? _ref : a[key];
+    out[key] = (ref = b[key]) != null ? ref : a[key];
   }
   return out;
 };
@@ -3349,6 +3376,7 @@ if (typeof window !== 'undefined') {
 }
 
 
+
 },{"./block":8,"./factory":14,"./glsl":22,"./graph":25,"./linker":30,"./visualize":36}],29:[function(require,module,exports){
 var Graph, Priority, assemble;
 
@@ -3375,24 +3403,24 @@ assemble = function(language, namespace, calls, requires) {
   attributes = {};
   library = {};
   process = function() {
-    var body, code, includes, lib, main, ns, r, sorted, _ref;
+    var body, code, includes, lib, main, ns, r, ref, sorted;
     for (ns in requires) {
       r = requires[ns];
       required(r.node, r.module);
     }
-    _ref = handle(calls), body = _ref[0], calls = _ref[1];
+    ref = handle(calls), body = ref[0], calls = ref[1];
     if (namespace != null) {
       body.entry = namespace;
     }
     main = generate.build(body, calls);
     sorted = ((function() {
-      var _results;
-      _results = [];
+      var results;
+      results = [];
       for (ns in library) {
         lib = library[ns];
-        _results.push(lib);
+        results.push(lib);
       }
-      return _results;
+      return results;
     })()).sort(function(a, b) {
       return Priority.compare(a.priority, b.priority);
     });
@@ -3417,21 +3445,21 @@ assemble = function(language, namespace, calls, requires) {
   };
   handle = (function(_this) {
     return function(calls) {
-      var body, c, call, ns, _i, _len;
+      var body, c, call, i, len, ns;
       calls = (function() {
-        var _results;
-        _results = [];
+        var results;
+        results = [];
         for (ns in calls) {
           c = calls[ns];
-          _results.push(c);
+          results.push(c);
         }
-        return _results;
+        return results;
       })();
       calls.sort(function(a, b) {
         return b.priority - a.priority;
       });
       call = function(node, module, priority) {
-        var entry, main, _dangling, _lookup;
+        var _dangling, _lookup, entry, main;
         include(node, module, priority);
         main = module.main;
         entry = module.entry;
@@ -3444,8 +3472,8 @@ assemble = function(language, namespace, calls, requires) {
         return generate.call(_lookup, _dangling, entry, main.signature, body);
       };
       body = generate.body();
-      for (_i = 0, _len = calls.length; _i < _len; _i++) {
-        c = calls[_i];
+      for (i = 0, len = calls.length; i < len; i++) {
+        c = calls[i];
         call(c.node, c.module, c.priority);
       }
       return [body, calls];
@@ -3464,37 +3492,37 @@ assemble = function(language, namespace, calls, requires) {
     }
   };
   include = function(node, module, priority) {
-    var def, key, lib, ns, _ref, _ref1, _ref2, _ref3;
+    var def, key, lib, ns, ref, ref1, ref2, ref3;
     priority = Priority.make(priority);
-    _ref = module.library;
-    for (ns in _ref) {
-      lib = _ref[ns];
+    ref = module.library;
+    for (ns in ref) {
+      lib = ref[ns];
       adopt(ns, lib.code, Priority.nest(priority, lib.priority));
     }
     adopt(module.namespace, module.body, priority);
-    _ref1 = module.uniforms;
-    for (key in _ref1) {
-      def = _ref1[key];
+    ref1 = module.uniforms;
+    for (key in ref1) {
+      def = ref1[key];
       uniforms[key] = def;
     }
-    _ref2 = module.varyings;
-    for (key in _ref2) {
-      def = _ref2[key];
+    ref2 = module.varyings;
+    for (key in ref2) {
+      def = ref2[key];
       varyings[key] = def;
     }
-    _ref3 = module.attributes;
-    for (key in _ref3) {
-      def = _ref3[key];
+    ref3 = module.attributes;
+    for (key in ref3) {
+      def = ref3[key];
       attributes[key] = def;
     }
     return required(node, module);
   };
   required = function(node, module) {
-    var copy, ext, k, key, v, _i, _len, _ref, _results;
-    _ref = module.symbols;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      key = _ref[_i];
+    var copy, ext, i, k, key, len, ref, results, v;
+    ref = module.symbols;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      key = ref[i];
       ext = module.externals[key];
       if (isDangling(node, ext.name)) {
         copy = {};
@@ -3504,12 +3532,12 @@ assemble = function(language, namespace, calls, requires) {
         }
         copy.name = lookup(node, ext.name);
         externals[key] = copy;
-        _results.push(symbols.push(key));
+        results.push(symbols.push(key));
       } else {
-        _results.push(void 0);
+        results.push(void 0);
       }
     }
-    return _results;
+    return results;
   };
   isDangling = function(node, name) {
     var outlet;
@@ -3538,6 +3566,7 @@ assemble = function(language, namespace, calls, requires) {
 module.exports = assemble;
 
 
+
 },{"../graph":25,"./priority":33}],30:[function(require,module,exports){
 exports.Snippet = require('./snippet');
 
@@ -3552,6 +3581,7 @@ exports.link = require('./link');
 exports.priority = require('./priority');
 
 exports.load = exports.Snippet.load;
+
 
 
 },{"./assemble":29,"./layout":31,"./link":32,"./priority":33,"./program":34,"./snippet":35}],31:[function(require,module,exports){
@@ -3632,6 +3662,7 @@ Layout = (function() {
 module.exports = Layout;
 
 
+
 },{"./link":32,"./snippet":35}],32:[function(require,module,exports){
 var Graph, Priority, link;
 
@@ -3659,7 +3690,7 @@ link = function(language, links, modules, exported) {
   varyings = {};
   library = {};
   process = function() {
-    var code, e, exports, header, lib, m, ns, sorted, _i, _len;
+    var code, e, exports, header, i, len, lib, m, ns, sorted;
     exports = generate.links(links);
     header = [];
     if (exports.defs != null) {
@@ -3668,18 +3699,18 @@ link = function(language, links, modules, exported) {
     if (exports.bodies != null) {
       header.push(exports.bodies);
     }
-    for (_i = 0, _len = modules.length; _i < _len; _i++) {
-      m = modules[_i];
+    for (i = 0, len = modules.length; i < len; i++) {
+      m = modules[i];
       include(m.node, m.module, m.priority);
     }
     sorted = ((function() {
-      var _results;
-      _results = [];
+      var results;
+      results = [];
       for (ns in library) {
         lib = library[ns];
-        _results.push(lib);
+        results.push(lib);
       }
-      return _results;
+      return results;
     })()).sort(function(a, b) {
       return Priority.compare(a.priority, b.priority);
     });
@@ -3718,48 +3749,48 @@ link = function(language, links, modules, exported) {
     }
   };
   include = function(node, module, priority) {
-    var def, ext, key, lib, ns, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _results;
+    var def, ext, i, key, len, lib, ns, ref, ref1, ref2, ref3, ref4, results;
     priority = Priority.make(priority);
-    _ref = module.library;
-    for (ns in _ref) {
-      lib = _ref[ns];
+    ref = module.library;
+    for (ns in ref) {
+      lib = ref[ns];
       adopt(ns, lib.code, Priority.nest(priority, lib.priority));
     }
     adopt(module.namespace, module.body, priority);
-    _ref1 = module.uniforms;
-    for (key in _ref1) {
-      def = _ref1[key];
+    ref1 = module.uniforms;
+    for (key in ref1) {
+      def = ref1[key];
       uniforms[key] = def;
     }
-    _ref2 = module.varyings;
-    for (key in _ref2) {
-      def = _ref2[key];
+    ref2 = module.varyings;
+    for (key in ref2) {
+      def = ref2[key];
       varyings[key] = def;
     }
-    _ref3 = module.attributes;
-    for (key in _ref3) {
-      def = _ref3[key];
+    ref3 = module.attributes;
+    for (key in ref3) {
+      def = ref3[key];
       attributes[key] = def;
     }
-    _ref4 = module.symbols;
-    _results = [];
-    for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
-      key = _ref4[_i];
+    ref4 = module.symbols;
+    results = [];
+    for (i = 0, len = ref4.length; i < len; i++) {
+      key = ref4[i];
       ext = module.externals[key];
       if (isDangling(node, ext.name)) {
         externals[key] = ext;
-        _results.push(symbols.push(key));
+        results.push(symbols.push(key));
       } else {
-        _results.push(void 0);
+        results.push(void 0);
       }
     }
-    return _results;
+    return results;
   };
   isDangling = function(node, name) {
-    var module, outlet, _ref, _ref1;
+    var module, outlet, ref, ref1;
     outlet = node.get(name);
     if (!outlet) {
-      module = (_ref = (_ref1 = node.owner.snippet) != null ? _ref1._name : void 0) != null ? _ref : node.owner.namespace;
+      module = (ref = (ref1 = node.owner.snippet) != null ? ref1._name : void 0) != null ? ref : node.owner.namespace;
       throw new Error("Unable to link program. Unlinked callback `" + name + "` on `" + module + "`");
     }
     if (outlet.inout === Graph.IN) {
@@ -3774,13 +3805,15 @@ link = function(language, links, modules, exported) {
 module.exports = link;
 
 
+
 },{"../graph":25,"./priority":33}],33:[function(require,module,exports){
 exports.make = function(x) {
+  var ref;
   if (x == null) {
     x = [];
   }
   if (!(x instanceof Array)) {
-    x = [+x != null ? +x : 0];
+    x = [(ref = +x) != null ? ref : 0];
   }
   return x;
 };
@@ -3790,9 +3823,9 @@ exports.nest = function(a, b) {
 };
 
 exports.compare = function(a, b) {
-  var i, n, p, q, _i;
+  var i, j, n, p, q, ref;
   n = Math.min(a.length, b.length);
-  for (i = _i = 0; 0 <= n ? _i < n : _i > n; i = 0 <= n ? ++_i : --_i) {
+  for (i = j = 0, ref = n; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
     p = a[i];
     q = b[i];
     if (p > q) {
@@ -3820,6 +3853,7 @@ exports.max = function(a, b) {
     return a;
   }
 };
+
 
 
 },{}],34:[function(require,module,exports){
@@ -3884,8 +3918,8 @@ Program = (function() {
   };
 
   Program.prototype.assemble = function() {
-    var data, key, snippet, _ref;
-    data = assemble(this.language, (_ref = this.namespace) != null ? _ref : Program.entry, this.calls, this.requires);
+    var data, key, ref, snippet;
+    data = assemble(this.language, (ref = this.namespace) != null ? ref : Program.entry, this.calls, this.requires);
     snippet = new Snippet;
     for (key in data) {
       snippet[key] = data[key];
@@ -3901,6 +3935,7 @@ Program = (function() {
 module.exports = Program;
 
 
+
 },{"./assemble":29,"./snippet":35}],35:[function(require,module,exports){
 var Snippet;
 
@@ -3912,15 +3947,15 @@ Snippet = (function() {
   };
 
   Snippet.load = function(language, name, code) {
-    var compiler, program, sigs, _ref;
+    var compiler, program, ref, sigs;
     program = language.parse(name, code);
-    _ref = language.compile(program), sigs = _ref[0], compiler = _ref[1];
+    ref = language.compile(program), sigs = ref[0], compiler = ref[1];
     return new Snippet(language, sigs, compiler, name, code);
   };
 
-  function Snippet(language, _signatures, _compiler, _name, _original) {
-    var _ref;
-    this.language = language;
+  function Snippet(language1, _signatures, _compiler, _name, _original) {
+    var ref;
+    this.language = language1;
     this._signatures = _signatures;
     this._compiler = _compiler;
     this._name = _name;
@@ -3947,7 +3982,7 @@ Snippet = (function() {
       delete this._original;
     }
     if (!this._name) {
-      this._name = (_ref = this._signatures) != null ? _ref.main.name : void 0;
+      this._name = (ref = this._signatures) != null ? ref.main.name : void 0;
     }
   }
 
@@ -3956,14 +3991,14 @@ Snippet = (function() {
   };
 
   Snippet.prototype.bind = function(config, uniforms, namespace, defines) {
-    var a, def, defs, e, exceptions, exist, global, k, key, local, name, redef, u, v, x, _a, _e, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _u, _v;
+    var _a, _e, _u, _v, a, def, defs, e, exceptions, exist, global, i, j, k, key, l, len, len1, len2, len3, len4, len5, local, m, n, name, o, redef, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, u, v, x;
     if (uniforms === '' + uniforms) {
-      _ref = [uniforms, namespace != null ? namespace : {}, defines != null ? defines : {}], namespace = _ref[0], uniforms = _ref[1], defines = _ref[2];
+      ref = [uniforms, namespace != null ? namespace : {}, defines != null ? defines : {}], namespace = ref[0], uniforms = ref[1], defines = ref[2];
     } else if (namespace !== '' + namespace) {
-      _ref1 = [namespace != null ? namespace : {}, void 0], defines = _ref1[0], namespace = _ref1[1];
+      ref1 = [namespace != null ? namespace : {}, void 0], defines = ref1[0], namespace = ref1[1];
     }
     this.main = this._signatures.main;
-    this.namespace = (_ref2 = namespace != null ? namespace : this.namespace) != null ? _ref2 : Snippet.namespace();
+    this.namespace = (ref2 = namespace != null ? namespace : this.namespace) != null ? ref2 : Snippet.namespace();
     this.entry = this.namespace + this.main.name;
     this.uniforms = {};
     this.varyings = {};
@@ -3982,9 +4017,9 @@ Snippet = (function() {
       };
     })(this);
     if (config.globals) {
-      _ref3 = config.globals;
-      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-        key = _ref3[_i];
+      ref3 = config.globals;
+      for (i = 0, len = ref3.length; i < len; i++) {
+        key = ref3[i];
         global(key);
       }
     }
@@ -4027,29 +4062,29 @@ Snippet = (function() {
         value: def.value
       };
     };
-    _ref4 = this._signatures.uniform;
-    for (_j = 0, _len1 = _ref4.length; _j < _len1; _j++) {
-      def = _ref4[_j];
+    ref4 = this._signatures.uniform;
+    for (j = 0, len1 = ref4.length; j < len1; j++) {
+      def = ref4[j];
       x(def);
     }
-    _ref5 = this._signatures.uniform;
-    for (_k = 0, _len2 = _ref5.length; _k < _len2; _k++) {
-      def = _ref5[_k];
+    ref5 = this._signatures.uniform;
+    for (l = 0, len2 = ref5.length; l < len2; l++) {
+      def = ref5[l];
       u(redef(def));
     }
-    _ref6 = this._signatures.varying;
-    for (_l = 0, _len3 = _ref6.length; _l < _len3; _l++) {
-      def = _ref6[_l];
+    ref6 = this._signatures.varying;
+    for (m = 0, len3 = ref6.length; m < len3; m++) {
+      def = ref6[m];
       v(redef(def));
     }
-    _ref7 = this._signatures.external;
-    for (_m = 0, _len4 = _ref7.length; _m < _len4; _m++) {
-      def = _ref7[_m];
+    ref7 = this._signatures.external;
+    for (n = 0, len4 = ref7.length; n < len4; n++) {
+      def = ref7[n];
       e(def);
     }
-    _ref8 = this._signatures.attribute;
-    for (_n = 0, _len5 = _ref8.length; _n < _len5; _n++) {
-      def = _ref8[_n];
+    ref8 = this._signatures.attribute;
+    for (o = 0, len5 = ref8.length; o < len5; o++) {
+      def = ref8[o];
       a(redef(def));
     }
     for (name in uniforms) {
@@ -4061,13 +4096,13 @@ Snippet = (function() {
     this.body = this.code = this._compiler(this.namespace, exceptions, defines);
     if (defines) {
       defs = ((function() {
-        var _results;
-        _results = [];
+        var results;
+        results = [];
         for (k in defines) {
           v = defines[k];
-          _results.push("#define " + k + " " + v);
+          results.push("#define " + k + " " + v);
         }
-        return _results;
+        return results;
       })()).join('\n');
       if (defs.length) {
         this._original = [defs, "//----------------------------------------", this._original].join("\n");
@@ -4081,6 +4116,7 @@ Snippet = (function() {
 })();
 
 module.exports = Snippet;
+
 
 
 },{}],36:[function(require,module,exports){
@@ -4124,10 +4160,10 @@ resolve = function(arg) {
 };
 
 merge = function(args) {
-  var arg, out, _i, _len;
+  var arg, i, len, out;
   out = [];
-  for (_i = 0, _len = args.length; _i < _len; _i++) {
-    arg = args[_i];
+  for (i = 0, len = args.length; i < len; i++) {
+    arg = args[i];
     if (arg instanceof Array) {
       out = out.concat(merge(arg));
     } else if (arg != null) {
@@ -4141,25 +4177,25 @@ exports.visualize = function() {
   var graph, list;
   list = merge(resolve([].slice.call(arguments)));
   return markup.merge((function() {
-    var _i, _len, _results;
-    _results = [];
-    for (_i = 0, _len = list.length; _i < _len; _i++) {
-      graph = list[_i];
+    var i, len, results;
+    results = [];
+    for (i = 0, len = list.length; i < len; i++) {
+      graph = list[i];
       if (graph) {
-        _results.push(visualize(graph));
+        results.push(visualize(graph));
       }
     }
-    return _results;
+    return results;
   })());
 };
 
 exports.inspect = function() {
-  var contents, el, element, _i, _len, _ref;
+  var contents, el, element, i, len, ref;
   contents = exports.visualize.apply(null, arguments);
   element = markup.overlay(contents);
-  _ref = document.querySelectorAll('.shadergraph-overlay');
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    el = _ref[_i];
+  ref = document.querySelectorAll('.shadergraph-overlay');
+  for (i = 0, len = ref.length; i < len; i++) {
+    el = ref[i];
     el.remove();
   }
   document.body.appendChild(element);
@@ -4168,8 +4204,9 @@ exports.inspect = function() {
 };
 
 
+
 },{"../Graph":2,"./markup":37,"./serialize":38}],37:[function(require,module,exports){
-var connect, cssColor, escapeText, hash, hashColor, makeSVG, merge, overlay, path, process, sqr, trim, wrap, _activate, _markup, _order;
+var _activate, _markup, _order, connect, cssColor, escapeText, hash, hashColor, makeSVG, merge, overlay, path, process, sqr, trim, wrap;
 
 hash = require('../factory/hash');
 
@@ -4216,12 +4253,12 @@ process = function(data) {
 };
 
 _activate = function(el) {
-  var code, codes, _i, _len, _results;
+  var code, codes, i, len, results;
   codes = el.querySelectorAll('.shadergraph-code');
-  _results = [];
-  for (_i = 0, _len = codes.length; _i < _len; _i++) {
-    code = codes[_i];
-    _results.push((function() {
+  results = [];
+  for (i = 0, len = codes.length; i < len; i++) {
+    code = codes[i];
+    results.push((function() {
       var popup;
       popup = code;
       popup.parentNode.classList.add('shadergraph-has-code');
@@ -4233,43 +4270,43 @@ _activate = function(el) {
       });
     })());
   }
-  return _results;
+  return results;
 };
 
 _order = function(data) {
-  var link, linkMap, node, nodeMap, recurse, _i, _j, _k, _len, _len1, _len2, _name, _ref, _ref1, _ref2;
+  var i, j, k, len, len1, len2, link, linkMap, name, node, nodeMap, recurse, ref1, ref2, ref3;
   nodeMap = {};
   linkMap = {};
-  _ref = data.nodes;
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    node = _ref[_i];
+  ref1 = data.nodes;
+  for (i = 0, len = ref1.length; i < len; i++) {
+    node = ref1[i];
     nodeMap[node.id] = node;
   }
-  _ref1 = data.links;
-  for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-    link = _ref1[_j];
-    if (linkMap[_name = link.from] == null) {
-      linkMap[_name] = [];
+  ref2 = data.links;
+  for (j = 0, len1 = ref2.length; j < len1; j++) {
+    link = ref2[j];
+    if (linkMap[name = link.from] == null) {
+      linkMap[name] = [];
     }
     linkMap[link.from].push(link);
   }
   recurse = function(node, depth) {
-    var next, _k, _len2, _ref2;
+    var k, len2, next, ref3;
     if (depth == null) {
       depth = 0;
     }
-    node.depth = Math.max((_ref2 = node.depth) != null ? _ref2 : 0, depth);
+    node.depth = Math.max((ref3 = node.depth) != null ? ref3 : 0, depth);
     if (next = linkMap[node.id]) {
-      for (_k = 0, _len2 = next.length; _k < _len2; _k++) {
-        link = next[_k];
+      for (k = 0, len2 = next.length; k < len2; k++) {
+        link = next[k];
         recurse(nodeMap[link.to], depth + 1);
       }
     }
     return null;
   };
-  _ref2 = data.nodes;
-  for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-    node = _ref2[_k];
+  ref3 = data.nodes;
+  for (k = 0, len2 = ref3.length; k < len2; k++) {
+    node = ref3[k];
     if (node.depth == null) {
       recurse(node);
     }
@@ -4278,15 +4315,15 @@ _order = function(data) {
 };
 
 _markup = function(data, links) {
-  var addOutlet, block, clear, color, column, columns, div, link, node, outlet, outlets, wrapper, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
+  var addOutlet, block, clear, color, column, columns, div, i, j, k, l, len, len1, len2, len3, len4, link, m, node, outlet, outlets, ref1, ref2, ref3, ref4, wrapper;
   _order(data);
   wrapper = document.createElement('div');
   wrapper.classList.add('shadergraph-graph');
   columns = [];
   outlets = {};
-  _ref = data.nodes;
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    node = _ref[_i];
+  ref1 = data.nodes;
+  for (i = 0, len = ref1.length; i < len; i++) {
+    node = ref1[i];
     block = document.createElement('div');
     block.classList.add("shadergraph-node");
     block.classList.add("shadergraph-node-" + node.type);
@@ -4301,14 +4338,14 @@ _markup = function(data, links) {
       block.appendChild(div);
       return outlets[outlet.id] = div.querySelector('.shadergraph-point');
     };
-    _ref1 = node.inputs;
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      outlet = _ref1[_j];
+    ref2 = node.inputs;
+    for (j = 0, len1 = ref2.length; j < len1; j++) {
+      outlet = ref2[j];
       addOutlet(outlet, 'in');
     }
-    _ref2 = node.outputs;
-    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-      outlet = _ref2[_k];
+    ref3 = node.outputs;
+    for (k = 0, len2 = ref3.length; k < len2; k++) {
+      outlet = ref3[k];
       addOutlet(outlet, 'out');
     }
     if (node.graph != null) {
@@ -4332,15 +4369,15 @@ _markup = function(data, links) {
     }
     column.appendChild(block);
   }
-  for (_l = 0, _len3 = columns.length; _l < _len3; _l++) {
-    column = columns[_l];
+  for (l = 0, len3 = columns.length; l < len3; l++) {
+    column = columns[l];
     if (column != null) {
       wrapper.appendChild(column);
     }
   }
-  _ref3 = data.links;
-  for (_m = 0, _len4 = _ref3.length; _m < _len4; _m++) {
-    link = _ref3[_m];
+  ref4 = data.links;
+  for (m = 0, len4 = ref4.length; m < len4; m++) {
+    link = ref4[m];
     color = hashColor(link.type);
     links.push({
       color: color,
@@ -4381,13 +4418,13 @@ makeSVG = function(tag) {
 };
 
 connect = function(element, links) {
-  var a, b, box, c, line, link, ref, svg, _i, _j, _len, _len1;
+  var a, b, box, c, i, j, len, len1, line, link, ref, svg;
   if (element.parentNode == null) {
     return;
   }
   ref = element.getBoundingClientRect();
-  for (_i = 0, _len = links.length; _i < _len; _i++) {
-    link = links[_i];
+  for (i = 0, len = links.length; i < len; i++) {
+    link = links[i];
     a = link.out.getBoundingClientRect();
     b = link["in"].getBoundingClientRect();
     link.coords = {
@@ -4408,8 +4445,8 @@ connect = function(element, links) {
   svg = makeSVG();
   svg.setAttribute('width', box.offsetWidth);
   svg.setAttribute('height', box.offsetHeight);
-  for (_j = 0, _len1 = links.length; _j < _len1; _j++) {
-    link = links[_j];
+  for (j = 0, len1 = links.length; j < len1; j++) {
+    link = links[j];
     c = link.coords;
     line = makeSVG('path');
     line.setAttribute('d', path(c.x1, c.y1, c.x2, c.y2));
@@ -4453,21 +4490,21 @@ wrap = function(markup) {
 };
 
 merge = function(markup) {
-  var div, el, _i, _len;
+  var div, el, i, len;
   if (markup.length !== 1) {
     div = document.createElement('div');
-    for (_i = 0, _len = markup.length; _i < _len; _i++) {
-      el = markup[_i];
+    for (i = 0, len = markup.length; i < len; i++) {
+      el = markup[i];
       div.appendChild(wrap(el));
     }
     div.update = function() {
-      var _j, _len1, _results;
-      _results = [];
-      for (_j = 0, _len1 = markup.length; _j < _len1; _j++) {
-        el = markup[_j];
-        _results.push(typeof el.update === "function" ? el.update() : void 0);
+      var j, len1, results;
+      results = [];
+      for (j = 0, len1 = markup.length; j < len1; j++) {
+        el = markup[j];
+        results.push(typeof el.update === "function" ? el.update() : void 0);
       }
-      return _results;
+      return results;
     };
     return div;
   } else {
@@ -4482,6 +4519,7 @@ module.exports = {
 };
 
 
+
 },{"../factory/hash":13}],38:[function(require,module,exports){
 var Block, isCallback, serialize;
 
@@ -4492,12 +4530,12 @@ isCallback = function(outlet) {
 };
 
 serialize = function(graph) {
-  var block, format, inputs, links, node, nodes, other, outlet, outputs, record, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
+  var block, format, i, inputs, j, k, l, len, len1, len2, len3, links, node, nodes, other, outlet, outputs, record, ref, ref1, ref2, ref3, ref4;
   nodes = [];
   links = [];
-  _ref = graph.nodes;
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    node = _ref[_i];
+  ref = graph.nodes;
+  for (i = 0, len = ref.length; i < len; i++) {
+    node = ref[i];
     record = {
       id: node.id,
       name: null,
@@ -4526,14 +4564,24 @@ serialize = function(graph) {
     } else if (block instanceof Block.Join) {
       record.name = 'Join';
       record.type = 'join';
+    } else if (block != null) {
+      if (record.name == null) {
+        record.name = (ref1 = block.name) != null ? ref1 : block.type;
+      }
+      if (record.type == null) {
+        record.type = block.type;
+      }
+      if (block.graph != null) {
+        record.graph = serialize(block.graph);
+      }
     }
     format = function(type) {
       type = type.replace(")(", ")→(");
       return type = type.replace("()", "");
     };
-    _ref1 = node.inputs;
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      outlet = _ref1[_j];
+    ref2 = node.inputs;
+    for (j = 0, len1 = ref2.length; j < len1; j++) {
+      outlet = ref2[j];
       inputs.push({
         id: outlet.id,
         name: outlet.name,
@@ -4541,18 +4589,18 @@ serialize = function(graph) {
         open: outlet.input == null
       });
     }
-    _ref2 = node.outputs;
-    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-      outlet = _ref2[_k];
+    ref3 = node.outputs;
+    for (k = 0, len2 = ref3.length; k < len2; k++) {
+      outlet = ref3[k];
       outputs.push({
         id: outlet.id,
         name: outlet.name,
         type: format(outlet.type),
         open: !outlet.output.length
       });
-      _ref3 = outlet.output;
-      for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-        other = _ref3[_l];
+      ref4 = outlet.output;
+      for (l = 0, len3 = ref4.length; l < len3; l++) {
+        other = ref4[l];
         links.push({
           from: node.id,
           out: outlet.id,
@@ -4570,6 +4618,7 @@ serialize = function(graph) {
 };
 
 module.exports = serialize;
+
 
 
 },{"../block":8}],39:[function(require,module,exports){
@@ -6492,9 +6541,9 @@ through = function(write, end) {
       return [output, errors];
     },
     queue: function(obj) {
-      var _ref;
+      var ref;
       if (obj != null) {
-        return (_ref = this.parser) != null ? _ref.write(obj) : void 0;
+        return (ref = this.parser) != null ? ref.write(obj) : void 0;
       }
     },
     emit: function(type, node) {
@@ -6511,6 +6560,7 @@ through = function(write, end) {
 };
 
 module.exports = through;
+
 
 
 },{}]},{},[28])

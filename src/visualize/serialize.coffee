@@ -48,6 +48,7 @@ serialize = (graph) ->
     else if block?
       record.name ?= block.name ? block.type
       record.type ?= block.type
+      record.code ?= block.code
       record.graph = serialize block.graph if block.graph?
 
     format = (type) ->

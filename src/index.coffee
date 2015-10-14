@@ -38,7 +38,7 @@ class ShaderGraph
   material: (config) ->
     new Factory.Material @shader(config), @shader(config)
 
-  overlay:   (shader) -> ShaderGraph.overlay   shader
+  inspect:   (shader) -> ShaderGraph.inspect   shader
   visualize: (shader) -> ShaderGraph.visualize shader
 
   # Expose class hierarchy

@@ -3337,8 +3337,8 @@ ShaderGraph = (function() {
     return new Factory.Material(this.shader(config), this.shader(config));
   };
 
-  ShaderGraph.prototype.overlay = function(shader) {
-    return ShaderGraph.overlay(shader);
+  ShaderGraph.prototype.inspect = function(shader) {
+    return ShaderGraph.inspect(shader);
   };
 
   ShaderGraph.prototype.visualize = function(shader) {

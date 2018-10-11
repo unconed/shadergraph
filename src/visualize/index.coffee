@@ -1,4 +1,4 @@
-Graph = require('../Graph').Graph
+Graph = require('../graph').Graph
 
 exports.serialize = serialize = require './serialize'
 exports.markup    = markup    = require './markup'

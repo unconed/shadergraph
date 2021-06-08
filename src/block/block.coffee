@@ -70,7 +70,7 @@ class Block
   _include: (module, layout, depth) ->
     layout.include @node, module, depth
 
-  # Link this module's connected callbacks 
+  # Link this module's connected callbacks
   _link: (module, layout, depth) ->
     debug && console.log 'block::_link', @.toString(), module.namespace
     for key in module.symbols

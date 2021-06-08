@@ -1,77 +1,80 @@
-var gulp = require('gulp');
-var uglify = require('gulp-uglify');
-var concat = require('gulp-concat');
-var rename = require("gulp-rename");
-var runSequence = require('run-sequence');
-var browserify = require('gulp-browserify');
-var watch = require('gulp-watch');
-var KarmaServer = require('karma').Server;
+const gulp        = require('gulp');
+const uglify      = require('gulp-uglify');
+const concat      = require('gulp-concat');
+const rename      = require("gulp-rename");
+const browserify  = require('browserify');
+const coffeeify   = require('coffeeify');
+const watch       = require('gulp-watch');
+const vSource     = require('vinyl-source-stream');
+const karma       = require('karma');
 
-var builds = {
+const parseConfig = karma.config.parseConfig;
+const KarmaServer = karma.Server;
+
+const builds = {
   core:   'build/shadergraph-core.js',
   bundle: 'build/shadergraph.js',
   css:    'build/shadergraph.css',
 };
 
-var products = [
+const products = [
   builds.core,
   builds.bundle,
 ];
 
-var vendor = [
+const vendor = [
 ];
 
-var css = [
+const css = [
   'src/**/*.css',
 ];
 
-var core = [
+const core = [
   '.tmp/index.js'
 ];
 
-var coffees = [
+const coffees = [
   'src/**/*.coffee',
-]
+];
 
-var bundle = vendor.concat(core);
+const bundle = vendor.concat(core);
 
-var test = [
+const test = [
   'node_modules/three/three.js',
 ].concat(bundle).concat([
   'test/**/*.spec.coffee',
 ]);
 
 gulp.task('browserify', function () {
-  return gulp.src('src/index.coffee', { read: false })
-      .pipe(browserify({
-        debug: false,
-        //detectGlobals: false,
-        //bare: true,
-        transform: ['coffeeify'],
-        extensions: ['.coffee'],
-      }))
-      .pipe(rename({
-        extname: ".js"
-      }))
-      .pipe(gulp.dest('.tmp/'))
+  const b = browserify({
+    debug: false,
+    //detectGlobals: false,
+    //bare: true,
+    entries: 'src/index.coffee',
+    extensions: ['.coffee'],
+    transform: [coffeeify]
+  });
+  return b.bundle()
+    .pipe(vSource('index.js'))
+    .pipe(gulp.dest('./.tmp/'));
 });
 
 gulp.task('css', function () {
   return gulp.src(css)
     .pipe(concat(builds.css))
-    .pipe(gulp.dest(''));
+    .pipe(gulp.dest('./'));
 });
 
 gulp.task('core', function () {
   return gulp.src(core)
     .pipe(concat(builds.core))
-    .pipe(gulp.dest(''));
+    .pipe(gulp.dest('./'));
 });
 
 gulp.task('bundle', function () {
   return gulp.src(bundle)
     .pipe(concat(builds.bundle))
-    .pipe(gulp.dest(''));
+    .pipe(gulp.dest('./'));
 });
 
 gulp.task('uglify', function () {
@@ -84,11 +87,16 @@ gulp.task('uglify', function () {
 });
 
 gulp.task('karma', function (done) {
-  new KarmaServer({
-    configFile: __dirname + '/karma.conf.js',
-    files: test,
-    singleRun: true,
-  }, done).start();
+  parseConfig(
+    __dirname + '/karma.conf.js',
+    {files: test, singleRun: true},
+    { promiseConfig: true, throwErrors: true}
+  ).then(
+    (karmaConfig) => {
+      new KarmaServer(karmaConfig, done).start();
+    },
+    (rejectReason) => {}
+  );
 });
 
 gulp.task('watch-karma', function() {
@@ -107,22 +115,12 @@ gulp.task('watch-build-watch', function () {
 
 // Main tasks
 
-gulp.task('build', function (callback) {
-  runSequence('browserify', ['css', 'core', 'bundle'], callback);
-})
+gulp.task('build', gulp.series('browserify', ['css', 'core', 'bundle']));
 
-gulp.task('default', function (callback) {
-  runSequence('build', 'uglify', callback);
-});
+gulp.task('default', gulp.series('build', 'uglify'));
 
-gulp.task('test', function (callback) {
-  runSequence('build', 'karma', callback);
-});
+gulp.task('test', gulp.series('build', 'karma'));
 
-gulp.task('watch-build', function (callback) {
-  runSequence('build', 'watch-build-watch', callback);
-})
+gulp.task('watch-build', gulp.series('build', 'watch-build-watch'));
 
-gulp.task('watch', function (callback) {
-  runSequence('watch-build', 'watch-karma', callback);
-});
+gulp.task('watch', gulp.series('watch-build', 'watch-karma'));

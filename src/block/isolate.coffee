@@ -6,10 +6,10 @@ Block   = require './block'
 ###
 class Isolate extends Block
   constructor: (@graph) ->
-    super
+    super()
 
   refresh: () ->
-    super
+    super()
     delete @subroutine
 
   clone: () ->

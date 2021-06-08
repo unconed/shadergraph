@@ -2,8 +2,8 @@ Block   = require './block'
 
 class Call extends Block
   constructor: (@snippet) ->
+    super()
     @namespace = @snippet.namespace
-    super
 
   clone: () ->
     new Call @snippet

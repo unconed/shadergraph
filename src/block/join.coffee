@@ -5,7 +5,7 @@ Block   = require './block'
 ###
 class Join extends Block
   constructor: (@nodes) ->
-    super
+    super()
 
   clone: () ->
     new Join @nodes

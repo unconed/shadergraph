@@ -6,7 +6,6 @@ Block   = require './block'
 ###
 class Isolate extends Block
   constructor: (graph) ->
-    console.log("isolate")
     super true
     @graph = graph
     @construct()

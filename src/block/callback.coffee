@@ -6,7 +6,6 @@ Block   = require './block'
 ###
 class Callback extends Block
   constructor: (graph) ->
-    console.log("callback")
     super true
     @graph = graph
     @construct()

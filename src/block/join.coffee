@@ -5,7 +5,6 @@ Block   = require './block'
 ###
 class Join extends Block
   constructor: (nodes) ->
-    console.log("get somejoin")
     super true
     @nodes = nodes
     @construct()

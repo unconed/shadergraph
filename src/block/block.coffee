@@ -7,7 +7,12 @@ debug = false
 class Block
   @previous = (outlet) -> outlet.input?.node.owner
 
-  constructor: () ->
+  constructor: (delay = false) ->
+    # Subclasses can pass `delay` to allow them to initialize before they call
+    # `@construct`.
+    @construct() unless delay
+
+  construct: () ->
     @namespace ?= Program.entry()
     @node       = new Graph.Node @, @makeOutlets?() ? {}
 

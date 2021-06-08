@@ -108,9 +108,7 @@ gulp.task('watch-karma', function() {
 });
 
 gulp.task('watch-build-watch', function () {
-  watch(coffees.concat(css), function () {
-    return gulp.start('build');
-  });
+  watch(coffees.concat(css), gulp.series('build'));
 });
 
 // Main tasks

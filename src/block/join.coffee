@@ -4,8 +4,11 @@ Block   = require './block'
   Join multiple disconnected nodes
 ###
 class Join extends Block
-  constructor: (@nodes) ->
-    super()
+  constructor: (nodes) ->
+    console.log("get somejoin")
+    super true
+    @nodes = nodes
+    @construct()
 
   clone: () ->
     new Join @nodes

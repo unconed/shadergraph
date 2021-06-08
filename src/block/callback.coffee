@@ -5,8 +5,11 @@ Block   = require './block'
   Re-use a subgraph as a callback
 ###
 class Callback extends Block
-  constructor: (@graph) ->
-    super()
+  constructor: (graph) ->
+    console.log("callback")
+    super true
+    @graph = graph
+    @construct()
 
   refresh: () ->
     super()

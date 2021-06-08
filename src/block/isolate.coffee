@@ -5,8 +5,11 @@ Block   = require './block'
   Isolate a subgraph as a single node
 ###
 class Isolate extends Block
-  constructor: (@graph) ->
-    super()
+  constructor: (graph) ->
+    console.log("isolate")
+    super true
+    @graph = graph
+    @construct()
 
   refresh: () ->
     super()

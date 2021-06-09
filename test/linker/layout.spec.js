@@ -1,35 +1,21 @@
-// TODO: This file was created by bulk-decaffeinate.
-// Sanity-check the conversion and remove this comment.
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-
-
 describe("layout", function() {
-  const {
-    Linker
-  } = ShaderGraph;
-  const {
-    Graph
-  } = ShaderGraph;
+  const { Linker, Graph } = ShaderGraph;
 
   const ns = name => (name.match(/_sn_([0-9]+)_/))[0];
 
   const normalize = function(code, ignore) {
     // renumber generated outputs
-    let p, s;
+    let p = 0;
+    let s = 0;
+    let o = 0;
     const map = {};
-    let o = (s = (p = 0));
-    code = code.replace(/\b_io_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] != null ? map[match] : (map[match] = `_io_${++o}${name}`));
-    code = code.replace(/\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] != null ? map[match] : (map[match] = `_sn_${++s}${name}`));
-    return code = code.replace(/\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g, (match, name) => map[match] != null ? map[match] : (map[match] = `_pg_${++p}_${name != null ? name : ''}`));
+    return code
+      .replace(/\b_io_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] ||= `_io_${++o}${name}`)
+      .replace(/\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] ||= `_sn_${++s}${name}`)
+      .replace(/\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g, (match, name) => map[match] ||= `_pg_${++p}_${name || ''}`);
   };
 
   it('links a callback (callback/end)', function() {
-
     const code1 = `\
 float foobar(vec3 color) {
 }\
@@ -74,7 +60,7 @@ void main(in vec3 _io_1_color) {
     const code = normalize(snippet.code);
 
     expect(code).toBe(result);
-    return expect(snippet.entry.match(/^_pg_[0-9]+_$/)).toBeTruthy;
+    expect(snippet.entry.match(/^_pg_[0-9]+_$/)).toBeTruthy;
   });
 
 
@@ -122,7 +108,7 @@ void main(in vec3 _io_1_color) {
     const code = normalize(snippet.code);
 
     expect(code).toBe(result);
-    return expect(snippet.entry.match(/^_pg_[0-9]+_$/)).toBeTruthy;
+    expect(snippet.entry.match(/^_pg_[0-9]+_$/)).toBeTruthy;
   });
 
 
@@ -186,7 +172,7 @@ void main(in vec3 _io_1_color) {
     const snippet = graph.link();
     const code = normalize(snippet.code);
 
-    return expect(code).toBe(result);
+    expect(code).toBe(result);
   });
 
 
@@ -1037,11 +1023,11 @@ void main() {
     const snippet = graph.link();
     const code = normalize(snippet.code);
 
-    return expect(code).toBe(result);
+    expect(code).toBe(result);
   });
 
 
-  return it('splits piped inouts inside isolates (isolate/pipe/pipe/end)', function() {
+  it('splits piped inouts inside isolates (isolate/pipe/pipe/end)', function() {
 
     const getColor = `\
 vec3 getColor() {
@@ -1110,6 +1096,6 @@ void main() {
     const snippet = graph.link();
     const code = normalize(snippet.code);
 
-    return expect(code).toBe(result);
+    expect(code).toBe(result);
   });
 });

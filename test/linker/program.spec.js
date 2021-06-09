@@ -1,35 +1,21 @@
-// TODO: This file was created by bulk-decaffeinate.
-// Sanity-check the conversion and remove this comment.
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-
 describe("program", function() {
-  const {
-    Linker
-  } = ShaderGraph;
-  const {
-    Graph
-  } = ShaderGraph;
+  const { Linker, Graph } = ShaderGraph;
 
   const ns = name => (name.match(/_sn_([0-9]+)_/))[0];
 
   const normalize = function(code, ignore) {
     // renumber generated outputs
-    let p, s;
+    let p = 0;
+    let s = 0;
+    let o = 0;
     const map = {};
-    let o = (s = (p = 0));
-    code = code.replace(/\b_io_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] != null ? map[match] : (map[match] = `_io_${++o}${name}`));
-    code = code.replace(/\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] != null ? map[match] : (map[match] = `_sn_${++s}${name}`));
-    return code = code.replace(/\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g, (match, name) => map[match] != null ? map[match] : (map[match] = `_pg_${++p}_${name != null ? name : ''}`));
+    return code
+      .replace(/\b_io_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] ||= `_io_${++o}${name}`)
+      .replace(/\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] ||= `_sn_${++s}${name}`)
+      .replace(/\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g, (match, name) => map[match] ||= `_pg_${++p}_${name || ''}`);
   };
 
-
   it('links snippets with return values (call)', function() {
-
     const code1 = `\
 vec3 first() {
   return vec3(1.0, 1.0, 1.0);
@@ -86,7 +72,7 @@ void main() {
     const snippet = graph.compile();
     const code = normalize(snippet.code);
 
-    return expect(code).toBe(result);
+    expect(code).toBe(result);
   });
 
 
@@ -147,7 +133,7 @@ void main() {
     const snippet = graph.compile();
     const code = normalize(snippet.code);
 
-    return expect(code).toBe(result);
+    expect(code).toBe(result);
   });
 
 
@@ -220,7 +206,7 @@ void main() {
     const snippet = graph.compile();
     const code = normalize(snippet.code);
 
-    return expect(code).toBe(result);
+    expect(code).toBe(result);
   });
 
 
@@ -294,7 +280,7 @@ void main() {
     const snippet = graph.compile();
     const code = normalize(snippet.code);
 
-    return expect(code).toBe(result);
+    expect(code).toBe(result);
   });
 
 
@@ -366,7 +352,7 @@ void main() {
     const snippet = graph.compile();
     const code = normalize(snippet.code);
 
-    return expect(code).toBe(result);
+    expect(code).toBe(result);
   });
 
 
@@ -439,12 +425,12 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
       expect(ext.type).toBe(types[n]);
       n++;
     }
-    return expect(n).toBe(2);
+    expect(n).toBe(2);
   });
 
 
 
-  return it('exports dangling inputs/outputs (split/next/end)', function() {
+  it('exports dangling inputs/outputs (split/next/end)', function() {
 
     let name;
     const code1 = `\
@@ -549,6 +535,6 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
     expect(snippet.main.signature[0].type).toBe('v4');
     expect(snippet.main.signature[0].inout).toBe(0);
     expect(snippet.main.signature[1].type).toBe('v4');
-    return expect(snippet.main.signature[1].inout).toBe(1);
+    expect(snippet.main.signature[1].inout).toBe(1);
   });
 });

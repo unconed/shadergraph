@@ -1,18 +1,6 @@
-// TODO: This file was created by bulk-decaffeinate.
-// Sanity-check the conversion and remove this comment.
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-
 describe("snippet", function() {
-  const {
-    Snippet
-  } = ShaderGraph.Linker;
-  const {
-    GLSL
-  } = ShaderGraph;
+  const { GLSL, Linker } = ShaderGraph;
+  const { Snippet } = Linker;
 
   let snippet = null;
   const configLocal  = { globalAttributes: false, globalVaryings: false, globalUniforms: false };
@@ -34,10 +22,11 @@ void testSnippet(float param) { };\
     return snippet = Snippet.load(GLSL, 'test', code);
   });
 
-  it('loads', () => expect(snippet).toBeTruthy());
+  it('loads', function() {
+    expect(snippet).toBeTruthy();
+  });
 
   it('compiles locals with namespace', function() {
-
     snippet.bind(configLocal, '_sgtest_');
 
     expect(snippet.entry).toBe('_sgtest_testSnippet');
@@ -65,11 +54,10 @@ void testSnippet(float param) { };\
     expect(snippet.varyings['_sgtest_var1'].name).toBe('var1');
     expect(snippet.varyings['_sgtest_var1'].type).toBe('v4');
     expect(snippet.varyings['_sgtest_var2'].name).toBe('var2');
-    return expect(snippet.varyings['_sgtest_var2'].type).toBe('v3');
+    expect(snippet.varyings['_sgtest_var2'].type).toBe('v3');
   });
 
   it('compiles globals without namespace', function() {
-
     snippet.bind(configGlobal, '_sgtest_');
 
     expect(snippet.entry).toBe('_sgtest_testSnippet');
@@ -97,7 +85,7 @@ void testSnippet(float param) { };\
     expect(snippet.varyings['var1'].name).toBe('var1');
     expect(snippet.varyings['var1'].type).toBe('v4');
     expect(snippet.varyings['var2'].name).toBe('var2');
-    return expect(snippet.varyings['var2'].type).toBe('v3');
+    expect(snippet.varyings['var2'].type).toBe('v3');
   });
 
   it('binds uniforms', function() {
@@ -109,7 +97,7 @@ void testSnippet(float param) { };\
     };
     snippet.bind(configLocal, uniforms, '_bind_');
 
-    return expect(snippet.uniforms['_bind_uni1']).toBe(uniforms.uni1);
+    expect(snippet.uniforms['_bind_uni1']).toBe(uniforms.uni1);
   });
 
   it('binds uniforms (backwards arguments)', function() {
@@ -121,21 +109,21 @@ void testSnippet(float param) { };\
     };
     snippet.bind(configLocal, '_bind_', uniforms);
 
-    return expect(snippet.uniforms['_bind_uni1']).toBe(uniforms.uni1);
+    expect(snippet.uniforms['_bind_uni1']).toBe(uniforms.uni1);
   });
 
   it('adds defines', function() {
     snippet.bind(configLocal, '_sgtest_', {}, { FOOBAR: '', BARFOO: 1 });
-    return expect(snippet.code).toMatch(/#define FOOBAR\s+#define BARFOO 1\s/m);
+    expect(snippet.code).toMatch(/#define FOOBAR\s+#define BARFOO 1\s/m);
   });
 
   it('adds defines (backwards arguments)', function() {
     snippet.bind(configLocal, '_sgtest_', {}, { FOOBAR: '', BARFOO: 1 });
-    return expect(snippet.code).toMatch(/#define FOOBAR\s+#define BARFOO 1\s/m);
+    expect(snippet.code).toMatch(/#define FOOBAR\s+#define BARFOO 1\s/m);
   });
 
-  return it('adds defines (shorthand syntax)', function() {
+  it('adds defines (shorthand syntax)', function() {
     snippet.bind(configLocal, {}, { FOOBAR: '', BARFOO: 1 });
-    return expect(snippet.code).toMatch(/#define FOOBAR\s+#define BARFOO 1\s/m);
+    expect(snippet.code).toMatch(/#define FOOBAR\s+#define BARFOO 1\s/m);
   });
 });

@@ -1,17 +1,5 @@
-// TODO: This file was created by bulk-decaffeinate.
-// Sanity-check the conversion and remove this comment.
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS104: Avoid inline assignments
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-
 describe("compiler", function() {
-  const {
-    GLSL
-  } = ShaderGraph;
+  const { GLSL } = ShaderGraph;
 
   let program    = null;
   let signatures = null;
@@ -85,21 +73,19 @@ void _t_main() {
     } = GLSL;
 
     program = parse('test', code);
-    return [signatures, assembler] = Array.from(ref = compile(program)), ref;
+    [signatures, assembler] = compile(program);
   });
 
   it('creates an assembler function', function() {
-
     expect(assembler).toBeTruthy();
     expect(assembler.call).toBeTruthy();
-    return expect(assembler.apply).toBeTruthy();
+    expect(assembler.apply).toBeTruthy();
   });
 
   return it('assembles with prefix on all global symbols', function() {
-
     const namespace = '_t_';
     const compiled = assembler(namespace);
 
-    return expect(compiled).toBe(result);
+    expect(compiled).toBe(result);
   });
 });

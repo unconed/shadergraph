@@ -1,18 +1,13 @@
-// TODO: This file was created by bulk-decaffeinate.
-// Sanity-check the conversion and remove this comment.
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-
 // Legacy shadergraph.js tests
 
 describe("graph", function() {
   const { Graph } = ShaderGraph;
 
-  let node1, node2, node3;
-  let graph = (node1 = (node2 = (node3 = null)));
+  let node1 = null;
+  let node2 = null;
+  let node3 = null;
+  let graph = null;
+
   const $ = Graph.Graph;
 
   // Create three nodes
@@ -104,11 +99,10 @@ describe("graph", function() {
 
     node1.id = 'node 1';
     node2.id = 'node 2';
-    return node3.id = 'node 3';
+    node3.id = 'node 3';
   });
 
   it('Created 3 test nodes with correct outlets', function() {
-
     expect(node1.inputs.length).toBe(1);
     expect(node1.outputs.length).toBe(4);
     expect(node2.inputs.length).toBe(4);
@@ -121,7 +115,7 @@ describe("graph", function() {
     expect(node3.get('position')).toBeTruthy();
     expect(node1.get('alpha')).toBeTruthy();
     expect(node2.get('alpha')).toBeTruthy();
-    return expect(node3.get('alpha')).toBeTruthy();
+    expect(node3.get('alpha')).toBeTruthy();
   });
 
   it("Adds nodes to the graph", function() {
@@ -131,17 +125,16 @@ describe("graph", function() {
 
     expect(node1.graph).toBe(graph);
     expect(node2.graph).toBe(graph);
-    return expect(node3.graph).toBe(graph);
+    expect(node3.graph).toBe(graph);
   });
 
-  return it('connects nodes', function() {
-
+  it('connects nodes', function() {
     const assert = function(a, b, msg) {
       if (a !== b) {
         const args = [].slice.call(arguments);
         console.error(`Failed assert: ${msg} ${args}`);
       }
-      return expect(a).toBe(b);
+      expect(a).toBe(b);
     };
 
     // Connect two nodes automatically
@@ -260,7 +253,6 @@ describe("graph", function() {
     node1.setOutlets(def4);
     assert(true, true, 'Changed Node 1 definition');
 
-
     // Verify that alpha connection to node2 was kept
     assert(node2.getIn('alpha').input, node1.getOut('alpha'), 'N2 Alpha is still wired up (in)');
     assert(!!node1.getOut('alpha').output.length, true, 'N1 Alpha has at least one connection (out)');
@@ -339,6 +331,6 @@ describe("graph", function() {
     assert(outputs.indexOf(node1.getOut('matrix'))        >= 0, true, 'Graph has N1 matrix output');
     assert(outputs.indexOf(node2.getOut('matrix'))        >= 0, true, 'Graph has N2 matrix output');
     assert(outputs.indexOf(node3.getOut('matrix'))        >= 0, true, 'Graph has N3 matrix output');
-    return assert(outputs.length, 3, 'Graph has 3 outputs');
+    assert(outputs.length, 3, 'Graph has 3 outputs');
   });
 });

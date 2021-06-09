@@ -1,11 +1,3 @@
-// TODO: This file was created by bulk-decaffeinate.
-// Sanity-check the conversion and remove this comment.
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-
 describe("parser", function() {
   const { GLSL } = ShaderGraph;
 
@@ -56,27 +48,25 @@ void snippetTest(
 }\
 `;
 
-    const {
-      parse
-    } = GLSL;
-    return program = parse('test', code);
+    const { parse } = GLSL;
+    program = parse('test', code);
   });
 
-  it('parses GLSL and signatures', () => expect(program).toBeTruthy());
+  it('parses GLSL and signatures', function () {
+    expect(program).toBeTruthy();
+  });
 
   it('builds an AST tree', function() {
-
     expect(program.ast).toBeTruthy();
     expect(program.ast.children.length).toBeTruthy();
     expect(program.ast.children[0].children.length).toBeTruthy();
 
     expect(program.ast.type).toBe('stmtlist');
     expect(program.ast.children[0].type).toBe('stmt');
-    return expect(program.ast.children[0].children[0].type).toBe('decl');
+    expect(program.ast.children[0].children[0].type).toBe('decl');
   });
 
   it('parses uniforms', function() {
-
     expect(program.signatures).toBeTruthy();
     const s = program.signatures;
 
@@ -89,13 +79,10 @@ void snippetTest(
     expect(s.uniform[1].type).toBe('fv');
 
     expect(s.uniform[2].name).toBe('uv2');
-    return expect(s.uniform[2].type).toBe('v2');
+    expect(s.uniform[2].type).toBe('v2');
   });
 
-  // ...
-
   it('parses varyings', function() {
-
     expect(program.signatures).toBeTruthy();
     const s = program.signatures;
 
@@ -108,13 +95,10 @@ void snippetTest(
     expect(s.varying[1].type).toBe('fv');
 
     expect(s.varying[2].name).toBe('vm3');
-    return expect(s.varying[2].type).toBe('m3');
+    expect(s.varying[2].type).toBe('m3');
   });
 
-  // ...
-
   it('parses attributes', function() {
-
     expect(program.signatures).toBeTruthy();
     const s = program.signatures;
 
@@ -127,13 +111,12 @@ void snippetTest(
     expect(s.attribute[1].type).toBe('fv');
 
     expect(s.attribute[2].name).toBe('av3');
-    return expect(s.attribute[2].type).toBe('v3');
+    expect(s.attribute[2].type).toBe('v3');
   });
 
   // ...
 
   it('parses internals', function() {
-
     expect(program.signatures).toBeTruthy();
     const s = program.signatures;
 
@@ -142,11 +125,10 @@ void snippetTest(
     expect(s.internal[0].name).toBe('fc');
     expect(s.internal[1].name).toBe('fg');
     expect(s.internal[2].name).toBe('internal');
-    return expect(s.internal[3].name).toBe('snippetTest');
+    expect(s.internal[3].name).toBe('snippetTest');
   });
 
   it('parses externals', function() {
-
     expect(program.signatures).toBeTruthy();
 
     const s = program.signatures;
@@ -158,17 +140,16 @@ void snippetTest(
     expect(s.external[1].type).toBe('(v3)(v4)');
 
     expect(s.external[2].name).toBe('callback3');
-    return expect(s.external[2].type).toBe('(v3,v4)(v4)');
+    expect(s.external[2].type).toBe('(v3,v4)(v4)');
   });
 
   return it('parses main', function() {
-
     expect(program.signatures).toBeTruthy();
 
     const s = program.signatures;
 
     expect(s.main).toBeTruthy();
     expect(s.main.name).toBe('snippetTest');
-    return expect(s.main.type).toBe('(v4,m3v,v3)(v4,v4v,m4,m4v,v3)');
+    expect(s.main.type).toBe('(v4,m3v,v3)(v4,v4v,m4,m4v,v3)');
   });
 });

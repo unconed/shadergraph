@@ -1,252 +1,171 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS206: Consider reworking classes to avoid initClass
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
 /*
   Graph of nodes with outlets
- */
-var Graph;
+*/
+class Graph {
+  static initClass() {
+    this.index = 0;
+  
+    this.IN = 0;
+    this.OUT = 1;
+  }
+  static id(name) { return ++Graph.index; }
 
-Graph = (function() {
-  Graph.index = 0;
-
-  Graph.id = function(name) {
-    return ++Graph.index;
-  };
-
-  Graph.IN = 0;
-
-  Graph.OUT = 1;
-
-  function Graph(nodes, parent) {
-    this.parent = parent != null ? parent : null;
-    this.id = Graph.id();
+  constructor(nodes, parent = null) {
+    this.parent = parent;
+    this.id    = Graph.id();
     this.nodes = [];
     nodes && this.add(nodes);
   }
 
-  Graph.prototype.inputs = function() {
-    var i, inputs, j, len, len1, node, outlet, ref, ref1;
-    inputs = [];
-    ref = this.nodes;
-    for (i = 0, len = ref.length; i < len; i++) {
-      node = ref[i];
-      ref1 = node.inputs;
-      for (j = 0, len1 = ref1.length; j < len1; j++) {
-        outlet = ref1[j];
-        if (outlet.input === null) {
-          inputs.push(outlet);
-        }
-      }
+  inputs() {
+    const inputs = [];
+    for (let node of Array.from(this.nodes)) {
+      for (let outlet of Array.from(node.inputs)) { if (outlet.input === null) { inputs.push(outlet); } }
     }
     return inputs;
-  };
+  }
 
-  Graph.prototype.outputs = function() {
-    var i, j, len, len1, node, outlet, outputs, ref, ref1;
-    outputs = [];
-    ref = this.nodes;
-    for (i = 0, len = ref.length; i < len; i++) {
-      node = ref[i];
-      ref1 = node.outputs;
-      for (j = 0, len1 = ref1.length; j < len1; j++) {
-        outlet = ref1[j];
-        if (outlet.output.length === 0) {
-          outputs.push(outlet);
-        }
-      }
+  outputs() {
+    const outputs = [];
+    for (let node of Array.from(this.nodes)) {
+      for (let outlet of Array.from(node.outputs)) { if (outlet.output.length === 0) { outputs.push(outlet); } }
     }
     return outputs;
-  };
+  }
 
-  Graph.prototype.getIn = function(name) {
-    var outlet;
-    return ((function() {
-      var i, len, ref, results;
-      ref = this.inputs();
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        outlet = ref[i];
-        if (outlet.name === name) {
-          results.push(outlet);
-        }
-      }
-      return results;
-    }).call(this))[0];
-  };
+  getIn(name) { return (Array.from(this.inputs()).filter((outlet) => outlet.name === name))[0]; }
+  getOut(name) { return (Array.from(this.outputs()).filter((outlet) => outlet.name === name))[0]; }
 
-  Graph.prototype.getOut = function(name) {
-    var outlet;
-    return ((function() {
-      var i, len, ref, results;
-      ref = this.outputs();
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        outlet = ref[i];
-        if (outlet.name === name) {
-          results.push(outlet);
-        }
-      }
-      return results;
-    }).call(this))[0];
-  };
+  add(node, ignore) {
 
-  Graph.prototype.add = function(node, ignore) {
-    var _node, i, len;
     if (node.length) {
-      for (i = 0, len = node.length; i < len; i++) {
-        _node = node[i];
-        this.add(_node);
-      }
+      for (let _node of Array.from(node)) { this.add(_node); }
       return;
     }
-    if (node.graph && !ignore) {
-      throw new Error("Adding node to two graphs at once");
-    }
+
+    if (node.graph && !ignore) { throw new Error("Adding node to two graphs at once"); }
+
     node.graph = this;
     return this.nodes.push(node);
-  };
+  }
 
-  Graph.prototype.remove = function(node, ignore) {
-    var _node, i, len;
+  remove(node, ignore) {
     if (node.length) {
-      for (i = 0, len = node.length; i < len; i++) {
-        _node = node[i];
-        this.remove(_node);
-      }
+      for (let _node of Array.from(node)) { this.remove(_node); }
       return;
     }
-    if (node.graph !== this) {
-      throw new Error("Removing node from wrong graph.");
-    }
+
+    if (node.graph !== this) { throw new Error("Removing node from wrong graph."); }
+
     ignore || node.disconnect();
+
     this.nodes.splice(this.nodes.indexOf(node), 1);
     return node.graph = null;
-  };
+  }
 
-  Graph.prototype.adopt = function(node) {
-    var _node, i, len;
+  adopt(node) {
     if (node.length) {
-      for (i = 0, len = node.length; i < len; i++) {
-        _node = node[i];
-        this.adopt(_node);
-      }
+      for (let _node of Array.from(node)) { this.adopt(_node); }
       return;
     }
+
     node.graph.remove(node, true);
     return this.add(node, true);
-  };
-
-  return Graph;
-
-})();
+  }
+}
+Graph.initClass();
 
 module.exports = Graph;
 
-
-
 },{}],2:[function(require,module,exports){
-exports.Graph = require('./graph');
-
-exports.Node = require('./node');
-
+exports.Graph  = require('./graph');
+exports.Node   = require('./node');
 exports.Outlet = require('./outlet');
 
-exports.IN = exports.Graph.IN;
-
+exports.IN  = exports.Graph.IN;
 exports.OUT = exports.Graph.OUT;
 
-
-
 },{"./graph":1,"./node":3,"./outlet":4}],3:[function(require,module,exports){
-var Graph, Node, Outlet;
-
-Graph = require('./graph');
-
-Outlet = require('./outlet');
-
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS206: Consider reworking classes to avoid initClass
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Graph  = require('./graph');
+const Outlet = require('./outlet');
 
 /*
  Node in graph.
- */
+*/
+class Node {
+  static initClass() {
+    this.index = 0;
+  }
+  static id(name) { return ++Node.index; }
 
-Node = (function() {
-  Node.index = 0;
-
-  Node.id = function(name) {
-    return ++Node.index;
-  };
-
-  function Node(owner, outlets) {
+  constructor(owner, outlets) {
     this.owner = owner;
-    this.graph = null;
-    this.inputs = [];
+    this.graph   = null;
+    this.inputs  = [];
     this.outputs = [];
-    this.all = [];
+    this.all     = [];
     this.outlets = null;
-    this.id = Node.id();
+    this.id      = Node.id();
+
     this.setOutlets(outlets);
   }
 
-  Node.prototype.getIn = function(name) {
-    var outlet;
-    return ((function() {
-      var i, len, ref, results;
-      ref = this.inputs;
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        outlet = ref[i];
-        if (outlet.name === name) {
-          results.push(outlet);
-        }
-      }
-      return results;
-    }).call(this))[0];
-  };
+  // Retrieve input
+  getIn(name) {
+    return (Array.from(this.inputs).filter((outlet) => outlet.name === name))[0];
+  }
 
-  Node.prototype.getOut = function(name) {
-    var outlet;
-    return ((function() {
-      var i, len, ref, results;
-      ref = this.outputs;
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        outlet = ref[i];
-        if (outlet.name === name) {
-          results.push(outlet);
-        }
-      }
-      return results;
-    }).call(this))[0];
-  };
+  // Retrieve output
+  getOut(name) {
+    return (Array.from(this.outputs).filter((outlet) => outlet.name === name))[0];
+  }
 
-  Node.prototype.get = function(name) {
+  // Retrieve by name
+  get(name) {
     return this.getIn(name) || this.getOut(name);
-  };
+  }
 
-  Node.prototype.setOutlets = function(outlets) {
-    var existing, hash, i, j, k, key, len, len1, len2, match, outlet, ref;
+  // Set new outlet definition
+  setOutlets(outlets) {
     if (outlets != null) {
-      if (this.outlets == null) {
+      // First init
+      let outlet;
+      if ((this.outlets == null)) {
         this.outlets = {};
-        for (i = 0, len = outlets.length; i < len; i++) {
-          outlet = outlets[i];
-          if (!(outlet instanceof Outlet)) {
-            outlet = Outlet.make(outlet);
-          }
+        for (outlet of Array.from(outlets)) {
+          if (!(outlet instanceof Outlet)) { outlet = Outlet.make(outlet); }
           this._add(outlet);
         }
         return;
       }
-      hash = function(outlet) {
-        return [outlet.name, outlet.inout, outlet.type].join('-');
-      };
-      match = {};
-      for (j = 0, len1 = outlets.length; j < len1; j++) {
-        outlet = outlets[j];
-        match[hash(outlet)] = true;
-      }
-      ref = this.outlets;
-      for (key in ref) {
-        outlet = ref[key];
+
+      // Return new/old outlet matching hash key
+      const hash = outlet => // Match by name, direction and type.
+      [outlet.name, outlet.inout, outlet.type].join('-');
+
+      // Build hash of new outlets
+      const match = {};
+      for (outlet of Array.from(outlets)) { match[hash(outlet)] = true; }
+
+      // Remove missing outlets, record matches
+      for (let key in this.outlets) {
+        outlet = this.outlets[key];
         key = hash(outlet);
         if (match[key]) {
           match[key] = outlet;
@@ -254,422 +173,450 @@ Node = (function() {
           this._remove(outlet);
         }
       }
-      for (k = 0, len2 = outlets.length; k < len2; k++) {
-        outlet = outlets[k];
-        existing = match[hash(outlet)];
+
+      // Insert new outlets
+      for (outlet of Array.from(outlets)) {
+        // Find match by hash
+        const existing = match[hash(outlet)];
         if (existing instanceof Outlet) {
+          // Update existing outlets in place to retain connections.
           this._morph(existing, outlet);
         } else {
-          if (!(outlet instanceof Outlet)) {
-            outlet = Outlet.make(outlet);
-          }
+          // Spawn new outlet
+          if (!(outlet instanceof Outlet)) { outlet = Outlet.make(outlet); }
           this._add(outlet);
         }
       }
+
       this;
     }
     return this.outlets;
-  };
+  }
 
-  Node.prototype.connect = function(node, empty, force) {
-    var dest, dests, hint, hints, i, j, k, len, len1, len2, list, outlets, ref, ref1, ref2, source, sources, type, typeHint;
-    outlets = {};
-    hints = {};
-    typeHint = function(outlet) {
-      return type + '/' + outlet.hint;
-    };
-    ref = node.inputs;
-    for (i = 0, len = ref.length; i < len; i++) {
-      dest = ref[i];
-      if (!force && dest.input) {
-        continue;
-      }
-      type = dest.type;
+  // Connect to the target node by matching up inputs and outputs.
+  connect(node, empty, force) {
+    let dest, dests, hint, source, type;
+    const outlets = {};
+    const hints = {};
+
+    const typeHint = outlet => type + '/' + outlet.hint;
+
+    // Hash the types/hints of available target outlets.
+    for (dest of Array.from(node.inputs)) {
+      // Only autoconnect if not already connected
+      var list;
+      if (!force && dest.input) { continue; }
+
+      // Match outlets by type/name hint, then type/position key
+      ({
+        type
+      } = dest);
       hint = typeHint(dest);
-      if (!hints[hint]) {
-        hints[hint] = dest;
-      }
-      outlets[type] = list = outlets[type] || [];
+
+      if (!hints[hint]) { hints[hint] = dest; }
+      outlets[type] = (list = outlets[type] || []);
       list.push(dest);
     }
-    sources = this.outputs;
-    sources = sources.filter(function(outlet) {
-      return !(empty && outlet.output.length);
-    });
-    ref1 = sources.slice();
-    for (j = 0, len1 = ref1.length; j < len1; j++) {
-      source = ref1[j];
-      type = source.type;
+
+    // Available source outlets
+    let sources = this.outputs;
+
+    // Ignore connected source if only matching empties.
+    sources = sources.filter(outlet => !(empty && outlet.output.length));
+
+    // Match hints first
+    for (source of Array.from(sources.slice())) {
+
+      // Match outlets by type and name
+      ({
+        type
+      } = source);
       hint = typeHint(source);
       dests = outlets[type];
+
+      // Connect if found
       if (dest = hints[hint]) {
         source.connect(dest);
+
+        // Remove from potential set
         delete hints[hint];
-        dests.splice(dests.indexOf(dest), 1);
+        dests  .splice(dests.indexOf(dest),     1);
         sources.splice(sources.indexOf(source), 1);
       }
     }
-    if (!sources.length) {
-      return this;
-    }
-    ref2 = sources.slice();
-    for (k = 0, len2 = ref2.length; k < len2; k++) {
-      source = ref2[k];
-      type = source.type;
+
+    // Match what's left
+    if (!sources.length) { return this; }
+    for (source of Array.from(sources.slice())) {
+
+      ({
+        type
+      } = source);
       dests = outlets[type];
+
+      // Match outlets by type and order
       if (dests && dests.length) {
+        // Link up and remove from potential set
         source.connect(dests.shift());
       }
     }
-    return this;
-  };
 
-  Node.prototype.disconnect = function(node) {
-    var i, j, len, len1, outlet, ref, ref1;
-    ref = this.inputs;
-    for (i = 0, len = ref.length; i < len; i++) {
-      outlet = ref[i];
-      outlet.disconnect();
-    }
-    ref1 = this.outputs;
-    for (j = 0, len1 = ref1.length; j < len1; j++) {
-      outlet = ref1[j];
-      outlet.disconnect();
-    }
     return this;
-  };
+  }
 
-  Node.prototype._key = function(outlet) {
+  // Disconnect entire node
+  disconnect(node) {
+    let outlet;
+    for (outlet of Array.from(this.inputs)) { outlet.disconnect(); }
+    for (outlet of Array.from(this.outputs)) { outlet.disconnect(); }
+
+    return this;
+  }
+
+  // Return hash key for outlet
+  _key(outlet) {
     return [outlet.name, outlet.inout].join('-');
-  };
+  }
 
-  Node.prototype._add = function(outlet) {
-    var key;
-    key = this._key(outlet);
-    if (outlet.node) {
-      throw new Error("Adding outlet to two nodes at once.");
-    }
-    if (this.outlets[key]) {
-      throw new Error("Adding two identical outlets to same node. (" + key + ")");
-    }
+  // Add outlet object to node
+  _add(outlet) {
+    const key = this._key(outlet);
+
+    // Sanity checks
+    if (outlet.node) { throw new Error("Adding outlet to two nodes at once."); }
+    if (this.outlets[key]) { throw new Error(`Adding two identical outlets to same node. (${key})`); }
+
+    // Link back outlet
     outlet.node = this;
-    if (outlet.inout === Graph.IN) {
-      this.inputs.push(outlet);
-    }
-    if (outlet.inout === Graph.OUT) {
-      this.outputs.push(outlet);
-    }
+
+    // Add to name hash and inout list
+    if (outlet.inout === Graph.IN) { this.inputs.push(outlet); }
+    if (outlet.inout === Graph.OUT) { this.outputs.push(outlet); }
     this.all.push(outlet);
     return this.outlets[key] = outlet;
-  };
+  }
 
-  Node.prototype._morph = function(existing, outlet) {
-    var key;
-    key = this._key(outlet);
+  // Morph outlet to other
+  _morph(existing, outlet) {
+    let key = this._key(outlet);
     delete this.outlets[key];
+
     existing.morph(outlet);
+
     key = this._key(outlet);
     return this.outlets[key] = outlet;
-  };
+  }
 
-  Node.prototype._remove = function(outlet) {
-    var inout, key;
-    key = this._key(outlet);
-    inout = outlet.inout;
-    if (outlet.node !== this) {
-      throw new Error("Removing outlet from wrong node.");
-    }
+  // Remove outlet object from node.
+  _remove(outlet) {
+    const key = this._key(outlet);
+    const {
+      inout
+    } = outlet;
+
+    // Sanity checks
+    if (outlet.node !== this) { throw new Error("Removing outlet from wrong node."); }
+
+    // Disconnect outlet.
     outlet.disconnect();
+
+    // Unlink outlet.
     outlet.node = null;
+
+    // Remove from name list and inout list.
     delete this.outlets[key];
-    if (outlet.inout === Graph.IN) {
-      this.inputs.splice(this.inputs.indexOf(outlet), 1);
-    }
-    if (outlet.inout === Graph.OUT) {
-      this.outputs.splice(this.outputs.indexOf(outlet), 1);
-    }
-    this.all.splice(this.all.indexOf(outlet), 1);
+    if (outlet.inout === Graph.IN) { this.inputs .splice(this.inputs .indexOf(outlet), 1); }
+    if (outlet.inout === Graph.OUT) { this.outputs.splice(this.outputs.indexOf(outlet), 1); }
+    this.all    .splice(this.all    .indexOf(outlet), 1);
     return this;
-  };
-
-  return Node;
-
-})();
+  }
+}
+Node.initClass();
 
 module.exports = Node;
 
-
-
 },{"./graph":1,"./outlet":4}],4:[function(require,module,exports){
-var Graph, Outlet;
-
-Graph = require('./graph');
-
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS206: Consider reworking classes to avoid initClass
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Graph = require('./graph');
 
 /*
   In/out outlet on node
- */
+*/
+class Outlet {
+  static initClass() {
+  
+    this.index = 0;
+  }
+  static make(outlet, extra) {
+    if (extra == null) { extra = {}; }
+    const meta = extra;
+    if (outlet.meta != null) { for (let key in outlet.meta) { const value = outlet.meta[key]; meta[key] = value; } }
+    return new Outlet(outlet.inout,
+               outlet.name,
+               outlet.hint,
+               outlet.type,
+               meta);
+  }
+  static id(name) {
+    return `_io_${++Outlet.index}_${name}`;
+  }
 
-Outlet = (function() {
-  Outlet.make = function(outlet, extra) {
-    var key, meta, ref, value;
-    if (extra == null) {
-      extra = {};
-    }
-    meta = extra;
-    if (outlet.meta != null) {
-      ref = outlet.meta;
-      for (key in ref) {
-        value = ref[key];
-        meta[key] = value;
-      }
-    }
-    return new Outlet(outlet.inout, outlet.name, outlet.hint, outlet.type, meta);
-  };
-
-  Outlet.index = 0;
-
-  Outlet.id = function(name) {
-    return "_io_" + (++Outlet.index) + "_" + name;
-  };
-
-  Outlet.hint = function(name) {
+  static hint(name) {
     name = name.replace(/^_io_[0-9]+_/, '');
     name = name.replace(/_i_o$/, '');
     return name = name.replace(/(In|Out|Inout|InOut)$/, '');
-  };
-
-  function Outlet(inout, name1, hint, type, meta1, id) {
-    this.inout = inout;
-    this.name = name1;
-    this.hint = hint;
-    this.type = type;
-    this.meta = meta1 != null ? meta1 : {};
-    this.id = id;
-    if (this.hint == null) {
-      this.hint = Outlet.hint(this.name);
-    }
-    this.node = null;
-    this.input = null;
-    this.output = [];
-    if (this.id == null) {
-      this.id = Outlet.id(this.hint);
-    }
   }
 
-  Outlet.prototype.morph = function(outlet) {
-    this.inout = outlet.inout;
-    this.name = outlet.name;
-    this.hint = outlet.hint;
-    this.type = outlet.type;
-    return this.meta = outlet.meta;
-  };
+  constructor(inout, name, hint, type, meta, id) {
+    this.inout = inout;
+    this.name = name;
+    this.hint = hint;
+    this.type = type;
+    if (meta == null) { meta = {}; }
+    this.meta = meta;
+    this.id = id;
+    if (this.hint == null) {  this.hint = Outlet.hint(this.name); }
 
-  Outlet.prototype.dupe = function(name) {
-    var outlet;
-    if (name == null) {
-      name = this.id;
-    }
-    outlet = Outlet.make(this);
+    this.node   = null;
+    this.input  = null;
+    this.output = [];
+    if (this.id == null) {    this.id = Outlet.id(this.hint); }
+  }
+
+  // Change into given outlet without touching connections
+  morph(outlet) {
+    this.inout = outlet.inout;
+    this.name  = outlet.name;
+    this.hint  = outlet.hint;
+    this.type  = outlet.type;
+    return this.meta  = outlet.meta;
+  }
+
+  // Copy with unique name and cloned metadata
+  dupe(name) {
+    if (name == null) { name = this.id; }
+    const outlet = Outlet.make(this);
     outlet.name = name;
     return outlet;
-  };
+  }
 
-  Outlet.prototype.connect = function(outlet) {
-    if (this.inout === Graph.IN && outlet.inout === Graph.OUT) {
+  // Connect to given outlet
+  connect(outlet) {
+
+    // Auto-reverse in/out to out/in
+    if ((this.inout === Graph.IN)  && (outlet.inout === Graph.OUT)) {
       return outlet.connect(this);
     }
-    if (this.inout !== Graph.OUT || outlet.inout !== Graph.IN) {
+
+    // Disallow bad combinations
+    if ((this.inout !== Graph.OUT) || (outlet.inout !== Graph.IN)) {
       throw new Error("Can only connect out to in.");
     }
-    if (outlet.input === this) {
-      return;
-    }
+
+    // Check for existing connection
+    if (outlet.input === this) { return; }
+
+    // Disconnect existing connections
     outlet.disconnect();
+
+    // Add new connection.
     outlet.input = this;
     return this.output.push(outlet);
-  };
+  }
 
-  Outlet.prototype.disconnect = function(outlet) {
-    var i, index, len, ref;
+  // Disconnect given outlet (or all)
+  disconnect(outlet) {
+    // Disconnect input from the other side.
     if (this.input) {
       this.input.disconnect(this);
     }
+
     if (this.output.length) {
+
       if (outlet) {
-        index = this.output.indexOf(outlet);
+        // Remove one outgoing connection.
+        const index = this.output.indexOf(outlet);
         if (index >= 0) {
           this.output.splice(index, 1);
           return outlet.input = null;
         }
+
       } else {
-        ref = this.output;
-        for (i = 0, len = ref.length; i < len; i++) {
-          outlet = ref[i];
-          outlet.input = null;
-        }
+        // Remove all outgoing connections.
+        for (outlet of Array.from(this.output)) { outlet.input = null; }
         return this.output = [];
       }
     }
-  };
-
-  return Outlet;
-
-})();
+  }
+}
+Outlet.initClass();
 
 module.exports = Outlet;
 
-
-
 },{"./graph":1}],5:[function(require,module,exports){
-var Block, Graph, Layout, OutletError, Program, debug;
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS103: Rewrite code to no longer use __guard__, or convert again using --optional-chaining
+ * DS104: Avoid inline assignments
+ * DS205: Consider reworking code to avoid use of IIFEs
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Graph   = require('../graph');
+const {
+  Program
+} = require('../linker');
+const {
+  Layout
+} = require('../linker');
 
-Graph = require('../graph');
+const debug = false;
 
-Program = require('../linker').Program;
+class Block {
+  static previous(outlet) { return (outlet.input != null ? outlet.input.node.owner : undefined); }
 
-Layout = require('../linker').Layout;
-
-debug = false;
-
-Block = (function() {
-  Block.previous = function(outlet) {
-    var ref;
-    return (ref = outlet.input) != null ? ref.node.owner : void 0;
-  };
-
-  function Block() {
-    var ref;
-    if (this.namespace == null) {
-      this.namespace = Program.entry();
-    }
-    this.node = new Graph.Node(this, (ref = typeof this.makeOutlets === "function" ? this.makeOutlets() : void 0) != null ? ref : {});
+  constructor(delay) {
+    // Subclasses can pass `delay` to allow them to initialize before they call
+    // `@construct`.
+    if (delay == null) { delay = false; }
+    if (!delay) { this.construct(); }
   }
 
-  Block.prototype.refresh = function() {
-    var ref;
-    return this.node.setOutlets((ref = typeof this.makeOutlets === "function" ? this.makeOutlets() : void 0) != null ? ref : {});
-  };
+  construct() {
+    let left;
+    if (this.namespace == null) { this.namespace = Program.entry(); }
+    return this.node       = new Graph.Node(this, (left = (typeof this.makeOutlets === 'function' ? this.makeOutlets() : undefined)) != null ? left : {});
+  }
 
-  Block.prototype.clone = function() {
+  refresh() {
+    let left;
+    return this.node.setOutlets((left = (typeof this.makeOutlets === 'function' ? this.makeOutlets() : undefined)) != null ? left : {});
+  }
+
+  clone() {
     return new Block;
-  };
+  }
 
-  Block.prototype.compile = function(language, namespace) {
-    var program;
-    program = new Program(language, namespace != null ? namespace : Program.entry(), this.node.graph);
+  // Compile a new program starting from this block
+  compile(language, namespace) {
+    const program = new Program(language, namespace != null ? namespace : Program.entry(), this.node.graph);
     this.call(program, 0);
     return program.assemble();
-  };
+  }
 
-  Block.prototype.link = function(language, namespace) {
-    var layout, module;
-    module = this.compile(language, namespace);
-    layout = new Layout(language, this.node.graph);
+  // Link up programs into a layout, starting from this block
+  link(language, namespace) {
+    const module = this.compile(language, namespace);
+
+    const layout = new Layout(language, this.node.graph);
     this._include(module, layout, 0);
-    this["export"](layout, 0);
+    this.export(layout, 0);
     return layout.link(module);
-  };
+  }
 
-  Block.prototype.call = function(program, depth) {};
+  // Subclassed methods
+  call(program, depth) {}
+  callback(layout, depth, name, external, outlet) {}
+  export(layout, depth) {}
 
-  Block.prototype.callback = function(layout, depth, name, external, outlet) {};
+  // Info string for debugging
+  _info(suffix) {
+    let string = (this.node.owner.snippet != null ? this.node.owner.snippet._name : undefined) != null ? (this.node.owner.snippet != null ? this.node.owner.snippet._name : undefined) : this.node.owner.namespace;
+    if (suffix != null) { return string += '.' + suffix; }
+  }
 
-  Block.prototype["export"] = function(layout, depth) {};
-
-  Block.prototype._info = function(suffix) {
-    var ref, ref1, string;
-    string = (ref = (ref1 = this.node.owner.snippet) != null ? ref1._name : void 0) != null ? ref : this.node.owner.namespace;
-    if (suffix != null) {
-      return string += '.' + suffix;
-    }
-  };
-
-  Block.prototype._outlet = function(def, props) {
-    var outlet;
-    outlet = Graph.Outlet.make(def, props);
+  // Create an outlet for a signature definition
+  _outlet(def, props) {
+    const outlet = Graph.Outlet.make(def, props);
     outlet.meta.def = def;
     return outlet;
-  };
+  }
 
-  Block.prototype._call = function(module, program, depth) {
+  // Make a call to this module in the given program
+  _call(module, program, depth) {
     return program.call(this.node, module, depth);
-  };
+  }
 
-  Block.prototype._require = function(module, program) {
+  // Require this module's dependencies in the given program
+  _require(module, program) {
     return program.require(this.node, module);
-  };
+  }
 
-  Block.prototype._inputs = function(module, program, depth) {
-    var arg, i, len, outlet, ref, ref1, results;
-    ref = module.main.signature;
-    results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      arg = ref[i];
-      outlet = this.node.get(arg.name);
-      results.push((ref1 = Block.previous(outlet)) != null ? ref1.call(program, depth + 1) : void 0);
-    }
-    return results;
-  };
+  // Make a call to all connected inputs
+  _inputs(module, program, depth) {
+    return (() => {
+      const result = [];
+      for (let arg of Array.from(module.main.signature)) {
+        const outlet = this.node.get(arg.name);
+        result.push(__guard__(Block.previous(outlet), x => x.call(program, depth + 1)));
+      }
+      return result;
+    })();
+  }
 
-  Block.prototype._callback = function(module, layout, depth, name, external, outlet) {
+  // Insert callback to this module in the given layout
+  _callback(module, layout, depth, name, external, outlet) {
     return layout.callback(this.node, module, depth, name, external, outlet);
-  };
+  }
 
-  Block.prototype._include = function(module, layout, depth) {
+  // Include this module in the given layout
+  _include(module, layout, depth) {
     return layout.include(this.node, module, depth);
-  };
+  }
 
-  Block.prototype._link = function(module, layout, depth) {
-    var block, ext, i, key, len, orig, outlet, parent, ref, ref1, ref2, results;
+  // Link this module's connected callbacks
+  _link(module, layout, depth) {
     debug && console.log('block::_link', this.toString(), module.namespace);
-    ref = module.symbols;
-    results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      key = ref[i];
-      ext = module.externals[key];
-      outlet = this.node.get(ext.name);
-      if (!outlet) {
-        throw new OutletError("External not found on " + (this._info(ext.name)));
-      }
-      if (outlet.meta.child != null) {
-        continue;
-      }
-      ref1 = [outlet, outlet, null], orig = ref1[0], parent = ref1[1], block = ref1[2];
-      while (!block && parent) {
-        ref2 = [outlet.meta.parent, parent], parent = ref2[0], outlet = ref2[1];
-      }
-      block = Block.previous(outlet);
-      if (!block) {
-        throw new OutletError("Missing connection on " + (this._info(ext.name)));
-      }
-      debug && console.log('callback -> ', this.toString(), ext.name, outlet);
-      block.callback(layout, depth + 1, key, ext, outlet.input);
-      results.push(block != null ? block["export"](layout, depth + 1) : void 0);
-    }
-    return results;
-  };
+    return (() => {
+      const result = [];
+      for (let key of Array.from(module.symbols)) {
+        const ext = module.externals[key];
+        let outlet = this.node.get(ext.name);
+        if (!outlet) { throw new OutletError(`External not found on ${this._info(ext.name)}`); }
 
-  Block.prototype._trace = function(module, layout, depth) {
-    var arg, i, len, outlet, ref, ref1, results;
+        if (outlet.meta.child != null) { continue; }
+
+        let [orig, parent, block] = Array.from([outlet, outlet, null]);
+        while (!block && parent) {
+          [parent, outlet] = Array.from([outlet.meta.parent, parent]);
+        }
+
+        block  = Block.previous(outlet);
+        if (!block) { throw new OutletError(`Missing connection on ${this._info(ext.name)}`); }
+
+        debug && console.log('callback -> ', this.toString(), ext.name, outlet);
+        block.callback(layout, depth + 1, key, ext, outlet.input);
+        result.push((block != null ? block.export(layout, depth + 1) : undefined));
+      }
+      return result;
+    })();
+  }
+
+  // Trace backwards to discover callbacks further up
+  _trace(module, layout, depth) {
     debug && console.log('block::_trace', this.toString(), module.namespace);
-    ref = module.main.signature;
-    results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      arg = ref[i];
-      outlet = this.node.get(arg.name);
-      results.push((ref1 = Block.previous(outlet)) != null ? ref1["export"](layout, depth + 1) : void 0);
-    }
-    return results;
-  };
+    return (() => {
+      const result = [];
+      for (let arg of Array.from(module.main.signature)) {
+        const outlet = this.node.get(arg.name);
+        result.push(__guard__(Block.previous(outlet), x => x.export(layout, depth + 1)));
+      }
+      return result;
+    })();
+  }
+}
 
-  return Block;
-
-})();
-
-OutletError = function(message) {
-  var e;
-  e = new Error(message);
+var OutletError = function(message) {
+  const e = new Error(message);
   e.name = 'OutletError';
   return e;
 };
@@ -678,429 +625,386 @@ OutletError.prototype = new Error;
 
 module.exports = Block;
 
-
-
+function __guard__(value, transform) {
+  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;
+}
 },{"../graph":25,"../linker":30}],6:[function(require,module,exports){
-var Block, Call,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Block   = require('./block');
 
-Block = require('./block');
+class Call extends Block {
+  constructor(snippet) {
+    super(true);
 
-Call = (function(superClass) {
-  extend(Call, superClass);
-
-  function Call(snippet) {
     this.snippet = snippet;
-    this.namespace = this.snippet.namespace;
-    Call.__super__.constructor.apply(this, arguments);
+    this.namespace = snippet.namespace;
+    this.construct();
   }
 
-  Call.prototype.clone = function() {
+  clone() {
     return new Call(this.snippet);
-  };
+  }
 
-  Call.prototype.makeOutlets = function() {
-    var callbacks, externals, key, main, outlet, params, symbols;
-    main = this.snippet.main.signature;
-    externals = this.snippet.externals;
-    symbols = this.snippet.symbols;
-    params = (function() {
-      var i, len, results;
-      results = [];
-      for (i = 0, len = main.length; i < len; i++) {
-        outlet = main[i];
-        results.push(this._outlet(outlet, {
-          callback: false
-        }));
-      }
-      return results;
-    }).call(this);
-    callbacks = (function() {
-      var i, len, results;
-      results = [];
-      for (i = 0, len = symbols.length; i < len; i++) {
-        key = symbols[i];
-        results.push(this._outlet(externals[key], {
-          callback: true
-        }));
-      }
-      return results;
-    }).call(this);
+  makeOutlets() {
+    const main      = this.snippet.main.signature;
+    const {
+      externals
+    } = this.snippet;
+    const {
+      symbols
+    } = this.snippet;
+
+    const params    = (Array.from(main).map((outlet) => this._outlet(outlet,         {callback: false})));
+    const callbacks = (Array.from(symbols).map((key) => this._outlet(externals[key], {callback: true})));
+
     return params.concat(callbacks);
-  };
+  }
 
-  Call.prototype.call = function(program, depth) {
+  call(program, depth) {
     this._call(this.snippet, program, depth);
     return this._inputs(this.snippet, program, depth);
-  };
+  }
 
-  Call.prototype["export"] = function(layout, depth) {
-    if (!layout.visit(this.namespace, depth)) {
-      return;
-    }
+  export(layout, depth) {
+    if (!layout.visit(this.namespace, depth)) { return; }
+
     this._link(this.snippet, layout, depth);
     return this._trace(this.snippet, layout, depth);
-  };
-
-  return Call;
-
-})(Block);
+  }
+}
 
 module.exports = Call;
 
-
-
 },{"./block":5}],7:[function(require,module,exports){
-var Block, Callback, Graph,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
-
-Graph = require('../graph');
-
-Block = require('./block');
-
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Graph   = require('../graph');
+const Block   = require('./block');
 
 /*
   Re-use a subgraph as a callback
- */
-
-Callback = (function(superClass) {
-  extend(Callback, superClass);
-
-  function Callback(graph) {
+*/
+class Callback extends Block {
+  constructor(graph) {
+    super(true);
     this.graph = graph;
-    Callback.__super__.constructor.apply(this, arguments);
+    this.construct();
   }
 
-  Callback.prototype.refresh = function() {
-    Callback.__super__.refresh.apply(this, arguments);
+  refresh() {
+    super.refresh();
     return delete this.subroutine;
-  };
+  }
 
-  Callback.prototype.clone = function() {
+  clone() {
     return new Callback(this.graph);
-  };
+  }
 
-  Callback.prototype.makeOutlets = function() {
-    var handle, i, ins, j, len, len1, outlet, outlets, outs, ref, ref1, type;
+  makeOutlets() {
+    let outlet;
     this.make();
-    outlets = [];
-    ins = [];
-    outs = [];
-    handle = (function(_this) {
-      return function(outlet, list) {
-        var base, dupe;
-        if (outlet.meta.callback) {
-          if (outlet.inout === Graph.IN) {
-            dupe = outlet.dupe();
-            if ((base = dupe.meta).child == null) {
-              base.child = outlet;
-            }
-            outlet.meta.parent = dupe;
-            return outlets.push(dupe);
-          }
-        } else {
-          return list.push(outlet.type);
+
+    const outlets = [];
+    let ins     = [];
+    let outs    = [];
+
+    // Pass-through existing callbacks
+    // Collect open inputs/outputs
+    const handle = (outlet, list) => {
+      if (outlet.meta.callback) {
+        if (outlet.inout === Graph.IN) {
+          // Dupe outlet and create two-way link between cloned outlets
+          const dupe = outlet.dupe();
+          if (dupe  .meta.child == null) { dupe.meta.child = outlet; }
+          outlet.meta.parent = dupe;
+
+          return outlets.push(dupe);
         }
-      };
-    })(this);
-    ref = this.graph.inputs();
-    for (i = 0, len = ref.length; i < len; i++) {
-      outlet = ref[i];
-      handle(outlet, ins);
-    }
-    ref1 = this.graph.outputs();
-    for (j = 0, len1 = ref1.length; j < len1; j++) {
-      outlet = ref1[j];
-      handle(outlet, outs);
-    }
-    ins = ins.join(',');
+      } else {
+        return list.push(outlet.type);
+      }
+    };
+
+    for (outlet of Array.from(this.graph.inputs())) { handle(outlet, ins); }
+    for (outlet of Array.from(this.graph.outputs())) { handle(outlet, outs); }
+
+    // Merge inputs/outputs into new callback signature
+    ins  = ins.join(',');
     outs = outs.join(',');
-    type = "(" + ins + ")(" + outs + ")";
+    const type = `(${ins})(${outs})`;
+
     outlets.push({
-      name: 'callback',
-      type: type,
+      name:  'callback',
+      type,
       inout: Graph.OUT,
       meta: {
         callback: true,
         def: this.subroutine.main
       }
     });
+
     return outlets;
-  };
+  }
 
-  Callback.prototype.make = function() {
+  make() {
     return this.subroutine = this.graph.compile(this.namespace);
-  };
+  }
 
-  Callback.prototype["export"] = function(layout, depth) {
-    if (!layout.visit(this.namespace, depth)) {
-      return;
-    }
+  export(layout, depth) {
+    if (!layout.visit(this.namespace, depth)) { return; }
+
     this._link(this.subroutine, layout, depth);
-    return this.graph["export"](layout, depth);
-  };
+    return this.graph.export(layout, depth);
+  }
 
-  Callback.prototype.call = function(program, depth) {
+  call(program, depth) {
     return this._require(this.subroutine, program, depth);
-  };
+  }
 
-  Callback.prototype.callback = function(layout, depth, name, external, outlet) {
+  callback(layout, depth, name, external, outlet) {
     this._include(this.subroutine, layout, depth);
     return this._callback(this.subroutine, layout, depth, name, external, outlet);
-  };
-
-  return Callback;
-
-})(Block);
+  }
+}
 
 module.exports = Callback;
 
-
-
 },{"../graph":25,"./block":5}],8:[function(require,module,exports){
-exports.Block = require('./block');
-
-exports.Call = require('./call');
-
+exports.Block    = require('./block');
+exports.Call     = require('./call');
 exports.Callback = require('./callback');
-
-exports.Isolate = require('./isolate');
-
-exports.Join = require('./join');
-
-
+exports.Isolate  = require('./isolate');
+exports.Join     = require('./join');
 
 },{"./block":5,"./call":6,"./callback":7,"./isolate":9,"./join":10}],9:[function(require,module,exports){
-var Block, Graph, Isolate,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
-
-Graph = require('../graph');
-
-Block = require('./block');
-
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Graph   = require('../graph');
+const Block   = require('./block');
 
 /*
   Isolate a subgraph as a single node
- */
-
-Isolate = (function(superClass) {
-  extend(Isolate, superClass);
-
-  function Isolate(graph) {
+*/
+class Isolate extends Block {
+  constructor(graph) {
+    super(true);
     this.graph = graph;
-    Isolate.__super__.constructor.apply(this, arguments);
+    this.construct();
   }
 
-  Isolate.prototype.refresh = function() {
-    Isolate.__super__.refresh.apply(this, arguments);
+  refresh() {
+    super.refresh();
     return delete this.subroutine;
-  };
+  }
 
-  Isolate.prototype.clone = function() {
+  clone() {
     return new Isolate(this.graph);
-  };
+  }
 
-  Isolate.prototype.makeOutlets = function() {
-    var base, done, dupe, i, j, len, len1, name, outlet, outlets, ref, ref1, ref2, seen, set;
+  makeOutlets() {
     this.make();
-    outlets = [];
-    seen = {};
-    done = {};
-    ref = ['inputs', 'outputs'];
-    for (i = 0, len = ref.length; i < len; i++) {
-      set = ref[i];
-      ref1 = this.graph[set]();
-      for (j = 0, len1 = ref1.length; j < len1; j++) {
-        outlet = ref1[j];
-        name = void 0;
-        if (((ref2 = outlet.hint) === 'return' || ref2 === 'callback') && outlet.inout === Graph.OUT) {
-          name = outlet.hint;
-        }
-        if (seen[name] != null) {
-          name = void 0;
-        }
-        dupe = outlet.dupe(name);
-        if ((base = dupe.meta).child == null) {
-          base.child = outlet;
-        }
+
+    const outlets = [];
+
+    const seen = {};
+    const done = {};
+    for (let set of ['inputs', 'outputs']) {
+      for (let outlet of Array.from(this.graph[set]())) {
+        // Preserve name of 'return' and 'callback' outlets
+        let name = undefined;
+        if (['return', 'callback'].includes(outlet.hint) &&
+                              (outlet.inout === Graph.OUT)) { name = outlet.hint; }
+
+        // Unless it already exists
+        if (seen[name] != null) { name = undefined; }
+
+        // Dupe outlet and remember link to original
+        const dupe = outlet.dupe(name);
+        if (dupe  .meta.child == null) { dupe.meta.child = outlet; }
         outlet.meta.parent = dupe;
-        if (name != null) {
-          seen[name] = true;
-        }
+        if (name != null) { seen[name] = true; }
         done[outlet.name] = dupe;
+
         outlets.push(dupe);
       }
     }
+
     return outlets;
-  };
+  }
 
-  Isolate.prototype.make = function() {
+  make() {
     return this.subroutine = this.graph.compile(this.namespace);
-  };
+  }
 
-  Isolate.prototype.call = function(program, depth) {
+  call(program, depth) {
     this._call(this.subroutine, program, depth);
     return this._inputs(this.subroutine, program, depth);
-  };
+  }
 
-  Isolate.prototype["export"] = function(layout, depth) {
-    if (!layout.visit(this.namespace, depth)) {
-      return;
-    }
+  export(layout, depth) {
+    if (!layout.visit(this.namespace, depth)) { return; }
+
+    // Link up with normal inputs
     this._link(this.subroutine, layout, depth);
     this._trace(this.subroutine, layout, depth);
-    return this.graph["export"](layout, depth);
-  };
 
-  Isolate.prototype.callback = function(layout, depth, name, external, outlet) {
+    // Export callbacks needed to call the subroutine
+    return this.graph.export(layout, depth);
+  }
+
+  callback(layout, depth, name, external, outlet) {
     outlet = outlet.meta.child;
     return outlet.node.owner.callback(layout, depth, name, external, outlet);
-  };
-
-  return Isolate;
-
-})(Block);
+  }
+}
 
 module.exports = Isolate;
 
-
-
 },{"../graph":25,"./block":5}],10:[function(require,module,exports){
-var Block, Join,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
-
-Block = require('./block');
-
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS205: Consider reworking code to avoid use of IIFEs
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Block   = require('./block');
 
 /*
   Join multiple disconnected nodes
- */
-
-Join = (function(superClass) {
-  extend(Join, superClass);
-
-  function Join(nodes) {
+*/
+class Join extends Block {
+  constructor(nodes) {
+    super(true);
     this.nodes = nodes;
-    Join.__super__.constructor.apply(this, arguments);
+    this.construct();
   }
 
-  Join.prototype.clone = function() {
+  clone() {
     return new Join(this.nodes);
-  };
+  }
 
-  Join.prototype.makeOutlets = function() {
-    return [];
-  };
+  makeOutlets() { return []; }
 
-  Join.prototype.call = function(program, depth) {
-    var block, i, len, node, ref, results;
-    ref = this.nodes;
-    results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      node = ref[i];
-      block = node.owner;
-      results.push(block.call(program, depth));
-    }
-    return results;
-  };
+  call(program, depth) {
+    return (() => {
+      const result = [];
+      for (let node of Array.from(this.nodes)) {
+        const block = node.owner;
+        result.push(block.call(program, depth));
+      }
+      return result;
+    })();
+  }
 
-  Join.prototype["export"] = function(layout, depth) {
-    var block, i, len, node, ref, results;
-    ref = this.nodes;
-    results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      node = ref[i];
-      block = node.owner;
-      results.push(block["export"](layout, depth));
-    }
-    return results;
-  };
-
-  return Join;
-
-})(Block);
+  export(layout, depth) {
+    return (() => {
+      const result = [];
+      for (let node of Array.from(this.nodes)) {
+        const block = node.owner;
+        result.push(block.export(layout, depth));
+      }
+      return result;
+    })();
+  }
+}
 
 module.exports = Join;
 
-
-
 },{"./block":5}],11:[function(require,module,exports){
-
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
 /*
   Cache decorator  
   Fetches snippets once, clones for reuse
   Inline code is hashed to avoid bloat
- */
-var cache, hash, queue;
+*/
+const queue = require('./queue');
+const hash  = require('./hash');
 
-queue = require('./queue');
+const cache = function(fetch) {
+  const cached = {};
+  const push  = queue(100);
 
-hash = require('./hash');
-
-cache = function(fetch) {
-  var cached, push;
-  cached = {};
-  push = queue(100);
+  // Snippet factory
   return function(name) {
-    var expire, key;
-    key = name.length > 32 ? '##' + hash(name).toString(16) : name;
-    expire = push(key);
-    if (expire != null) {
-      delete cached[expire];
-    }
-    if (cached[key] == null) {
-      cached[key] = fetch(name);
-    }
+    const key = name.length > 32 ? '##' + hash(name).toString(16) : name;
+
+    // Push new key onto queue, see if an old key expired
+    const expire = push(key);
+    if (expire != null) { delete cached[expire]; }
+
+    // Clone cached snippet
+    if ((cached[key] == null)) { cached[key] = fetch(name); }
     return cached[key].clone();
   };
 };
 
 module.exports = cache;
-
-
-
 },{"./hash":13,"./queue":17}],12:[function(require,module,exports){
-var Block, Factory, Graph, State, Visualize;
-
-Graph = require('../graph').Graph;
-
-Block = require('../block');
-
-Visualize = require('../visualize');
-
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS104: Avoid inline assignments
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const {
+  Graph
+} = require('../graph');
+const Block     = require('../block');
+const Visualize = require('../visualize');
 
 /*
   Chainable factory
   
   Exposes methods to build a graph incrementally
- */
-
-Factory = (function() {
-  function Factory(language, fetch, config) {
+*/
+class Factory {
+  constructor(language, fetch, config) {
     this.language = language;
     this.fetch = fetch;
     this.config = config;
     this.graph();
   }
 
-  Factory.prototype.pipe = function(name, uniforms, namespace, defines) {
+  // Combined call/concat shortcut
+  pipe(name, uniforms, namespace, defines) {
     if (name instanceof Factory) {
       this._concat(name);
     } else if (name != null) {
       this._call(name, uniforms, namespace, defines);
     }
     return this;
-  };
+  }
 
-  Factory.prototype.call = function(name, uniforms, namespace, defines) {
+  // Old name
+  call(name, uniforms, namespace, defines) {
     return this.pipe(name, uniforms, namespace, defines);
-  };
+  }
 
-  Factory.prototype.require = function(name, uniforms, namespace, defines) {
+  // Combined callback/import shortcut
+  require(name, uniforms, namespace, defines) {
     if (name instanceof Factory) {
       this._import(name);
     } else if (name != null) {
@@ -1109,464 +1013,456 @@ Factory = (function() {
       this.end();
     }
     return this;
-  };
+  }
 
-  Factory.prototype["import"] = function(name, uniforms, namespace, defines) {
+  // Old name
+  import(name, uniforms, namespace, defines) {
     return this.require(name, uniforms, namespace, defines);
-  };
+  }
 
-  Factory.prototype.split = function() {
+  // Create parallel branches that connect as one block to the end
+  // (one outgoing connection per outlet)
+  split() {
     this._group('_combine', true);
     return this;
-  };
+  }
 
-  Factory.prototype.fan = function() {
+  // Create parallel branches that fan out from the end
+  // (multiple outgoing connections per outlet)
+  fan() {
     this._group('_combine', false);
     return this;
-  };
+  }
 
-  Factory.prototype.isolate = function() {
+  // Create isolated subgraph
+  isolate() {
     this._group('_isolate');
     return this;
-  };
+  }
 
-  Factory.prototype.callback = function() {
+  // Create callback subgraph
+  callback() {
     this._group('_callback');
     return this;
-  };
+  }
 
-  Factory.prototype.next = function() {
+  // Next branch in group
+  next() {
     this._next();
     return this;
-  };
+  }
 
-  Factory.prototype.pass = function() {
-    var pass;
-    pass = this._stack[2].end;
+  // Connect branches to previous tail and add pass-through from end
+  pass() {
+    const pass = this._stack[2].end;
     this.end();
     this._state.end = this._state.end.concat(pass);
     return this;
-  };
+  }
 
-  Factory.prototype.end = function() {
-    var main, op, ref, sub;
-    ref = this._exit(), sub = ref[0], main = ref[1];
-    op = sub.op;
+  // Leave nested branches and join up with main graph,
+  // applying stored op along the way
+  end() {
+    const [sub, main] = Array.from(this._exit());
+    const {
+      op
+    } = sub;
     if (this[op]) {
       this[op](sub, main);
     }
     return this;
-  };
+  }
 
-  Factory.prototype.join = function() {
+  // Old name
+  join() {
     return this.end();
-  };
+  }
 
-  Factory.prototype.graph = function() {
-    var graph, ref;
-    while (((ref = this._stack) != null ? ref.length : void 0) > 1) {
-      this.end();
-    }
+  // Return finalized graph / reset factory
+  graph() {
+    // Pop remaining stack
+    while ((this._stack != null ? this._stack.length : undefined) > 1) { this.end(); }
+
+    // Remember terminating node(s) of graph
     if (this._graph) {
       this._tail(this._state, this._graph);
     }
-    graph = this._graph;
+
+    const graph = this._graph;
+
     this._graph = new Graph;
     this._state = new State;
     this._stack = [this._state];
+
     return graph;
-  };
+  }
 
-  Factory.prototype.compile = function(namespace) {
-    if (namespace == null) {
-      namespace = 'main';
-    }
+  // Compile shortcut (graph is thrown away)
+  compile(namespace) {
+    if (namespace == null) { namespace = 'main'; }
     return this.graph().compile(namespace);
-  };
+  }
 
-  Factory.prototype.link = function(namespace) {
-    if (namespace == null) {
-      namespace = 'main';
-    }
+  // Link shortcut (graph is thrown away)
+  link(namespace) {
+    if (namespace == null) { namespace = 'main'; }
     return this.graph().link(namespace);
-  };
+  }
 
-  Factory.prototype.serialize = function() {
+  // Serialize for debug
+  serialize() {
     return Visualize.serialize(this._graph);
-  };
+  }
 
-  Factory.prototype.empty = function() {
-    return this._graph.nodes.length === 0;
-  };
+  // Return true if empty
+  empty() { return this._graph.nodes.length === 0; }
 
-  Factory.prototype._concat = function(factory) {
-    var block, error, error1;
-    if (factory._state.nodes.length === 0) {
-      return this;
-    }
+  // Concatenate existing factory onto tail
+  // Retains original factory
+  _concat(factory) {
+    // Ignore empty concat
+    let block;
+    if (factory._state.nodes.length === 0) { return this; }
+
     this._tail(factory._state, factory._graph);
+
     try {
       block = new Block.Isolate(factory._graph);
-    } catch (error1) {
-      error = error1;
-      if (this.config.autoInspect) {
-        Visualize.inspect(error, this._graph, factory);
-      }
+    } catch (error) {
+      if (this.config.autoInspect) { Visualize.inspect(error, this._graph, factory); }
       throw error;
     }
+
     this._auto(block);
     return this;
-  };
+  }
 
-  Factory.prototype._import = function(factory) {
-    var block, error, error1;
-    if (factory._state.nodes.length === 0) {
-      throw "Can't import empty callback";
-    }
+  // Add existing factory as callback
+  // Retains original factory
+  _import(factory) {
+    // Check for empty require
+    let block;
+    if (factory._state.nodes.length === 0) { throw "Can't import empty callback"; }
+
     this._tail(factory._state, factory._graph);
+
     try {
       block = new Block.Callback(factory._graph);
-    } catch (error1) {
-      error = error1;
-      if (this.config.autoInspect) {
-        Visualize.inspect(error, this._graph, factory);
-      }
+    } catch (error) {
+      if (this.config.autoInspect) { Visualize.inspect(error, this._graph, factory); }
       throw error;
     }
+
     this._auto(block);
     return this;
-  };
+  }
 
-  Factory.prototype._combine = function(sub, main) {
-    var from, j, k, len, len1, ref, ref1, to;
-    ref = sub.start;
-    for (j = 0, len = ref.length; j < len; j++) {
-      to = ref[j];
-      ref1 = main.end;
-      for (k = 0, len1 = ref1.length; k < len1; k++) {
-        from = ref1[k];
-        from.connect(to, sub.multi);
-      }
+  // Connect parallel branches to tail
+  _combine(sub, main) {
+    for (let to of Array.from(sub.start)) {
+      for (let from of Array.from(main.end)) { from.connect(to, sub.multi); }
     }
-    main.end = sub.end;
-    return main.nodes = main.nodes.concat(sub.nodes);
-  };
 
-  Factory.prototype._isolate = function(sub, main) {
-    var block, error, error1, subgraph;
+    main.end   = sub.end;
+    return main.nodes = main.nodes.concat(sub.nodes);
+  }
+
+  // Make subgraph and connect to tail 
+  _isolate(sub, main) {
     if (sub.nodes.length) {
-      subgraph = this._subgraph(sub);
+      let block;
+      const subgraph = this._subgraph(sub);
       this._tail(sub, subgraph);
+
       try {
         block = new Block.Isolate(subgraph);
-      } catch (error1) {
-        error = error1;
-        if (this.config.autoInspect) {
-          Visualize.inspect(error, this._graph, subgraph);
-        }
+      } catch (error) {
+        if (this.config.autoInspect) { Visualize.inspect(error, this._graph, subgraph); }
         throw error;
       }
+
       return this._auto(block);
     }
-  };
+  }
 
-  Factory.prototype._callback = function(sub, main) {
-    var block, error, error1, subgraph;
+  // Convert to callback and connect to tail
+  _callback(sub, main) {
     if (sub.nodes.length) {
-      subgraph = this._subgraph(sub);
+      let block;
+      const subgraph = this._subgraph(sub);
       this._tail(sub, subgraph);
+
       try {
         block = new Block.Callback(subgraph);
-      } catch (error1) {
-        error = error1;
-        if (this.config.autoInspect) {
-          Visualize.inspect(error, this._graph, subgraph);
-        }
+      } catch (error) {
+        if (this.config.autoInspect) { Visualize.inspect(error, this._graph, subgraph); }
         throw error;
       }
+
       return this._auto(block);
     }
-  };
+  }
 
-  Factory.prototype._call = function(name, uniforms, namespace, defines) {
-    var block, snippet;
-    snippet = this.fetch(name);
+  // Create next call block
+  _call(name, uniforms, namespace, defines) {
+    const snippet = this.fetch(name);
     snippet.bind(this.config, uniforms, namespace, defines);
-    block = new Block.Call(snippet);
+    const block = new Block.Call(snippet);
     return this._auto(block);
-  };
+  }
 
-  Factory.prototype._subgraph = function(sub) {
-    var subgraph;
-    subgraph = new Graph(null, this._graph);
+  // Move current state into subgraph
+  _subgraph(sub) {
+    const subgraph = new Graph(null, this._graph);
     subgraph.adopt(sub.nodes);
     return subgraph;
-  };
+  }
 
-  Factory.prototype._tail = function(state, graph) {
-    var tail;
-    tail = state.end.concat(state.tail);
-    tail = tail.filter(function(node, i) {
-      return tail.indexOf(node) === i;
-    });
+  // Finalize graph tail
+  _tail(state, graph) {
+
+    // Merge (unique) terminating ends into single tail node if needed
+    let tail = state.end.concat(state.tail);
+    tail = tail.filter((node, i) => tail.indexOf(node) === i);
+
     if (tail.length > 1) {
       tail = new Block.Join(tail);
       tail = [tail.node];
       this._graph.add(tail);
     }
+
+    // Save single endpoint
     graph.tail = tail[0];
-    state.end = tail;
+    state.end  = tail;
     state.tail = [];
+
     if (!graph.tail) {
       throw new Error("Cannot finalize empty graph");
     }
-    graph.compile = (function(_this) {
-      return function(namespace) {
-        var error, error1;
-        if (namespace == null) {
-          namespace = 'main';
-        }
-        try {
-          return graph.tail.owner.compile(_this.language, namespace);
-        } catch (error1) {
-          error = error1;
-          if (_this.config.autoInspect) {
-            graph.inspect(error);
-          }
-          throw error;
-        }
-      };
-    })(this);
-    graph.link = (function(_this) {
-      return function(namespace) {
-        var error, error1;
-        if (namespace == null) {
-          namespace = 'main';
-        }
-        try {
-          return graph.tail.owner.link(_this.language, namespace);
-        } catch (error1) {
-          error = error1;
-          if (_this.config.autoInspect) {
-            graph.inspect(error);
-          }
-          throw error;
-        }
-      };
-    })(this);
-    graph["export"] = (function(_this) {
-      return function(layout, depth) {
-        return graph.tail.owner["export"](layout, depth);
-      };
-    })(this);
-    return graph.inspect = function(message) {
-      if (message == null) {
-        message = null;
+
+    // Add compile/link/export/inspect shortcut methods
+    graph.compile = namespace => {
+      if (namespace == null) { namespace = 'main'; }
+      try {
+        return graph.tail.owner.compile(this.language, namespace);
+      } catch (error) {
+        if (this.config.autoInspect) { graph.inspect(error); }
+        throw error;
       }
-      return Visualize.inspect(message, graph);
     };
-  };
 
-  Factory.prototype._group = function(op, multi) {
-    this._push(op, multi);
-    this._push();
+    graph.link    = namespace => {
+      if (namespace == null) { namespace = 'main'; }
+      try {
+        return graph.tail.owner.link(this.language, namespace);
+      } catch (error) {
+        if (this.config.autoInspect) { graph.inspect(error); }
+        throw error;
+      }
+    };
+
+    graph.export  = (layout, depth) => {
+      return graph.tail.owner.export(layout, depth);
+    };
+
+    return graph.inspect = (message = null) => Visualize.inspect(message, graph);
+  }
+
+  // Create group for branches or callbacks
+  _group(op, multi) {
+    this._push(op, multi); // Accumulator
+    this._push();         // Current
     return this;
-  };
+  }
 
-  Factory.prototype._next = function() {
-    var sub;
-    sub = this._pop();
+  // Merge branch into accumulator and reset state
+  _next() {
+    const sub = this._pop();
+
     this._state.start = this._state.start.concat(sub.start);
-    this._state.end = this._state.end.concat(sub.end);
+    this._state.end   = this._state.end  .concat(sub.end);
     this._state.nodes = this._state.nodes.concat(sub.nodes);
-    this._state.tail = this._state.tail.concat(sub.tail);
-    return this._push();
-  };
+    this._state.tail  = this._state.tail .concat(sub.tail);
 
-  Factory.prototype._exit = function() {
+    return this._push();
+  }
+
+  // Exit nested branches
+  _exit() {
     this._next();
     this._pop();
     return [this._pop(), this._state];
-  };
+  }
 
-  Factory.prototype._push = function(op, multi) {
+  // State stack
+  _push(op, multi) {
     this._stack.unshift(new State(op, multi));
     return this._state = this._stack[0];
-  };
+  }
 
-  Factory.prototype._pop = function() {
-    var ref;
+  _pop() {
+    let left;
     this._state = this._stack[1];
-    if (this._state == null) {
-      this._state = new State;
-    }
-    return (ref = this._stack.shift()) != null ? ref : new State;
-  };
+    if (this._state == null) { this._state = new State; }
+    return (left = this._stack.shift()) != null ? left : new State;
+  }
 
-  Factory.prototype._auto = function(block) {
+  // Auto append or insert depending on whether we have inputs
+  _auto(block) {
     if (block.node.inputs.length) {
       return this._append(block);
     } else {
       return this._insert(block);
     }
-  };
-
-  Factory.prototype._append = function(block) {
-    var end, j, len, node, ref;
-    node = block.node;
-    this._graph.add(node);
-    ref = this._state.end;
-    for (j = 0, len = ref.length; j < len; j++) {
-      end = ref[j];
-      end.connect(node);
-    }
-    if (!this._state.start.length) {
-      this._state.start = [node];
-    }
-    this._state.end = [node];
-    this._state.nodes.push(node);
-    if (!node.outputs.length) {
-      return this._state.tail.push(node);
-    }
-  };
-
-  Factory.prototype._prepend = function(block) {
-    var j, len, node, ref, start;
-    node = block.node;
-    this._graph.add(node);
-    ref = this._state.start;
-    for (j = 0, len = ref.length; j < len; j++) {
-      start = ref[j];
-      node.connect(start);
-    }
-    if (!this._state.end.length) {
-      this._state.end = [node];
-    }
-    this._state.start = [node];
-    this._state.nodes.push(node);
-    if (!node.outputs.length) {
-      return this._state.tail.push(node);
-    }
-  };
-
-  Factory.prototype._insert = function(block) {
-    var node;
-    node = block.node;
-    this._graph.add(node);
-    this._state.start.push(node);
-    this._state.end.push(node);
-    this._state.nodes.push(node);
-    if (!node.outputs.length) {
-      return this._state.tail.push(node);
-    }
-  };
-
-  return Factory;
-
-})();
-
-State = (function() {
-  function State(op1, multi1, start1, end1, nodes, tail1) {
-    this.op = op1 != null ? op1 : null;
-    this.multi = multi1 != null ? multi1 : false;
-    this.start = start1 != null ? start1 : [];
-    this.end = end1 != null ? end1 : [];
-    this.nodes = nodes != null ? nodes : [];
-    this.tail = tail1 != null ? tail1 : [];
   }
 
-  return State;
+  // Add block and connect to end
+  _append(block) {
+    let end;
+    const {
+      node
+    } = block;
+    this._graph.add(node);
 
-})();
+    for (end of Array.from(this._state.end)) { end.connect(node); }
 
-module.exports = Factory;
+    if (!this._state.start.length) { this._state.start = [node]; }
+    this._state.end   = [node];
 
+    this._state.nodes.push(node);
+    if (!node.outputs.length) { return this._state.tail .push(node); }
+  }
 
+  // Add block and connect to start
+  _prepend(block) {
+    let start;
+    const {
+      node
+    } = block;
+    this._graph.add(node);
 
-},{"../block":8,"../graph":25,"../visualize":36}],13:[function(require,module,exports){
-var c1, c2, c3, c4, c5, hash, imul, test;
+    for (start of Array.from(this._state.start)) { node.connect(start); }
 
-c1 = 0xcc9e2d51;
+    if (!this._state.end.length) { this._state.end   = [node]; }
+    this._state.start = [node];
 
-c2 = 0x1b873593;
+    this._state.nodes.push(node);
+    if (!node.outputs.length) { return this._state.tail .push(node); }
+  }
 
-c3 = 0xe6546b64;
+  // Insert loose block
+  _insert(block) {
+    const {
+      node
+    } = block;
+    this._graph.add(node);
 
-c4 = 0x85ebca6b;
+    this._state.start.push(node);
+    this._state.end  .push(node);
 
-c5 = 0xc2b2ae35;
-
-imul = function(a, b) {
-  var ah, al, bh, bl;
-  ah = (a >>> 16) & 0xffff;
-  al = a & 0xffff;
-  bh = (b >>> 16) & 0xffff;
-  bl = b & 0xffff;
-  return (al * bl) + (((ah * bl + al * bh) << 16) >>> 0) | 0;
-};
-
-if (Math.imul != null) {
-  test = Math.imul(0xffffffff, 5);
-  if (test === -5) {
-    imul = Math.imul;
+    this._state.nodes.push(node);
+    if (!node.outputs.length) { return this._state.tail .push(node); }
   }
 }
 
-hash = function(string) {
-  var h, iterate, j, m, n, next;
-  n = string.length;
-  m = Math.floor(n / 2);
-  j = h = 0;
-  next = function() {
-    return string.charCodeAt(j++);
-  };
-  iterate = function(a, b) {
-    var k;
-    k = a | (b << 16);
-    k ^= k << 9;
-    k = imul(k, c1);
-    k = (k << 15) | (k >>> 17);
-    k = imul(k, c2);
+class State {
+  constructor(op = null, multi, start, end, nodes, tail) {
+    this.op = op;
+    if (multi == null) { multi = false; }
+    this.multi = multi;
+    if (start == null) { start = []; }
+    this.start = start;
+    if (end == null) { end = []; }
+    this.end = end;
+    if (nodes == null) { nodes = []; }
+    this.nodes = nodes;
+    if (tail == null) { tail = []; }
+    this.tail = tail;
+  }
+}
+
+module.exports = Factory;
+},{"../block":8,"../graph":25,"../visualize":36}],13:[function(require,module,exports){
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+// Hash string into a 32-bit key (murmurhash3)
+const c1 = 0xcc9e2d51;
+const c2 = 0x1b873593;
+const c3 = 0xe6546b64;
+const c4 = 0x85ebca6b;
+const c5 = 0xc2b2ae35;
+
+// Fix imul in old/broken browsers
+let imul = function(a, b) {
+  const ah = (a >>> 16) & 0xffff;
+  const al = a & 0xffff;
+  const bh = (b >>> 16) & 0xffff;
+  const bl = b & 0xffff;
+  return ((al * bl) + ((((ah * bl) + (al * bh)) << 16) >>> 0)) | 0;
+};
+
+if (Math.imul != null) {
+  const test = Math.imul(0xffffffff, 5);
+  if (test === -5) { ({
+    imul
+  } = Math); }
+}
+
+
+const hash = function(string) {
+  let h;
+  const n = string.length;
+  let m = Math.floor(n / 2);
+  let j = (h = 0);
+
+  const next = () => string.charCodeAt(j++);
+  const iterate = function(a, b) {
+    let k  = a | (b << 16); // two utf-16 words
+    k ^= (k << 9);      // whitening for ascii-only strings
+
+    k  = imul(k, c1);
+    k  = (k << 15) | (k >>> 17);
+    k  = imul(k, c2);
+
     h ^= k;
-    h = (h << 13) | (h >>> 19);
-    h = imul(h, 5);
-    return h = (h + c3) | 0;
+
+    h  = (h << 13) | (h >>> 19);
+    h  = imul(h, 5);
+    return h  = (h + c3) | 0;
   };
-  while (m--) {
-    iterate(next(), next());
-  }
-  if (n & 1) {
-    iterate(next(), 0);
-  }
+
+  while (m--) { iterate(next(), next()); }
+  if (n & 1) { iterate(next(), 0); }
+
   h ^= n;
   h ^= h >>> 16;
-  h = imul(h, c4);
+  h  = imul(h, c4);
   h ^= h >>> 13;
-  h = imul(h, c5);
+  h  = imul(h, c5);
   return h ^= h >>> 16;
 };
 
 module.exports = hash;
-
-
-
 },{}],14:[function(require,module,exports){
-exports.Factory = require('./factory');
-
+exports.Factory  = require('./factory');
 exports.Material = require('./material');
 
-exports.library = require('./library');
-
-exports.cache = require('./cache');
-
-exports.queue = require('./queue');
-
-exports.hash = require('./hash');
-
-
+exports.library   = require('./library');
+exports.cache     = require('./cache');
+exports.queue     = require('./queue');
+exports.hash      = require('./hash');
 
 },{"./cache":11,"./factory":12,"./hash":13,"./library":15,"./material":16,"./queue":17}],15:[function(require,module,exports){
-
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
 /*
   Snippet library
   
@@ -1576,309 +1472,284 @@ exports.hash = require('./hash');
     - nothing:          no library, only pass in inline source code
   
   If 'name' contains any of "{;(#" it is assumed to be direct GLSL code.
- */
-var library;
+*/
+const library = function(language, snippets, load) {
 
-library = function(language, snippets, load) {
-  var callback, fetch, inline, used;
-  callback = null;
-  used = {};
+  let callback = null;
+  let used = {};
+
   if (snippets != null) {
     if (typeof snippets === 'function') {
-      callback = function(name) {
-        return load(language, name, snippets(name));
-      };
+      callback = name => load(language, name, snippets(name));
     } else if (typeof snippets === 'object') {
       callback = function(name) {
-        if (snippets[name] == null) {
-          throw new Error("Unknown snippet `" + name + "`");
-        }
+        if ((snippets[name] == null)) { throw new Error(`Unknown snippet \`${name}\``); }
         return load(language, name, snippets[name]);
       };
     }
   }
-  inline = function(code) {
-    return load(language, '', code);
-  };
-  if (callback == null) {
-    return inline;
-  }
-  fetch = function(name) {
-    if (name.match(/[{;]/)) {
-      return inline(name);
-    }
+
+  const inline = code => load(language, '', code);
+
+  if ((callback == null)) { return inline; }
+
+  const fetch = function(name) {
+    if (name.match(/[{;]/)) { return inline(name); }
     used[name] = true;
     return callback(name);
   };
-  fetch.used = function(_used) {
-    if (_used == null) {
-      _used = used;
-    }
-    return used = _used;
-  };
+
+  fetch.used = function(_used) { if (_used == null) { _used = used; } return used = _used; };
+
   return fetch;
 };
 
+
 module.exports = library;
-
-
-
 },{}],16:[function(require,module,exports){
-var Material, Visualize, debug, tick;
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const debug = false;
+const Visualize = require('../visualize');
 
-debug = false;
-
-Visualize = require('../visualize');
-
-tick = function() {
-  var now;
-  now = +(new Date);
+const tick = function() {
+  const now = +new Date;
   return function(label) {
-    var delta;
-    delta = +new Date() - now;
+    const delta = +new Date() - now;
     console.log(label, delta + " ms");
     return delta;
   };
 };
 
-Material = (function() {
-  function Material(vertex1, fragment1) {
-    this.vertex = vertex1;
-    this.fragment = fragment1;
-    if (debug) {
-      this.tock = tick();
-    }
+class Material {
+  constructor(vertex, fragment) {
+    this.vertex = vertex;
+    this.fragment = fragment;
+    if (debug) { this.tock = tick(); }
   }
 
-  Material.prototype.build = function(options) {
-    return this.link(options);
-  };
+  build(options) { return this.link(options); }
+  link(options) {
+    if (options == null) { options = {}; }
+    const uniforms   = {};
+    const varyings   = {};
+    const attributes = {};
 
-  Material.prototype.link = function(options) {
-    var attributes, fragment, i, key, len, ref, ref1, ref2, ref3, shader, uniforms, value, varyings, vertex;
-    if (options == null) {
-      options = {};
+    const vertex   = this.vertex  .link('main');
+    const fragment = this.fragment.link('main');
+
+    for (let shader of [vertex, fragment]) {
+      var key, value;
+      for (key in shader.uniforms) { value = shader.uniforms[key]; uniforms[key]   = value; }
+      for (key in shader.varyings) { value = shader.varyings[key]; varyings[key]   = value; }
+      for (key in shader.attributes) { value = shader.attributes[key]; attributes[key] = value; }
     }
-    uniforms = {};
-    varyings = {};
-    attributes = {};
-    vertex = this.vertex.link('main');
-    fragment = this.fragment.link('main');
-    ref = [vertex, fragment];
-    for (i = 0, len = ref.length; i < len; i++) {
-      shader = ref[i];
-      ref1 = shader.uniforms;
-      for (key in ref1) {
-        value = ref1[key];
-        uniforms[key] = value;
-      }
-      ref2 = shader.varyings;
-      for (key in ref2) {
-        value = ref2[key];
-        varyings[key] = value;
-      }
-      ref3 = shader.attributes;
-      for (key in ref3) {
-        value = ref3[key];
-        attributes[key] = value;
-      }
-    }
-    options.vertexShader = vertex.code;
-    options.vertexGraph = vertex.graph;
+
+    options.vertexShader   = vertex  .code;
+    options.vertexGraph    = vertex  .graph;
     options.fragmentShader = fragment.code;
-    options.fragmentGraph = fragment.graph;
-    options.attributes = attributes;
-    options.uniforms = uniforms;
-    options.varyings = varyings;
-    options.inspect = function() {
-      return Visualize.inspect('Vertex Shader', vertex, 'Fragment Shader', fragment.graph);
-    };
-    if (debug) {
-      this.tock('Material build');
-    }
+    options.fragmentGraph  = fragment.graph;
+    options.attributes     = attributes;
+    options.uniforms       = uniforms;
+    options.varyings       = varyings;
+    options.inspect        = () => Visualize.inspect('Vertex Shader', vertex, 'Fragment Shader', fragment.graph);
+
+    if (debug) { this.tock('Material build'); }
+
     return options;
-  };
+  }
 
-  Material.prototype.inspect = function() {
+  inspect() {
     return Visualize.inspect('Vertex Shader', this.vertex, 'Fragment Shader', this.fragment.graph);
-  };
-
-  return Material;
-
-})();
+  }
+}
 
 module.exports = Material;
 
-
-
 },{"../visualize":36}],17:[function(require,module,exports){
-var queue;
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+// Least-recently-used queue for key expiry via linked list
+const queue = function(limit) {
+  if (limit == null) { limit = 100; }
+  const map = {};
 
-queue = function(limit) {
-  var add, count, head, map, remove, tail;
-  if (limit == null) {
-    limit = 100;
-  }
-  map = {};
-  head = null;
-  tail = null;
-  count = 0;
-  add = function(item) {
+  let head  = null;
+  let tail  = null;
+  let count = 0;
+
+  // Insert at front
+  const add = function(item) {
     item.prev = null;
     item.next = head;
-    if (head != null) {
-      head.prev = item;
-    }
-    head = item;
-    if (tail == null) {
-      return tail = item;
-    }
+
+    if (head != null) { head.prev = item; }
+
+    head      = item;
+    if ((tail == null)) { return tail      = item; }
   };
-  remove = function(item) {
-    var next, prev;
-    prev = item.prev;
-    next = item.next;
-    if (prev != null) {
-      prev.next = next;
-    }
-    if (next != null) {
-      next.prev = prev;
-    }
-    if (head === item) {
-      head = next;
-    }
-    if (tail === item) {
-      return tail = prev;
-    }
+
+  // Remove from list
+  const remove = function(item) {
+    const {
+      prev
+    } = item;
+    const {
+      next
+    } = item;
+
+    if (prev != null) { prev.next = next; }
+    if (next != null) { next.prev = prev; }
+
+    if (head === item) { head = next; }
+    if (tail === item) { return tail = prev; }
   };
+
+  // Push key to top of list
   return function(key) {
-    var dead, item;
-    if (item = map[key] && item !== head) {
+    let dead, item;
+    if (item = map[key] && (item !== head)) {
+      // Already in queue
       remove(item);
       add(item);
+
     } else {
+      // Check capacity
       if (count === limit) {
+        // Pop tail
         dead = tail.key;
         remove(tail);
+
+        // Expire key
         delete map[dead];
       } else {
         count++;
       }
-      item = {
-        next: head,
-        prev: null,
-        key: key
-      };
+
+      // Replace head
+      item = {next: head, prev: null, key};
       add(item);
+
+      // Map record for lookup
       map[key] = item;
     }
+
+    // Return expired key
     return dead;
   };
 };
 
 module.exports = queue;
 
-
-
 },{}],18:[function(require,module,exports){
-
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS205: Consider reworking code to avoid use of IIFEs
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
 /*
   Compile snippet back into GLSL, but with certain symbols replaced by prefixes / placeholders
- */
-var compile, replaced, string_compiler, tick;
+*/
 
-compile = function(program) {
-  var assembler, ast, code, placeholders, signatures;
-  ast = program.ast, code = program.code, signatures = program.signatures;
-  placeholders = replaced(signatures);
-  assembler = string_compiler(code, placeholders);
+const compile = function(program) {
+  const {ast, code, signatures} = program;
+
+  // Prepare list of placeholders
+  const placeholders = replaced(signatures);
+
+  // Compile
+  const assembler = string_compiler(code, placeholders);
+
   return [signatures, assembler];
 };
 
-tick = function() {
-  var now;
-  now = +(new Date);
+// #####
+
+const tick = function() {
+  const now = +new Date;
   return function(label) {
-    var delta;
-    delta = +new Date() - now;
+    const delta = +new Date() - now;
     console.log(label, delta + " ms");
     return delta;
   };
 };
 
-replaced = function(signatures) {
-  var i, j, key, len, len1, out, ref, ref1, s, sig;
-  out = {};
-  s = function(sig) {
-    return out[sig.name] = true;
-  };
+var replaced = function(signatures) {
+  const out = {};
+  const s = sig => out[sig.name] = true;
+
   s(signatures.main);
-  ref = ['external', 'internal', 'varying', 'uniform', 'attribute'];
-  for (i = 0, len = ref.length; i < len; i++) {
-    key = ref[i];
-    ref1 = signatures[key];
-    for (j = 0, len1 = ref1.length; j < len1; j++) {
-      sig = ref1[j];
-      s(sig);
-    }
+
+  // Prefix all global symbols
+  for (let key of ['external', 'internal', 'varying', 'uniform', 'attribute']) {
+    for (let sig of Array.from(signatures[key])) { s(sig); }
   }
+
   return out;
 };
 
-
 /*
 String-replacement based compiler
- */
+*/
+var string_compiler = function(code, placeholders) {
 
-string_compiler = function(code, placeholders) {
-  var key, re;
-  re = new RegExp('\\b(' + ((function() {
-    var results;
-    results = [];
+  // Make regexp for finding placeholders
+  // Replace on word boundaries
+  let key;
+  const re = new RegExp('\\b(' + ((() => {
+    const result = [];
     for (key in placeholders) {
-      results.push(key);
+      result.push(key);
     }
-    return results;
+    return result;
   })()).join('|') + ')\\b', 'g');
+
+  // Strip comments
   code = code.replace(/\/\/[^\n]*/g, '');
   code = code.replace(/\/\*([^*]|\*[^\/])*\*\//g, '');
+
+  // Strip all preprocessor commands (lazy)
+  //code = code.replace /^#[^\n]*/mg, ''
+
+  // Assembler function that takes namespace prefix and exceptions
+  // and returns GLSL source code
   return function(prefix, exceptions, defines) {
-    var compiled, defs, replace, value;
-    if (prefix == null) {
-      prefix = '';
-    }
-    if (exceptions == null) {
-      exceptions = {};
-    }
-    if (defines == null) {
-      defines = {};
-    }
-    replace = {};
+    let key;
+    if (prefix == null) { prefix = ''; }
+    if (exceptions == null) { exceptions = {}; }
+    if (defines == null) { defines = {}; }
+    const replace = {};
     for (key in placeholders) {
-      replace[key] = exceptions[key] != null ? key : prefix + key;
+      replace[key] = (exceptions[key] != null) ? key : prefix + key;
     }
-    compiled = code.replace(re, function(key) {
-      return replace[key];
-    });
-    defs = (function() {
-      var results;
-      results = [];
+
+    const compiled = code.replace(re, key => replace[key]);
+
+    const defs = ((() => {
+      const result1 = [];
       for (key in defines) {
-        value = defines[key];
-        results.push("#define " + key + " " + value);
+        const value = defines[key];
+        result1.push(`#define ${key} ${value}`);
       }
-      return results;
-    })();
-    if (defs.length) {
-      defs.push('');
-    }
+      return result1;
+    })());
+    if (defs.length) { defs.push(''); }
     return defs.join("\n") + compiled;
   };
 };
 
 module.exports = compile;
-
-
 
 },{}],19:[function(require,module,exports){
 module.exports = {
@@ -1886,355 +1757,361 @@ module.exports = {
   RETURN_ARG: 'return'
 };
 
-
-
 },{}],20:[function(require,module,exports){
-var Definition, decl, defaults, get, three, threejs, win;
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+// AST node parsers
 
-module.exports = decl = {};
+let decl;
+module.exports = (decl = {});
 
-decl["in"] = 0;
-
-decl.out = 1;
-
+decl.in    = 0;
+decl.out   = 1;
 decl.inout = 2;
 
-get = function(n) {
-  return n.token.data;
-};
+const get = n => n.token.data;
 
 decl.node = function(node) {
-  var ref, ref1;
-  if (((ref = node.children[5]) != null ? ref.type : void 0) === 'function') {
-    return decl["function"](node);
-  } else if (((ref1 = node.token) != null ? ref1.type : void 0) === 'keyword') {
+
+  if ((node.children[5] != null ? node.children[5].type : undefined) === 'function') {
+    return decl.function(node);
+
+  } else if ((node.token != null ? node.token.type : undefined) === 'keyword') {
     return decl.external(node);
   }
 };
 
 decl.external = function(node) {
-  var c, i, ident, j, len, list, next, out, quant, ref, storage, struct, type;
-  c = node.children;
-  storage = get(c[1]);
-  struct = get(c[3]);
-  type = get(c[4]);
-  list = c[5];
-  if (storage !== 'attribute' && storage !== 'uniform' && storage !== 'varying') {
-    storage = 'global';
-  }
-  out = [];
-  ref = list.children;
-  for (i = j = 0, len = ref.length; j < len; i = ++j) {
-    c = ref[i];
+  //    console.log 'external', node
+  let c = node.children;
+
+  let storage = get(c[1]);
+  const struct  = get(c[3]);
+  const type    = get(c[4]);
+  const list    = c[5];
+
+  if (!['attribute', 'uniform', 'varying'].includes(storage)) { storage = 'global'; }
+
+  const out = [];
+
+  for (let i = 0; i < list.children.length; i++) {
+    c = list.children[i];
     if (c.type === 'ident') {
-      ident = get(c);
-      next = list.children[i + 1];
-      quant = (next != null ? next.type : void 0) === 'quantifier';
+      const ident   = get(c);
+      const next    = list.children[i + 1];
+      const quant   = ((next != null ? next.type : undefined) === 'quantifier');
+
       out.push({
         decl: 'external',
-        storage: storage,
-        type: type,
-        ident: ident,
+        storage,
+        type,
+        ident,
         quant: !!quant,
         count: quant
       });
     }
   }
+
   return out;
 };
 
-decl["function"] = function(node) {
-  var args, body, c, child, decls, func, ident, storage, struct, type;
-  c = node.children;
-  storage = get(c[1]);
-  struct = get(c[3]);
-  type = get(c[4]);
-  func = c[5];
-  ident = get(func.children[0]);
-  args = func.children[1];
-  body = func.children[2];
-  decls = (function() {
-    var j, len, ref, results;
-    ref = args.children;
-    results = [];
-    for (j = 0, len = ref.length; j < len; j++) {
-      child = ref[j];
-      results.push(decl.argument(child));
-    }
-    return results;
-  })();
-  return [
-    {
-      decl: 'function',
-      storage: storage,
-      type: type,
-      ident: ident,
-      body: !!body,
-      args: decls
-    }
+decl.function = function(node) {
+  const c = node.children;
+
+  //    console.log 'function', node
+
+  const storage = get(c[1]);
+  const struct  = get(c[3]);
+  const type    = get(c[4]);
+  const func    = c[5];
+  const ident   = get(func.children[0]);
+  const args    = func.children[1];
+  const body    = func.children[2];
+
+  const decls = (Array.from(args.children).map((child) => decl.argument(child)));
+
+  return [{
+    decl: 'function',
+    storage,
+    type,
+    ident,
+    body: !!body,
+    args: decls
+  }
   ];
 };
 
 decl.argument = function(node) {
-  var c, count, ident, inout, list, quant, storage, type;
-  c = node.children;
-  storage = get(c[1]);
-  inout = get(c[2]);
-  type = get(c[4]);
-  list = c[5];
-  ident = get(list.children[0]);
-  quant = list.children[1];
-  count = quant ? quant.children[0].token.data : void 0;
+  const c = node.children;
+
+  //    console.log 'argument', node
+
+  const storage = get(c[1]);
+  const inout   = get(c[2]);
+  const type    = get(c[4]);
+  const list    = c[5];
+  const ident   = get(list.children[0]);
+  const quant   = list.children[1];
+
+  const count   = quant ? quant.children[0].token.data : undefined;
+
   return {
     decl: 'argument',
-    storage: storage,
-    inout: inout,
-    type: type,
-    ident: ident,
+    storage,
+    inout,
+    type,
+    ident,
     quant: !!quant,
-    count: count
+    count
   };
 };
 
 decl.param = function(dir, storage, spec, quant, count) {
-  var f, prefix, suffix;
-  prefix = [];
-  if (storage != null) {
-    prefix.push(storage);
-  }
-  if (spec != null) {
-    prefix.push(spec);
-  }
+  let prefix = [];
+  if (storage != null) { prefix.push(storage); }
+  if (spec != null) { prefix.push(spec); }
   prefix.push('');
+
   prefix = prefix.join(' ');
-  suffix = quant ? '[' + count + ']' : '';
-  if (dir !== '') {
-    dir += ' ';
-  }
-  f = function(name, long) {
-    return (long ? dir : '') + ("" + prefix + name + suffix);
-  };
-  f.split = function(dir) {
-    return decl.param(dir, storage, spec, quant, count);
-  };
+  const suffix = quant ? '[' + count + ']' : '';
+  if (dir !== '') { dir += ' '; }
+
+  const f = (name, long) => (long ? dir : '') + `${prefix}${name}${suffix}`;
+  f.split = dir => decl.param(dir, storage, spec, quant, count);
+
   return f;
 };
 
-win = typeof window !== 'undefined';
+// Three.js sugar
+const win = typeof window !== 'undefined';
+const threejs = win && !!window.THREE;
 
-threejs = win && !!window.THREE;
-
-defaults = {
-  int: 0,
-  float: 0,
-  vec2: threejs ? THREE.Vector2 : null,
-  vec3: threejs ? THREE.Vector3 : null,
-  vec4: threejs ? THREE.Vector4 : null,
-  mat2: null,
-  mat3: threejs ? THREE.Matrix3 : null,
-  mat4: threejs ? THREE.Matrix4 : null,
-  sampler2D: 0,
+const defaults = {
+  int:         0,
+  float:       0,
+  vec2:        threejs ? THREE.Vector2 : null,
+  vec3:        threejs ? THREE.Vector3 : null,
+  vec4:        threejs ? THREE.Vector4 : null,
+  mat2:        null,
+  mat3:        threejs ? THREE.Matrix3 : null,
+  mat4:        threejs ? THREE.Matrix4 : null,
+  sampler2D:   0,
   samplerCube: 0
 };
 
-three = {
-  int: 'i',
-  float: 'f',
-  vec2: 'v2',
-  vec3: 'v3',
-  vec4: 'v4',
-  mat2: 'm2',
-  mat3: 'm3',
-  mat4: 'm4',
-  sampler2D: 't',
+const three = {
+  int:         'i',
+  float:       'f',
+  vec2:        'v2',
+  vec3:        'v3',
+  vec4:        'v4',
+  mat2:        'm2',
+  mat3:        'm3',
+  mat4:        'm4',
+  sampler2D:   't',
   samplerCube: 't'
 };
 
 decl.type = function(name, spec, quant, count, dir, storage) {
-  var dirs, inout, param, ref, storages, type, value;
-  dirs = {
-    "in": decl["in"],
-    out: decl.out,
+
+  const dirs = {
+    in:    decl.in,
+    out:   decl.out,
     inout: decl.inout
   };
-  storages = {
-    "const": 'const'
-  };
-  type = three[spec];
-  if (quant) {
-    type += 'v';
-  }
-  value = defaults[spec];
-  if (value != null ? value.call : void 0) {
-    value = new value;
-  }
-  if (quant) {
-    value = [value];
-  }
-  inout = (ref = dirs[dir]) != null ? ref : dirs["in"];
+
+  const storages =
+    {const: 'const'};
+
+  let type    = three[spec];
+  if (quant) { type   += 'v'; }
+
+  let value   = defaults[spec];
+  if (value != null ? value.call : undefined) { value   = new value; }
+  if (quant) { value   = [value]; }
+
+  const inout   = dirs[dir] != null ? dirs[dir] : dirs.in;
   storage = storages[storage];
-  param = decl.param(dir, storage, spec, quant, count);
+
+  const param   = decl.param(dir, storage, spec, quant, count);
   return new Definition(name, type, spec, param, value, inout);
 };
 
-Definition = (function() {
-  function Definition(name1, type1, spec1, param1, value1, inout1, meta1) {
-    this.name = name1;
-    this.type = type1;
-    this.spec = spec1;
-    this.param = param1;
-    this.value = value1;
-    this.inout = inout1;
-    this.meta = meta1;
+class Definition {
+  constructor(name, type, spec, param, value, inout, meta) {
+    this.name = name;
+    this.type = type;
+    this.spec = spec;
+    this.param = param;
+    this.value = value;
+    this.inout = inout;
+    this.meta = meta;
   }
 
-  Definition.prototype.split = function() {
-    var dir, inout, isIn, param;
-    isIn = this.meta.shadowed != null;
-    dir = isIn ? 'in' : 'out';
-    inout = isIn ? decl["in"] : decl.out;
-    param = this.param.split(dir);
+  split() {
+    // Split inouts
+    const isIn  = (this.meta.shadowed != null);
+    const dir   = isIn ? 'in' : 'out';
+    const inout = isIn ? decl.in : decl.out;
+    const param = this.param.split(dir);
     return new Definition(this.name, this.type, this.spec, param, this.value, inout);
-  };
+  }
 
-  Definition.prototype.copy = function(name, meta) {
-    var def;
+  copy(name, meta) {
+    let def;
     return def = new Definition(name != null ? name : this.name, this.type, this.spec, this.param, this.value, this.inout, meta);
-  };
-
-  return Definition;
-
-})();
-
+  }
+}
 
 
 },{}],21:[function(require,module,exports){
-var $, Graph, _;
-
-Graph = require('../graph');
-
-$ = require('./constants');
-
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS205: Consider reworking code to avoid use of IIFEs
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+let _;
+const Graph = require('../graph');
+const $     = require('./constants');
 
 /*
  GLSL code generator for compiler and linker stubs
- */
+*/
 
-module.exports = _ = {
-  unshadow: function(name) {
-    var real;
-    real = name.replace($.SHADOW_ARG, '');
-    if (real !== name) {
-      return real;
-    } else {
-      return null;
-    }
+module.exports = (_ = {
+
+  // Check if shadow outlet
+  unshadow(name) {
+    const real = name.replace($.SHADOW_ARG, '');
+    if (real !== name) { return real; } else { return null; }
   },
-  lines: function(lines) {
-    return lines.join('\n');
-  },
-  list: function(lines) {
-    return lines.join(', ');
-  },
-  statements: function(lines) {
-    return lines.join(';\n');
-  },
-  body: function(entry) {
+
+  // Line joiners
+  lines(lines) { return lines.join('\n'); },
+  list(lines) { return lines.join(', '); },
+  statements(lines) { return lines.join(';\n'); },
+
+  // Function body
+  body(entry) {
     return {
-      entry: entry,
-      type: 'void',
-      params: [],
+      entry,
+      type:      'void',
+      params:    [],
       signature: [],
-      "return": '',
-      vars: {},
-      calls: [],
-      post: [],
-      chain: {}
+      return:    '',
+      vars:      {},
+      calls:     [],
+      post:      [],
+      chain:     {}
     };
   },
-  define: function(a, b) {
-    return "#define " + a + " " + b;
+
+  // Symbol define
+  define(a, b) {
+    return `#define ${a} ${b}`;
   },
-  "function": function(type, entry, params, vars, calls) {
-    return type + " " + entry + "(" + params + ") {\n" + vars + calls + "}";
+
+  // Function define
+  function(type, entry, params, vars, calls) {
+    return `${type} ${entry}(${params}) {\n${vars}${calls}}`;
   },
-  invoke: function(ret, entry, args) {
-    ret = ret ? ret + " = " : '';
+
+  // Function invocation
+  invoke(ret, entry, args) {
+    ret = ret ? `${ret} = ` : '';
     args = _.list(args);
-    return "  " + ret + entry + "(" + args + ")";
+    return `  ${ret}${entry}(${args})`;
   },
-  same: function(a, b) {
-    var A, B, i, k, len;
-    for (i = k = 0, len = a.length; k < len; i = ++k) {
-      A = a[i];
-      B = b[i];
-      if (!B) {
-        return false;
-      }
-      if (A.type !== B.type) {
-        return false;
-      }
-      if ((A.name === $.RETURN_ARG) !== (B.name === $.RETURN_ARG)) {
-        return false;
-      }
+
+  // Compare two signatures
+  same(a, b) {
+    for (let i = 0; i < a.length; i++) {
+      const A = a[i];
+      const B = b[i];
+      if (!B) { return false; }
+      if (A.type !== B.type) { return false; }
+      if ((A.name === $.RETURN_ARG) !== (B.name === $.RETURN_ARG)) { return false; }
     }
     return true;
   },
-  call: function(lookup, dangling, entry, signature, body) {
-    var arg, args, copy, id, inout, isReturn, k, len, meta, name, omit, op, other, ref, ref1, ret, rets, shadow;
-    args = [];
-    ret = '';
-    rets = 1;
-    for (k = 0, len = signature.length; k < len; k++) {
-      arg = signature[k];
-      name = arg.name;
-      copy = id = lookup(name);
-      other = null;
-      meta = null;
-      omit = false;
-      inout = arg.inout;
-      isReturn = name === $.RETURN_ARG;
-      if (shadow = (ref = arg.meta) != null ? ref.shadowed : void 0) {
+
+  // Generate call signature for module invocation
+  call(lookup, dangling, entry, signature, body) {
+    const args      = [];
+    let ret       = '';
+    const rets      = 1;
+
+    for (let arg of Array.from(signature)) {
+      var id, shadow;
+      const {
+        name
+      } = arg;
+
+      let copy = (id = lookup(name));
+      let other = null;
+      let meta  = null;
+      let omit  = false;
+      const {
+        inout
+      } = arg;
+
+      const isReturn = name === $.RETURN_ARG;
+
+      // Shadowed inout: input side
+      if (shadow = arg.meta != null ? arg.meta.shadowed : undefined) {
         other = lookup(shadow);
         if (other) {
           body.vars[other] = "  " + arg.param(other);
-          body.calls.push("  " + other + " = " + id);
+          body.calls.push(`  ${other} = ${id}`);
+
           if (!dangling(shadow)) {
             arg = arg.split();
           } else {
-            meta = {
-              shadowed: other
-            };
+            meta = {shadowed: other};
           }
         }
       }
-      if (shadow = (ref1 = arg.meta) != null ? ref1.shadow : void 0) {
+
+      // Shadowed inout: output side
+      if (shadow = arg.meta != null ? arg.meta.shadow : undefined) {
         other = lookup(shadow);
         if (other) {
           if (!dangling(shadow)) {
             arg = arg.split();
             omit = true;
           } else {
-            meta = {
-              shadow: other
-            };
+            meta = {shadow: other};
             continue;
           }
         }
       }
+
       if (isReturn) {
+        // Capture return value
         ret = id;
       } else if (!omit) {
+        // Pass all non return, non shadow args in
         args.push(other != null ? other : id);
       }
+
+      // Export argument if unconnected
       if (dangling(name)) {
-        op = 'push';
+        let op = 'push';
         if (isReturn) {
-          if (body["return"] === '') {
+          if (body.return === '') {
             op = 'unshift';
+            // Preserve 'return' arg name
             copy = name;
-            body.type = arg.spec;
-            body["return"] = "  return " + id;
+            body.type     = arg.spec;
+            body.return   = `  return ${id}`;
             body.vars[id] = "  " + arg.param(id);
           } else {
             body.vars[id] = "  " + arg.param(id);
@@ -2243,365 +2120,383 @@ module.exports = _ = {
         } else {
           body.params.push(arg.param(id, true));
         }
+
+        // Copy argument into new signature
         arg = arg.copy(copy, meta);
         body.signature[op](arg);
       } else {
         body.vars[id] = "  " + arg.param(id);
       }
     }
+
     return body.calls.push(_.invoke(ret, entry, args));
   },
-  build: function(body, calls) {
-    var a, b, code, decl, entry, params, post, ret, type, v, vars;
-    entry = body.entry;
-    code = null;
-    if (calls && calls.length === 1 && entry !== 'main') {
-      a = body;
-      b = calls[0].module;
+
+  // Assemble main() function from body and call reference
+  build(body, calls) {
+    const {
+      entry
+    } = body;
+    let code    = null;
+
+    // Check if we're only calling one snippet with identical signature
+    // and not building void main();
+    if (calls && (calls.length === 1) && (entry !== 'main')) {
+      const a = body;
+      const b = calls[0].module;
+
       if (_.same(body.signature, b.main.signature)) {
         code = _.define(entry, b.entry);
       }
     }
-    if (code == null) {
-      vars = (function() {
-        var ref, results;
-        ref = body.vars;
-        results = [];
-        for (v in ref) {
-          decl = ref[v];
-          results.push(decl);
+
+    // Otherwise build function body
+    if ((code == null)) {
+      let vars    = ((() => {
+        const result = [];
+        for (let v in body.vars) {
+          const decl = body.vars[v];
+          result.push(decl);
         }
-        return results;
-      })();
-      calls = body.calls;
-      post = body.post;
-      params = body.params;
-      type = body.type;
-      ret = body["return"];
+        return result;
+      })());
+      ({
+        calls
+      } = body);
+      const {
+        post
+      } = body;
+      let {
+        params
+      } = body;
+      const {
+        type
+      } = body;
+      const ret     = body.return;
+
       calls = calls.concat(post);
-      if (ret !== '') {
-        calls.push(ret);
-      }
+      if (ret !== '') { calls.push(ret); }
       calls.push('');
+
       if (vars.length) {
         vars.push('');
         vars = _.statements(vars) + '\n';
       } else {
         vars = '';
       }
-      calls = _.statements(calls);
+
+      calls  = _.statements(calls);
       params = _.list(params);
-      code = _["function"](type, entry, params, vars, calls);
+
+      code   = _.function(type, entry, params, vars, calls);
     }
+
     return {
       signature: body.signature,
-      code: code,
-      name: entry
+      code,
+      name:      entry
     };
   },
-  links: function(links) {
-    var k, l, len, out;
-    out = {
+
+  // Build links to other callbacks
+  links(links) {
+    const out = {
       defs: [],
       bodies: []
     };
-    for (k = 0, len = links.length; k < len; k++) {
-      l = links[k];
-      _.link(l, out);
-    }
-    out.defs = _.lines(out.defs);
+
+    for (let l of Array.from(links)) { _.link(l, out); }
+
+    out.defs   = _.lines(out.defs);
     out.bodies = _.statements(out.bodies);
-    if (out.defs === '') {
-      delete out.defs;
-    }
-    if (out.bodies === '') {
-      delete out.bodies;
-    }
+
+    if (out.defs   === '') { delete out.defs; }
+    if (out.bodies === '') { delete out.bodies; }
+
     return out;
   },
-  link: (function(_this) {
-    return function(link, out) {
-      var _dangling, _lookup, _name, arg, entry, external, inner, ins, k, len, len1, list, main, map, module, n, name, other, outer, outs, ref, ref1, returnVar, wrapper;
-      module = link.module, name = link.name, external = link.external;
-      main = module.main;
-      entry = module.entry;
-      if (_.same(main.signature, external.signature)) {
-        return out.defs.push(_.define(name, entry));
+
+  // Link a module's entry point as a callback
+  link: (link, out) => {
+    let arg, list;
+    const {module, name, external} = link;
+    const {
+      main
+    } = module;
+    const {
+      entry
+    } = module;
+
+    // If signatures match, #define alias for the symbol
+    if (_.same(main.signature, external.signature)) {
+      return out.defs.push(_.define(name, entry));
+    }
+
+    // Signatures differ, build one-line callback to match defined prototype
+
+    // Map names to names
+    const ins  = [];
+    const outs = [];
+    let map  = {};
+    const returnVar = [module.namespace, $.RETURN_ARG].join('');
+
+    for (arg of Array.from(external.signature)) {
+      list = arg.inout === Graph.IN ? ins : outs;
+      list.push(arg);
+    }
+
+    for (arg of Array.from(main.signature)) {
+
+      list = arg.inout === Graph.IN ? ins : outs;
+      const other = list.shift();
+      let _name = other.name;
+
+      // Avoid 'return' keyword
+      if (_name === $.RETURN_ARG) {
+        _name = returnVar;
       }
-      ins = [];
-      outs = [];
-      map = {};
-      returnVar = [module.namespace, $.RETURN_ARG].join('');
-      ref = external.signature;
-      for (k = 0, len = ref.length; k < len; k++) {
-        arg = ref[k];
-        list = arg.inout === Graph.IN ? ins : outs;
-        list.push(arg);
-      }
-      ref1 = main.signature;
-      for (n = 0, len1 = ref1.length; n < len1; n++) {
-        arg = ref1[n];
-        list = arg.inout === Graph.IN ? ins : outs;
-        other = list.shift();
-        _name = other.name;
-        if (_name === $.RETURN_ARG) {
-          _name = returnVar;
-        }
-        map[arg.name] = _name;
-      }
-      _lookup = function(name) {
-        return map[name];
-      };
-      _dangling = function() {
-        return true;
-      };
-      inner = _.body();
-      _.call(_lookup, _dangling, entry, main.signature, inner);
-      inner.entry = entry;
-      map = {
-        "return": returnVar
-      };
-      _lookup = function(name) {
-        var ref2;
-        return (ref2 = map[name]) != null ? ref2 : name;
-      };
-      outer = _.body();
-      wrapper = _.call(_lookup, _dangling, entry, external.signature, outer);
-      outer.calls = inner.calls;
-      outer.entry = name;
-      out.bodies.push(_.build(inner).code.split(' {')[0]);
-      return out.bodies.push(_.build(outer).code);
-    };
-  })(this),
-  defuse: function(code) {
-    var b, blocks, hash, head, i, j, k, len, len1, level, line, n, re, rest, strip;
-    re = /([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg;
-    strip = function(code) {
-      return code.replace(re, function(m) {
-        return '';
-      });
-    };
-    blocks = code.split(/(?=[{}])/g);
-    level = 0;
-    for (i = k = 0, len = blocks.length; k < len; i = ++k) {
-      b = blocks[i];
+
+      map[arg.name] = _name;
+    }
+
+    // Build function prototype to invoke the other side
+    let _lookup = name => map[name];
+    const _dangling = () => true;
+
+    const inner   = _.body();
+    _.call(_lookup, _dangling, entry, main.signature, inner);
+    inner.entry = entry;
+
+    // Avoid 'return' keyword
+    map =
+      {return: returnVar};
+    _lookup = name => map[name] != null ? map[name] : name;
+
+    // Build wrapper function for the calling side
+    const outer   = _.body();
+    const wrapper = _.call(_lookup, _dangling, entry, external.signature, outer);
+    outer.calls = inner.calls;
+    outer.entry = name;
+
+    out.bodies.push(_.build(inner).code.split(' {')[0]);
+    return out.bodies.push(_.build(outer).code);
+  },
+
+  // Remove all function prototypes to avoid redefinition errors
+  defuse(code) {
+    // Don't try this at home kids
+    const re = /([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/mg;
+    const strip = code => code.replace(re, m => '');
+
+    // Split into scopes by braces
+    const blocks = code.split(/(?=[{}])/g);
+    let level  = 0;
+    for (let i = 0; i < blocks.length; i++) {
+      const b = blocks[i];
       switch (b[0]) {
-        case '{':
-          level++;
-          break;
-        case '}':
-          level--;
+        case '{': level++; break;
+        case '}': level--; break;
       }
+
+      // Only mess with top level scope
       if (level === 0) {
-        hash = b.split(/^[ \t]*#/m);
-        for (j = n = 0, len1 = hash.length; n < len1; j = ++n) {
-          line = hash[j];
+        // Preprocessor lines will fuck us up. Split on them.
+        const hash = b.split(/^[ \t]*#/m);
+        for (let j = 0; j < hash.length; j++) {
+
+          let line = hash[j];
           if (j > 0) {
+            // Trim off preprocessor directive
             line = line.split(/\n/);
-            head = line.shift();
-            rest = line.join("\n");
+            const head = line.shift();
+            const rest = line.join("\n");
+
+            // Process rest
             hash[j] = [head, strip(rest)].join('\n');
           } else {
+            // Process entire line
             hash[j] = strip(line);
           }
         }
+
+        // Reassemble
         blocks[i] = hash.join('#');
       }
     }
+
     return code = blocks.join('');
   },
-  dedupe: function(code) {
-    var map, re;
-    map = {};
-    re = /((attribute|uniform|varying)\s+)[A-Za-z0-9_]+\s+([A-Za-z0-9_]+)\s*(\[[^\]]*\]\s*)?;\s*/mg;
+
+  // Remove duplicate uniforms / varyings / attributes
+  dedupe(code) {
+    const map = {};
+    const re  = /((attribute|uniform|varying)\s+)[A-Za-z0-9_]+\s+([A-Za-z0-9_]+)\s*(\[[^\]]*\]\s*)?;\s*/mg;
     return code.replace(re, function(m, qual, type, name, struct) {
-      if (map[name]) {
-        return '';
-      }
+      if (map[name]) { return ''; }
       map[name] = true;
       return m;
     });
   },
-  hoist: function(code) {
-    var defs, k, len, line, lines, list, out, re;
-    re = /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/;
-    lines = code.split(/\n/g);
-    defs = [];
-    out = [];
-    for (k = 0, len = lines.length; k < len; k++) {
-      line = lines[k];
-      list = line.match(re) ? defs : out;
-      list.push(line);
-    }
-    return defs.concat(out).join("\n");
+
+  // Move definitions to top so they compile properly
+  hoist(code) {
+
+    const filter = function(lines, re) {
+      const defs = [];
+      const out = [];
+      for (let line of Array.from(lines)) {
+        const list = line.match(re) ? defs : out;
+        list.push(line);
+      }
+
+      return defs.concat(out);
+    };
+
+    let lines = code.split("\n");
+
+    // Hoist symbol defines to the top so (re)definitions use the right alias
+    lines = filter(lines, /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/);
+
+    // Hoist extensions
+    lines = filter(lines, /^#extension/);
+
+    return lines.join("\n");
   }
-};
-
-
+});
 
 },{"../graph":25,"./constants":19}],22:[function(require,module,exports){
-var i, k, len, ref, v;
-
-exports.compile = require('./compile');
-
-exports.parse = require('./parse');
-
+exports.compile  = require('./compile');
+exports.parse    = require('./parse');
 exports.generate = require('./generate');
 
-ref = require('./constants');
-for (v = i = 0, len = ref.length; i < len; v = ++i) {
-  k = ref[v];
-  exports[k] = v;
-}
-
-
+const iterable = require('./constants');
+for (let v = 0; v < iterable.length; v++) { const k = iterable[v]; exports[k] = v; }
 
 },{"./compile":18,"./constants":19,"./generate":21,"./parse":23}],23:[function(require,module,exports){
-var $, collect, debug, decl, extractSignatures, mapSymbols, parse, parseGLSL, parser, processAST, sortSymbols, tick, tokenizer, walk;
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS201: Simplify complex destructure assignments
+ * DS205: Consider reworking code to avoid use of IIFEs
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const tokenizer = require('../../vendor/glsl-tokenizer');
+const parser    = require('../../vendor/glsl-parser');
+const decl      = require('./decl');
+const $         = require('./constants');
 
-tokenizer = require('../../vendor/glsl-tokenizer');
-
-parser = require('../../vendor/glsl-parser');
-
-decl = require('./decl');
-
-$ = require('./constants');
-
-debug = false;
-
+let debug = false;
 
 /*
 parse GLSL into AST
 extract all global symbols and make type signatures
- */
-
-parse = function(name, code) {
-  var ast, program;
-  ast = parseGLSL(name, code);
-  return program = processAST(ast, code);
+*/
+// Parse a GLSL snippet
+const parse = function(name, code) {
+  let program;
+  const ast        = parseGLSL(name, code);
+  return program    = processAST(ast, code);
 };
 
-parseGLSL = function(name, code) {
-  var ast, e, error, error1, errors, fmt, j, len, ref, ref1, tock;
-  if (debug) {
-    tock = tick();
-  }
+// Parse GLSL language into AST
+var parseGLSL = function(name, code) {
+
+  let ast, errors, tock;
+  if (debug) { tock = tick(); }
+
+  // Sync stream hack (see /vendor/through)
   try {
-    ref = tokenizer().process(parser(), code), (ref1 = ref[0], ast = ref1[0]), errors = ref[1];
-  } catch (error1) {
-    e = error1;
-    errors = [
-      {
-        message: e
-      }
-    ];
+    let array;
+    array = tokenizer().process(parser(), code), [ast] = Array.from(array[0]), errors = array[1];
+  } catch (e) {
+    errors = [{message:e}];
   }
-  if (debug) {
-    tock('GLSL Tokenize & Parse');
-  }
-  fmt = function(code) {
-    var max, pad;
+
+  if (debug) { tock('GLSL Tokenize & Parse'); }
+
+  const fmt = function(code) {
     code = code.split("\n");
-    max = ("" + code.length).length;
-    pad = function(v) {
-      if ((v = "" + v).length < max) {
-        return ("       " + v).slice(-max);
-      } else {
-        return v;
-      }
-    };
-    return code.map(function(line, i) {
-      return (pad(i + 1)) + ": " + line;
-    }).join("\n");
+    const max  = ("" + code.length).length;
+    const pad  = function(v) { if ((v = "" + v).length < max) { return ("       " + v).slice(-max); } else { return v; } };
+    return code.map((line, i) => `${pad(i + 1)}: ${line}`).join("\n");
   };
+
   if (!ast || errors.length) {
-    if (!name) {
-      name = '(inline code)';
-    }
+    if (!name) { name = '(inline code)'; }
     console.warn(fmt(code));
-    for (j = 0, len = errors.length; j < len; j++) {
-      error = errors[j];
-      console.error(name + " -", error.message);
-    }
+    for (let error of Array.from(errors)) { console.error(`${name} -`, error.message); }
     throw new Error("GLSL parse error");
   }
+
   return ast;
 };
 
-processAST = function(ast, code) {
-  var externals, internals, main, ref, signatures, symbols, tock;
-  if (debug) {
-    tock = tick();
-  }
-  symbols = [];
+// Process AST for compilation
+var processAST = function(ast, code) {
+  let tock;
+  if (debug) { tock = tick(); }
+
+  // Walk AST tree and collect global declarations
+  const symbols = [];
   walk(mapSymbols, collect(symbols), ast, '');
-  ref = sortSymbols(symbols), main = ref[0], internals = ref[1], externals = ref[2];
-  signatures = extractSignatures(main, internals, externals);
-  if (debug) {
-    tock('GLSL AST');
-  }
-  return {
-    ast: ast,
-    code: code,
-    signatures: signatures
-  };
+
+  // Sort symbols into bins
+  const [main, internals, externals] = Array.from(sortSymbols(symbols));
+
+  // Extract storage/type signatures of symbols
+  const signatures = extractSignatures(main, internals, externals);
+
+  if (debug) { tock('GLSL AST'); }
+
+  return {ast, code, signatures};
 };
 
-mapSymbols = function(node, collect) {
+// Extract functions and external symbols from AST
+var mapSymbols = function(node, collect) {
   switch (node.type) {
     case 'decl':
       collect(decl.node(node));
       return false;
+      break;
   }
   return true;
 };
 
-collect = function(out) {
-  return function(value) {
-    var j, len, obj, results;
-    if (value != null) {
-      results = [];
-      for (j = 0, len = value.length; j < len; j++) {
-        obj = value[j];
-        results.push(out.push(obj));
-      }
-      return results;
-    }
-  };
-};
+var collect = out => (function(value) { if (value != null) { return Array.from(value).map((obj) => out.push(obj)); } });
 
-sortSymbols = function(symbols) {
-  var e, externals, found, internals, j, len, main, maybe, s;
-  main = null;
-  internals = [];
-  externals = [];
-  maybe = {};
-  found = false;
-  for (j = 0, len = symbols.length; j < len; j++) {
-    s = symbols[j];
+// Identify internals, externals and main function
+var sortSymbols = function(symbols) {
+  let main = null;
+  const internals = [];
+  let externals = [];
+  const maybe = {};
+  let found = false;
+
+  for (var s of Array.from(symbols)) {
     if (!s.body) {
+      // Unmarked globals are definitely internal
       if (s.storage === 'global') {
         internals.push(s);
+
+      // Possible external
       } else {
         externals.push(s);
         maybe[s.ident] = true;
       }
     } else {
+      // Remove earlier forward declaration
       if (maybe[s.ident]) {
-        externals = (function() {
-          var k, len1, results;
-          results = [];
-          for (k = 0, len1 = externals.length; k < len1; k++) {
-            e = externals[k];
-            if (e.ident !== s.ident) {
-              results.push(e);
-            }
-          }
-          return results;
-        })();
+        externals = (Array.from(externals).filter((e) => e.ident !== s.ident));
         delete maybe[s.ident];
       }
+
+      // Internal function
       internals.push(s);
+
+      // Last function is main
+      // unless there is a function called 'main'
       if (s.ident === 'main') {
         main = s;
         found = true;
@@ -2610,780 +2505,246 @@ sortSymbols = function(symbols) {
       }
     }
   }
+
   return [main, internals, externals];
 };
 
-extractSignatures = function(main, internals, externals) {
-  var def, defn, func, j, k, len, len1, sigs, symbol;
-  sigs = {
-    uniform: [],
+// Generate type signatures and appropriate ins/outs
+var extractSignatures = function(main, internals, externals) {
+  let symbol;
+  const sigs = {
+    uniform:   [],
     attribute: [],
-    varying: [],
-    external: [],
-    internal: [],
-    global: [],
-    main: null
+    varying:   [],
+    external:  [],
+    internal:  [],
+    global:    [],
+    main:      null
   };
-  defn = function(symbol) {
-    return decl.type(symbol.ident, symbol.type, symbol.quant, symbol.count, symbol.inout, symbol.storage);
-  };
-  func = function(symbol, inout) {
-    var a, arg, b, d, def, inTypes, j, len, outTypes, signature, type;
-    signature = (function() {
-      var j, len, ref, results;
-      ref = symbol.args;
-      results = [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        arg = ref[j];
-        results.push(defn(arg));
+
+  const defn = symbol => decl.type(symbol.ident, symbol.type, symbol.quant, symbol.count, symbol.inout, symbol.storage);
+
+  const func = function(symbol, inout) {
+    let def;
+    let d;
+    const signature = (Array.from(symbol.args).map((arg) => defn(arg)));
+
+    // Split inouts into in and out
+    for (d of Array.from(signature)) {
+      if (d.inout === decl.inout) {
+        const a = d;
+        const b = d.copy();
+
+        a.inout  = decl.in;
+        b.inout  = decl.out;
+        b.meta   = {shadow: a.name};
+        b.name  += $.SHADOW_ARG;
+        a.meta   = {shadowed: b.name};
+
+        signature.push(b);
       }
-      return results;
-    })();
-    for (j = 0, len = signature.length; j < len; j++) {
-      d = signature[j];
-      if (!(d.inout === decl.inout)) {
-        continue;
-      }
-      a = d;
-      b = d.copy();
-      a.inout = decl["in"];
-      b.inout = decl.out;
-      b.meta = {
-        shadow: a.name
-      };
-      b.name += $.SHADOW_ARG;
-      a.meta = {
-        shadowed: b.name
-      };
-      signature.push(b);
     }
+
+    // Add output for return type
     if (symbol.type !== 'void') {
       signature.unshift(decl.type($.RETURN_ARG, symbol.type, false, '', 'out'));
     }
-    inTypes = ((function() {
-      var k, len1, results;
-      results = [];
-      for (k = 0, len1 = signature.length; k < len1; k++) {
-        d = signature[k];
-        if (d.inout === decl["in"]) {
-          results.push(d.type);
+
+    // Make type string
+    const inTypes  = ((() => {
+      const result = [];
+      for (d of Array.from(signature)) {         if (d.inout === decl.in) {
+          result.push(d.type);
+        }
+      } 
+      return result;
+    })()).join(',');
+    const outTypes = ((() => {
+      const result1 = [];
+      for (d of Array.from(signature)) {         if (d.inout === decl.out) {
+          result1.push(d.type);
         }
       }
-      return results;
+      return result1;
     })()).join(',');
-    outTypes = ((function() {
-      var k, len1, results;
-      results = [];
-      for (k = 0, len1 = signature.length; k < len1; k++) {
-        d = signature[k];
-        if (d.inout === decl.out) {
-          results.push(d.type);
-        }
-      }
-      return results;
-    })()).join(',');
-    type = "(" + inTypes + ")(" + outTypes + ")";
+    const type     = `(${inTypes})(${outTypes})`;
+
     return def = {
       name: symbol.ident,
-      type: type,
-      signature: signature,
-      inout: inout,
+      type,
+      signature,
+      inout,
       spec: symbol.type
     };
   };
+
+  // Main
   sigs.main = func(main, decl.out);
-  for (j = 0, len = internals.length; j < len; j++) {
-    symbol = internals[j];
+
+  // Internals (for name replacement only)
+  for (symbol of Array.from(internals)) {
     sigs.internal.push({
-      name: symbol.ident
-    });
+      name: symbol.ident});
   }
-  for (k = 0, len1 = externals.length; k < len1; k++) {
-    symbol = externals[k];
+
+  // Externals
+  for (symbol of Array.from(externals)) {
     switch (symbol.decl) {
+
+      // Uniforms/attributes/varyings
       case 'external':
-        def = defn(symbol);
+        var def = defn(symbol);
         sigs[symbol.storage].push(def);
         break;
+
+      // Callbacks
       case 'function':
-        def = func(symbol, decl["in"]);
+        def = func(symbol, decl.in);
         sigs.external.push(def);
+        break;
     }
   }
+
   return sigs;
 };
 
+// Walk AST, apply map and collect values
 debug = false;
 
-walk = function(map, collect, node, indent) {
-  var child, i, j, len, recurse, ref, ref1, ref2;
-  debug && console.log(indent, node.type, (ref = node.token) != null ? ref.data : void 0, (ref1 = node.token) != null ? ref1.type : void 0);
-  recurse = map(node, collect);
+var walk = function(map, collect, node, indent) {
+  debug && console.log(indent, node.type, node.token != null ? node.token.data : undefined, node.token != null ? node.token.type : undefined);
+
+  const recurse = map(node, collect);
+
   if (recurse) {
-    ref2 = node.children;
-    for (i = j = 0, len = ref2.length; j < len; i = ++j) {
-      child = ref2[i];
-      walk(map, collect, child, indent + '  ', debug);
-    }
+    for (let i = 0; i < node.children.length; i++) { const child = node.children[i]; walk(map, collect, child, indent + '  ', debug); }
   }
+
   return null;
 };
 
-tick = function() {
-  var now;
-  now = +(new Date);
+// #####
+
+var tick = function() {
+  const now = +new Date;
   return function(label) {
-    var delta;
-    delta = +new Date() - now;
+    const delta = +new Date() - now;
     console.log(label, delta + " ms");
     return delta;
   };
 };
 
-module.exports = walk;
 
+module.exports = walk;
 module.exports = parse;
 
 
-
 },{"../../vendor/glsl-parser":39,"../../vendor/glsl-tokenizer":43,"./constants":19,"./decl":20}],24:[function(require,module,exports){
-
+arguments[4][1][0].apply(exports,arguments)
+},{"dup":1}],25:[function(require,module,exports){
+arguments[4][2][0].apply(exports,arguments)
+},{"./graph":24,"./node":26,"./outlet":27,"dup":2}],26:[function(require,module,exports){
+arguments[4][3][0].apply(exports,arguments)
+},{"./graph":24,"./outlet":27,"dup":3}],27:[function(require,module,exports){
+arguments[4][4][0].apply(exports,arguments)
+},{"./graph":24,"dup":4}],28:[function(require,module,exports){
 /*
-  Graph of nodes with outlets
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS206: Consider reworking classes to avoid initClass
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-var Graph;
-
-Graph = (function() {
-  Graph.index = 0;
-
-  Graph.id = function(name) {
-    return ++Graph.index;
-  };
-
-  Graph.IN = 0;
-
-  Graph.OUT = 1;
-
-  function Graph(nodes, parent) {
-    this.parent = parent != null ? parent : null;
-    this.id = Graph.id();
-    this.nodes = [];
-    nodes && this.add(nodes);
-  }
-
-  Graph.prototype.inputs = function() {
-    var i, inputs, j, len, len1, node, outlet, ref, ref1;
-    inputs = [];
-    ref = this.nodes;
-    for (i = 0, len = ref.length; i < len; i++) {
-      node = ref[i];
-      ref1 = node.inputs;
-      for (j = 0, len1 = ref1.length; j < len1; j++) {
-        outlet = ref1[j];
-        if (outlet.input === null) {
-          inputs.push(outlet);
-        }
-      }
-    }
-    return inputs;
-  };
-
-  Graph.prototype.outputs = function() {
-    var i, j, len, len1, node, outlet, outputs, ref, ref1;
-    outputs = [];
-    ref = this.nodes;
-    for (i = 0, len = ref.length; i < len; i++) {
-      node = ref[i];
-      ref1 = node.outputs;
-      for (j = 0, len1 = ref1.length; j < len1; j++) {
-        outlet = ref1[j];
-        if (outlet.output.length === 0) {
-          outputs.push(outlet);
-        }
-      }
-    }
-    return outputs;
-  };
-
-  Graph.prototype.getIn = function(name) {
-    var outlet;
-    return ((function() {
-      var i, len, ref, results;
-      ref = this.inputs();
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        outlet = ref[i];
-        if (outlet.name === name) {
-          results.push(outlet);
-        }
-      }
-      return results;
-    }).call(this))[0];
-  };
-
-  Graph.prototype.getOut = function(name) {
-    var outlet;
-    return ((function() {
-      var i, len, ref, results;
-      ref = this.outputs();
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        outlet = ref[i];
-        if (outlet.name === name) {
-          results.push(outlet);
-        }
-      }
-      return results;
-    }).call(this))[0];
-  };
-
-  Graph.prototype.add = function(node, ignore) {
-    var _node, i, len;
-    if (node.length) {
-      for (i = 0, len = node.length; i < len; i++) {
-        _node = node[i];
-        this.add(_node);
-      }
-      return;
-    }
-    if (node.graph && !ignore) {
-      throw new Error("Adding node to two graphs at once");
-    }
-    node.graph = this;
-    return this.nodes.push(node);
-  };
-
-  Graph.prototype.remove = function(node, ignore) {
-    var _node, i, len;
-    if (node.length) {
-      for (i = 0, len = node.length; i < len; i++) {
-        _node = node[i];
-        this.remove(_node);
-      }
-      return;
-    }
-    if (node.graph !== this) {
-      throw new Error("Removing node from wrong graph.");
-    }
-    ignore || node.disconnect();
-    this.nodes.splice(this.nodes.indexOf(node), 1);
-    return node.graph = null;
-  };
-
-  Graph.prototype.adopt = function(node) {
-    var _node, i, len;
-    if (node.length) {
-      for (i = 0, len = node.length; i < len; i++) {
-        _node = node[i];
-        this.adopt(_node);
-      }
-      return;
-    }
-    node.graph.remove(node, true);
-    return this.add(node, true);
-  };
-
-  return Graph;
-
-})();
-
-module.exports = Graph;
-
-
-
-},{}],25:[function(require,module,exports){
-exports.Graph = require('./graph');
-
-exports.Node = require('./node');
-
-exports.Outlet = require('./outlet');
-
-exports.IN = exports.Graph.IN;
-
-exports.OUT = exports.Graph.OUT;
-
-
-
-},{"./graph":24,"./node":26,"./outlet":27}],26:[function(require,module,exports){
-var Graph, Node, Outlet;
-
-Graph = require('./graph');
-
-Outlet = require('./outlet');
-
-
-/*
- Node in graph.
- */
-
-Node = (function() {
-  Node.index = 0;
-
-  Node.id = function(name) {
-    return ++Node.index;
-  };
-
-  function Node(owner, outlets) {
-    this.owner = owner;
-    this.graph = null;
-    this.inputs = [];
-    this.outputs = [];
-    this.all = [];
-    this.outlets = null;
-    this.id = Node.id();
-    this.setOutlets(outlets);
-  }
-
-  Node.prototype.getIn = function(name) {
-    var outlet;
-    return ((function() {
-      var i, len, ref, results;
-      ref = this.inputs;
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        outlet = ref[i];
-        if (outlet.name === name) {
-          results.push(outlet);
-        }
-      }
-      return results;
-    }).call(this))[0];
-  };
-
-  Node.prototype.getOut = function(name) {
-    var outlet;
-    return ((function() {
-      var i, len, ref, results;
-      ref = this.outputs;
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        outlet = ref[i];
-        if (outlet.name === name) {
-          results.push(outlet);
-        }
-      }
-      return results;
-    }).call(this))[0];
-  };
-
-  Node.prototype.get = function(name) {
-    return this.getIn(name) || this.getOut(name);
-  };
-
-  Node.prototype.setOutlets = function(outlets) {
-    var existing, hash, i, j, k, key, len, len1, len2, match, outlet, ref;
-    if (outlets != null) {
-      if (this.outlets == null) {
-        this.outlets = {};
-        for (i = 0, len = outlets.length; i < len; i++) {
-          outlet = outlets[i];
-          if (!(outlet instanceof Outlet)) {
-            outlet = Outlet.make(outlet);
-          }
-          this._add(outlet);
-        }
-        return;
-      }
-      hash = function(outlet) {
-        return [outlet.name, outlet.inout, outlet.type].join('-');
-      };
-      match = {};
-      for (j = 0, len1 = outlets.length; j < len1; j++) {
-        outlet = outlets[j];
-        match[hash(outlet)] = true;
-      }
-      ref = this.outlets;
-      for (key in ref) {
-        outlet = ref[key];
-        key = hash(outlet);
-        if (match[key]) {
-          match[key] = outlet;
-        } else {
-          this._remove(outlet);
-        }
-      }
-      for (k = 0, len2 = outlets.length; k < len2; k++) {
-        outlet = outlets[k];
-        existing = match[hash(outlet)];
-        if (existing instanceof Outlet) {
-          this._morph(existing, outlet);
-        } else {
-          if (!(outlet instanceof Outlet)) {
-            outlet = Outlet.make(outlet);
-          }
-          this._add(outlet);
-        }
-      }
-      this;
-    }
-    return this.outlets;
-  };
-
-  Node.prototype.connect = function(node, empty, force) {
-    var dest, dests, hint, hints, i, j, k, len, len1, len2, list, outlets, ref, ref1, ref2, source, sources, type, typeHint;
-    outlets = {};
-    hints = {};
-    typeHint = function(outlet) {
-      return type + '/' + outlet.hint;
-    };
-    ref = node.inputs;
-    for (i = 0, len = ref.length; i < len; i++) {
-      dest = ref[i];
-      if (!force && dest.input) {
-        continue;
-      }
-      type = dest.type;
-      hint = typeHint(dest);
-      if (!hints[hint]) {
-        hints[hint] = dest;
-      }
-      outlets[type] = list = outlets[type] || [];
-      list.push(dest);
-    }
-    sources = this.outputs;
-    sources = sources.filter(function(outlet) {
-      return !(empty && outlet.output.length);
-    });
-    ref1 = sources.slice();
-    for (j = 0, len1 = ref1.length; j < len1; j++) {
-      source = ref1[j];
-      type = source.type;
-      hint = typeHint(source);
-      dests = outlets[type];
-      if (dest = hints[hint]) {
-        source.connect(dest);
-        delete hints[hint];
-        dests.splice(dests.indexOf(dest), 1);
-        sources.splice(sources.indexOf(source), 1);
-      }
-    }
-    if (!sources.length) {
-      return this;
-    }
-    ref2 = sources.slice();
-    for (k = 0, len2 = ref2.length; k < len2; k++) {
-      source = ref2[k];
-      type = source.type;
-      dests = outlets[type];
-      if (dests && dests.length) {
-        source.connect(dests.shift());
-      }
-    }
-    return this;
-  };
-
-  Node.prototype.disconnect = function(node) {
-    var i, j, len, len1, outlet, ref, ref1;
-    ref = this.inputs;
-    for (i = 0, len = ref.length; i < len; i++) {
-      outlet = ref[i];
-      outlet.disconnect();
-    }
-    ref1 = this.outputs;
-    for (j = 0, len1 = ref1.length; j < len1; j++) {
-      outlet = ref1[j];
-      outlet.disconnect();
-    }
-    return this;
-  };
-
-  Node.prototype._key = function(outlet) {
-    return [outlet.name, outlet.inout].join('-');
-  };
-
-  Node.prototype._add = function(outlet) {
-    var key;
-    key = this._key(outlet);
-    if (outlet.node) {
-      throw new Error("Adding outlet to two nodes at once.");
-    }
-    if (this.outlets[key]) {
-      throw new Error("Adding two identical outlets to same node. (" + key + ")");
-    }
-    outlet.node = this;
-    if (outlet.inout === Graph.IN) {
-      this.inputs.push(outlet);
-    }
-    if (outlet.inout === Graph.OUT) {
-      this.outputs.push(outlet);
-    }
-    this.all.push(outlet);
-    return this.outlets[key] = outlet;
-  };
-
-  Node.prototype._morph = function(existing, outlet) {
-    var key;
-    key = this._key(outlet);
-    delete this.outlets[key];
-    existing.morph(outlet);
-    key = this._key(outlet);
-    return this.outlets[key] = outlet;
-  };
-
-  Node.prototype._remove = function(outlet) {
-    var inout, key;
-    key = this._key(outlet);
-    inout = outlet.inout;
-    if (outlet.node !== this) {
-      throw new Error("Removing outlet from wrong node.");
-    }
-    outlet.disconnect();
-    outlet.node = null;
-    delete this.outlets[key];
-    if (outlet.inout === Graph.IN) {
-      this.inputs.splice(this.inputs.indexOf(outlet), 1);
-    }
-    if (outlet.inout === Graph.OUT) {
-      this.outputs.splice(this.outputs.indexOf(outlet), 1);
-    }
-    this.all.splice(this.all.indexOf(outlet), 1);
-    return this;
-  };
-
-  return Node;
-
-})();
-
-module.exports = Node;
-
-
-
-},{"./graph":24,"./outlet":27}],27:[function(require,module,exports){
-var Graph, Outlet;
-
-Graph = require('./graph');
-
-
-/*
-  In/out outlet on node
- */
-
-Outlet = (function() {
-  Outlet.make = function(outlet, extra) {
-    var key, meta, ref, value;
-    if (extra == null) {
-      extra = {};
-    }
-    meta = extra;
-    if (outlet.meta != null) {
-      ref = outlet.meta;
-      for (key in ref) {
-        value = ref[key];
-        meta[key] = value;
-      }
-    }
-    return new Outlet(outlet.inout, outlet.name, outlet.hint, outlet.type, meta);
-  };
-
-  Outlet.index = 0;
-
-  Outlet.id = function(name) {
-    return "_io_" + (++Outlet.index) + "_" + name;
-  };
-
-  Outlet.hint = function(name) {
-    name = name.replace(/^_io_[0-9]+_/, '');
-    name = name.replace(/_i_o$/, '');
-    return name = name.replace(/(In|Out|Inout|InOut)$/, '');
-  };
-
-  function Outlet(inout, name1, hint, type, meta1, id) {
-    this.inout = inout;
-    this.name = name1;
-    this.hint = hint;
-    this.type = type;
-    this.meta = meta1 != null ? meta1 : {};
-    this.id = id;
-    if (this.hint == null) {
-      this.hint = Outlet.hint(this.name);
-    }
-    this.node = null;
-    this.input = null;
-    this.output = [];
-    if (this.id == null) {
-      this.id = Outlet.id(this.hint);
-    }
-  }
-
-  Outlet.prototype.morph = function(outlet) {
-    this.inout = outlet.inout;
-    this.name = outlet.name;
-    this.hint = outlet.hint;
-    this.type = outlet.type;
-    return this.meta = outlet.meta;
-  };
-
-  Outlet.prototype.dupe = function(name) {
-    var outlet;
-    if (name == null) {
-      name = this.id;
-    }
-    outlet = Outlet.make(this);
-    outlet.name = name;
-    return outlet;
-  };
-
-  Outlet.prototype.connect = function(outlet) {
-    if (this.inout === Graph.IN && outlet.inout === Graph.OUT) {
-      return outlet.connect(this);
-    }
-    if (this.inout !== Graph.OUT || outlet.inout !== Graph.IN) {
-      throw new Error("Can only connect out to in.");
-    }
-    if (outlet.input === this) {
-      return;
-    }
-    outlet.disconnect();
-    outlet.input = this;
-    return this.output.push(outlet);
-  };
-
-  Outlet.prototype.disconnect = function(outlet) {
-    var i, index, len, ref;
-    if (this.input) {
-      this.input.disconnect(this);
-    }
-    if (this.output.length) {
-      if (outlet) {
-        index = this.output.indexOf(outlet);
-        if (index >= 0) {
-          this.output.splice(index, 1);
-          return outlet.input = null;
-        }
-      } else {
-        ref = this.output;
-        for (i = 0, len = ref.length; i < len; i++) {
-          outlet = ref[i];
-          outlet.input = null;
-        }
-        return this.output = [];
-      }
-    }
-  };
-
-  return Outlet;
-
-})();
-
-module.exports = Outlet;
-
-
-
-},{"./graph":24}],28:[function(require,module,exports){
-var Block, Factory, GLSL, Graph, Linker, ShaderGraph, Snippet, Visualize, cache, inspect, library, merge, visualize;
-
-Block = require('./block');
-
-Factory = require('./factory');
-
-GLSL = require('./glsl');
-
-Graph = require('./graph');
-
-Linker = require('./linker');
-
-Visualize = require('./visualize');
-
-library = Factory.library;
-
-cache = Factory.cache;
-
-visualize = Visualize.visualize;
-
-inspect = Visualize.inspect;
-
-Snippet = Linker.Snippet;
-
-merge = function(a, b) {
-  var key, out, ref, value;
-  if (b == null) {
-    b = {};
-  }
-  out = {};
-  for (key in a) {
-    value = a[key];
-    out[key] = (ref = b[key]) != null ? ref : a[key];
-  }
+const Block     = require('./block');
+const Factory   = require('./factory');
+const GLSL      = require('./glsl');
+const Graph     = require('./graph');
+const Linker    = require('./linker');
+const Visualize = require('./visualize');
+
+const {
+  library
+} = Factory;
+const {
+  cache
+} = Factory;
+const {
+  visualize
+} = Visualize;
+const {
+  inspect
+} = Visualize;
+
+const {
+  Snippet
+} = Linker;
+
+const merge = function(a, b) {
+  if (b == null) { b = {}; }
+  const out = {};
+  for (let key in a) { const value = a[key]; out[key] = b[key] != null ? b[key] : a[key]; }
   return out;
 };
 
-ShaderGraph = (function() {
-  function ShaderGraph(snippets, config) {
-    var defaults;
-    if (!(this instanceof ShaderGraph)) {
-      return new ShaderGraph(snippets, config);
-    }
-    defaults = {
-      globalUniforms: false,
-      globalVaryings: true,
+class ShaderGraph {
+  static initClass() {
+  
+    // Expose class hierarchy
+    this.Block =     Block;
+    this.Factory =   Factory;
+    this.GLSL =      GLSL;
+    this.Graph =     Graph;
+    this.Linker =    Linker;
+    this.Visualize = Visualize;
+  }
+  constructor(snippets, config) {
+    if (!(this instanceof ShaderGraph)) { return new ShaderGraph(snippets, config); }
+
+    const defaults = {
+      globalUniforms:   false,
+      globalVaryings:   true,
       globalAttributes: true,
-      globals: [],
-      autoInspect: false
+      globals:          [],
+      autoInspect:      false
     };
+
     this.config = merge(defaults, config);
-    this.fetch = cache(library(GLSL, snippets, Snippet.load));
+    this.fetch  = cache(library(GLSL, snippets, Snippet.load));
   }
 
-  ShaderGraph.prototype.shader = function(config) {
-    var _config;
-    if (config == null) {
-      config = {};
-    }
-    _config = merge(this.config, config);
+  shader(config) {
+    if (config == null) { config = {}; }
+    const _config = merge(this.config, config);
     return new Factory.Factory(GLSL, this.fetch, _config);
-  };
+  }
 
-  ShaderGraph.prototype.material = function(config) {
+  material(config) {
     return new Factory.Material(this.shader(config), this.shader(config));
-  };
+  }
 
-  ShaderGraph.prototype.inspect = function(shader) {
-    return ShaderGraph.inspect(shader);
-  };
+  inspect(shader) { return ShaderGraph.inspect(shader); }
+  visualize(shader) { return ShaderGraph.visualize(shader); }
 
-  ShaderGraph.prototype.visualize = function(shader) {
-    return ShaderGraph.visualize(shader);
-  };
-
-  ShaderGraph.Block = Block;
-
-  ShaderGraph.Factory = Factory;
-
-  ShaderGraph.GLSL = GLSL;
-
-  ShaderGraph.Graph = Graph;
-
-  ShaderGraph.Linker = Linker;
-
-  ShaderGraph.Visualize = Visualize;
-
-  ShaderGraph.inspect = function(shader) {
-    return inspect(shader);
-  };
-
-  ShaderGraph.visualize = function(shader) {
-    return visualize(shader);
-  };
-
-  return ShaderGraph;
-
-})();
+  // Static visualization method
+  static inspect(shader) { return inspect(shader); }
+  static visualize(shader) { return visualize(shader); }
+}
+ShaderGraph.initClass();
 
 module.exports = ShaderGraph;
-
-if (typeof window !== 'undefined') {
-  window.ShaderGraph = ShaderGraph;
-}
-
-
+if (typeof window !== 'undefined') { window.ShaderGraph = ShaderGraph; }
 
 },{"./block":8,"./factory":14,"./glsl":22,"./graph":25,"./linker":30,"./visualize":36}],29:[function(require,module,exports){
-var Graph, Priority, assemble;
-
-Graph = require('../graph');
-
-Priority = require('./priority');
-
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS205: Consider reworking code to avoid use of IIFEs
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Graph      = require('../graph');
+const Priority   = require('./priority');
 
 /*
   Program assembler
@@ -3391,208 +2752,194 @@ Priority = require('./priority');
   Builds composite program that can act as new module/snippet
   Unconnected input/outputs and undefined callbacks are exposed in the new global/main scope
   If there is only one call with an identical call signature, a #define is output instead.
- */
+*/
+const assemble = function(language, namespace, calls, requires) {
 
-assemble = function(language, namespace, calls, requires) {
-  var adopt, attributes, externals, generate, handle, include, isDangling, library, lookup, process, required, symbols, uniforms, varyings;
-  generate = language.generate;
-  externals = {};
-  symbols = [];
-  uniforms = {};
-  varyings = {};
-  attributes = {};
-  library = {};
-  process = function() {
-    var body, code, includes, lib, main, ns, r, ref, sorted;
-    for (ns in requires) {
-      r = requires[ns];
-      required(r.node, r.module);
-    }
-    ref = handle(calls), body = ref[0], calls = ref[1];
-    if (namespace != null) {
-      body.entry = namespace;
-    }
-    main = generate.build(body, calls);
-    sorted = ((function() {
-      var results;
-      results = [];
+  const {
+    generate
+  } = language;
+
+  const externals  = {};
+  const symbols    = [];
+  const uniforms   = {};
+  const varyings   = {};
+  const attributes = {};
+  const library    = {};
+
+  const process = function() {
+
+    let body;
+    let ns;
+    for (ns in requires) { const r = requires[ns]; required(r.node, r.module); }
+
+    [body, calls] = Array.from(handle(calls));
+    if (namespace != null) { body.entry    = namespace; }
+    const main          = generate.build(body, calls);
+
+    const sorted   = ((() => {
+      const result = [];
       for (ns in library) {
-        lib = library[ns];
-        results.push(lib);
+        const lib = library[ns];
+        result.push(lib);
       }
-      return results;
-    })()).sort(function(a, b) {
-      return Priority.compare(a.priority, b.priority);
-    });
-    includes = sorted.map(function(x) {
-      return x.code;
-    });
+      return result;
+    })()).sort((a, b) => Priority.compare(a.priority, b.priority));
+    const includes = sorted.map(x => x.code);
     includes.push(main.code);
-    code = generate.lines(includes);
+    const code = generate.lines(includes);
+
+    // Build new virtual snippet
     return {
-      namespace: main.name,
-      library: library,
-      body: main.code,
-      code: code,
-      main: main,
-      entry: main.name,
-      symbols: symbols,
-      externals: externals,
-      uniforms: uniforms,
-      varyings: varyings,
-      attributes: attributes
+      namespace:   main.name,
+      library,     // Included library functions
+      body:        main.code,   // Snippet body
+      code,        // Complete snippet (tests/debug)
+      main,        // Function signature
+      entry:       main.name,   // Entry point name
+      symbols,
+      externals,
+      uniforms,
+      varyings,
+      attributes
     };
   };
-  handle = (function(_this) {
-    return function(calls) {
-      var body, c, call, i, len, ns;
-      calls = (function() {
-        var results;
-        results = [];
-        for (ns in calls) {
-          c = calls[ns];
-          results.push(c);
-        }
-        return results;
-      })();
-      calls.sort(function(a, b) {
-        return b.priority - a.priority;
-      });
-      call = function(node, module, priority) {
-        var _dangling, _lookup, entry, main;
-        include(node, module, priority);
-        main = module.main;
-        entry = module.entry;
-        _lookup = function(name) {
-          return lookup(node, name);
-        };
-        _dangling = function(name) {
-          return isDangling(node, name);
-        };
-        return generate.call(_lookup, _dangling, entry, main.signature, body);
-      };
-      body = generate.body();
-      for (i = 0, len = calls.length; i < len; i++) {
-        c = calls[i];
-        call(c.node, c.module, c.priority);
+
+  // Sort and process calls
+  var handle = calls => {
+
+    let c;
+    calls = ((() => {
+      const result = [];
+      for (let ns in calls) {
+        c = calls[ns];
+        result.push(c);
       }
-      return [body, calls];
+      return result;
+    })());
+    calls.sort((a, b) => b.priority - a.priority);
+
+    // Call module in DAG chain
+    const call = (node, module, priority) => {
+      include(node, module, priority);
+      const {
+        main
+      } = module;
+      const {
+        entry
+      } = module;
+
+      const _lookup   = name => lookup(node, name);
+      const _dangling = name => isDangling(node, name);
+      return generate.call(_lookup, _dangling, entry, main.signature, body);
     };
-  })(this);
-  adopt = function(namespace, code, priority) {
-    var record;
-    record = library[namespace];
+
+    var body = generate.body();
+    for (c of Array.from(calls)) { call(c.node, c.module, c.priority); }
+
+    return [body, calls];
+  };
+
+  // Adopt given code as a library at given priority
+  const adopt = function(namespace, code, priority) {
+    const record = library[namespace];
     if (record != null) {
       return record.priority = Priority.max(record.priority, priority);
     } else {
-      return library[namespace] = {
-        code: code,
-        priority: priority
-      };
+      return library[namespace] = {code, priority};
     }
   };
-  include = function(node, module, priority) {
-    var def, key, lib, ns, ref, ref1, ref2, ref3;
+
+  // Include snippet for a call
+  var include = function(node, module, priority) {
+    let def, key;
     priority = Priority.make(priority);
-    ref = module.library;
-    for (ns in ref) {
-      lib = ref[ns];
-      adopt(ns, lib.code, Priority.nest(priority, lib.priority));
-    }
+
+    // Adopt snippet's libraries
+    for (let ns in module.library) { const lib = module.library[ns]; adopt(ns, lib.code, Priority.nest(priority, lib.priority)); }
+
+    // Adopt snippet body as library
     adopt(module.namespace, module.body, priority);
-    ref1 = module.uniforms;
-    for (key in ref1) {
-      def = ref1[key];
-      uniforms[key] = def;
-    }
-    ref2 = module.varyings;
-    for (key in ref2) {
-      def = ref2[key];
-      varyings[key] = def;
-    }
-    ref3 = module.attributes;
-    for (key in ref3) {
-      def = ref3[key];
-      attributes[key] = def;
-    }
+
+    // Adopt GL vars
+    for (key in module.uniforms) { def = module.uniforms[key]; uniforms[key]   = def; }
+    for (key in module.varyings) { def = module.varyings[key]; varyings[key]   = def; }
+    for (key in module.attributes) { def = module.attributes[key]; attributes[key] = def; }
+
     return required(node, module);
   };
-  required = function(node, module) {
-    var copy, ext, i, k, key, len, ref, results, v;
-    ref = module.symbols;
-    results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      key = ref[i];
-      ext = module.externals[key];
+
+  var required = (node, module) => // Adopt external symbols
+  (() => {
+    const result = [];
+    for (let key of Array.from(module.symbols)) {
+      const ext = module.externals[key];
       if (isDangling(node, ext.name)) {
-        copy = {};
-        for (k in ext) {
-          v = ext[k];
-          copy[k] = v;
-        }
+        const copy = {};
+        for (let k in ext) { const v = ext[k]; copy[k] = v; }
         copy.name = lookup(node, ext.name);
         externals[key] = copy;
-        results.push(symbols.push(key));
+        result.push(symbols.push(key));
       } else {
-        results.push(void 0);
+        result.push(undefined);
       }
     }
-    return results;
-  };
-  isDangling = function(node, name) {
-    var outlet;
-    outlet = node.get(name);
+    return result;
+  })();
+
+  // Check for dangling input/output
+  var isDangling = function(node, name) {
+    const outlet = node.get(name);
+
     if (outlet.inout === Graph.IN) {
       return outlet.input === null;
+
     } else if (outlet.inout === Graph.OUT) {
       return outlet.output.length === 0;
     }
   };
-  lookup = function(node, name) {
-    var outlet;
-    outlet = node.get(name);
-    if (!outlet) {
-      return null;
-    }
-    if (outlet.input) {
-      outlet = outlet.input;
-    }
-    name = outlet.name;
+
+  // Look up unique name for outlet
+  var lookup = function(node, name) {
+
+    // Traverse graph edge
+    let outlet = node.get(name);
+    if (!outlet) { return null; }
+
+    if (outlet.input) { outlet = outlet.input; }
+    ({
+      name
+    } = outlet);
+
     return outlet.id;
   };
+
   return process();
 };
 
 module.exports = assemble;
 
 
-
 },{"../graph":25,"./priority":33}],30:[function(require,module,exports){
-exports.Snippet = require('./snippet');
-
-exports.Program = require('./program');
-
-exports.Layout = require('./layout');
-
+exports.Snippet  = require('./snippet');
+exports.Program  = require('./program');
+exports.Layout   = require('./layout');
 exports.assemble = require('./assemble');
-
-exports.link = require('./link');
-
+exports.link     = require('./link');
 exports.priority = require('./priority');
 
 exports.load = exports.Snippet.load;
 
-
-
 },{"./assemble":29,"./layout":31,"./link":32,"./priority":33,"./program":34,"./snippet":35}],31:[function(require,module,exports){
-var Layout, Snippet, debug, link;
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Snippet  = require('./snippet');
+const link     = require('./link');
 
-Snippet = require('./snippet');
-
-link = require('./link');
-
-debug = false;
-
+const debug = false;
 
 /*
   Program linkage layout
@@ -3600,76 +2947,65 @@ debug = false;
   Entry points are added to its dependency graph
   Callbacks are linked either with a go-between function
   or a #define if the signatures are identical.
- */
+*/
+class Layout {
 
-Layout = (function() {
-  function Layout(language, graph) {
+  constructor(language, graph) {
     this.language = language;
     this.graph = graph;
-    this.links = [];
+    this.links    = [];
     this.includes = [];
-    this.modules = {};
-    this.visits = {};
+    this.modules  = {};
+    this.visits   = {};
   }
 
-  Layout.prototype.callback = function(node, module, priority, name, external) {
-    return this.links.push({
-      node: node,
-      module: module,
-      priority: priority,
-      name: name,
-      external: external
-    });
-  };
+  // Link up a given named external to this module's entry point
+  callback(node, module, priority, name, external) {
+    return this.links.push({node, module, priority, name, external});
+  }
 
-  Layout.prototype.include = function(node, module, priority) {
-    var m;
+  // Include this module of code
+  include(node, module, priority) {
+    let m;
     if ((m = this.modules[module.namespace]) != null) {
       return m.priority = Math.max(priority, m.priority);
     } else {
       this.modules[module.namespace] = true;
-      return this.includes.push({
-        node: node,
-        module: module,
-        priority: priority
-      });
+      return this.includes.push({node, module, priority});
     }
-  };
+  }
 
-  Layout.prototype.visit = function(namespace) {
+  // Visit each namespace at most once to avoid infinite recursion
+  visit(namespace) {
     debug && console.log('Visit', namespace, !this.visits[namespace]);
-    if (this.visits[namespace]) {
-      return false;
-    }
+    if (this.visits[namespace]) { return false; }
     return this.visits[namespace] = true;
-  };
+  }
 
-  Layout.prototype.link = function(module) {
-    var data, key, snippet;
-    data = link(this.language, this.links, this.includes, module);
-    snippet = new Snippet;
-    for (key in data) {
-      snippet[key] = data[key];
-    }
+  // Compile queued ops into result
+  link(module) {
+    const data          = link(this.language, this.links, this.includes, module);
+    const snippet       = new Snippet;
+    for (let key in data) { snippet[key]  = data[key]; }
     snippet.graph = this.graph;
     return snippet;
-  };
+  }
+}
 
-  return Layout;
-
-})();
 
 module.exports = Layout;
 
-
-
 },{"./link":32,"./snippet":35}],32:[function(require,module,exports){
-var Graph, Priority, link;
-
-Graph = require('../graph');
-
-Priority = require('./priority');
-
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS205: Consider reworking code to avoid use of IIFEs
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Graph      = require('../graph');
+const Priority   = require('./priority');
 
 /*
  Callback linker
@@ -3677,157 +3013,145 @@ Priority = require('./priority');
  Imports given modules and generates linkages for registered callbacks.
 
  Builds composite program with single module as exported entry point
- */
+*/
 
-link = function(language, links, modules, exported) {
-  var adopt, attributes, externals, generate, include, includes, isDangling, library, process, symbols, uniforms, varyings;
-  generate = language.generate;
-  includes = [];
-  symbols = [];
-  externals = {};
-  uniforms = {};
-  attributes = {};
-  varyings = {};
-  library = {};
-  process = function() {
-    var code, e, exports, header, i, len, lib, m, ns, sorted;
-    exports = generate.links(links);
-    header = [];
-    if (exports.defs != null) {
-      header.push(exports.defs);
-    }
-    if (exports.bodies != null) {
-      header.push(exports.bodies);
-    }
-    for (i = 0, len = modules.length; i < len; i++) {
-      m = modules[i];
-      include(m.node, m.module, m.priority);
-    }
-    sorted = ((function() {
-      var results;
-      results = [];
-      for (ns in library) {
-        lib = library[ns];
-        results.push(lib);
+const link = function(language, links, modules, exported) {
+
+  const {
+    generate
+  } = language;
+  let includes   = [];
+
+  const symbols    = [];
+  const externals  = {};
+  const uniforms   = {};
+  const attributes = {};
+  const varyings   = {};
+  const library    = {};
+
+  const process = function() {
+
+    const exports = generate.links(links);
+
+    const header = [];
+    if (exports.defs != null) { header.push(exports.defs); }
+    if (exports.bodies != null) { header.push(exports.bodies); }
+
+    for (let m of Array.from(modules)) { include(m.node, m.module, m.priority); }
+    const sorted   = ((() => {
+      const result = [];
+      for (let ns in library) {
+        const lib = library[ns];
+        result.push(lib);
       }
-      return results;
-    })()).sort(function(a, b) {
-      return Priority.compare(a.priority, b.priority);
-    });
-    includes = sorted.map(function(x) {
-      return x.code;
-    });
-    code = generate.lines(includes);
-    code = generate.defuse(code);
-    if (header.length) {
-      code = [generate.lines(header), code].join("\n");
-    }
-    code = generate.hoist(code);
-    code = generate.dedupe(code);
-    e = exported;
+      return result;
+    })()).sort((a, b) => Priority.compare(a.priority, b.priority));
+    includes = sorted.map(x => x.code);
+
+    let code =  generate.lines(includes);
+    code =  generate.defuse(code);
+    if (header.length) { code = [generate.lines(header), code].join("\n"); }
+    code =  generate.hoist(code);
+    code =  generate.dedupe(code);
+
+    // Export module's externals
+    const e = exported;
     return {
-      namespace: e.main.name,
-      code: code,
-      main: e.main,
-      entry: e.main.name,
-      externals: externals,
-      uniforms: uniforms,
-      attributes: attributes,
-      varyings: varyings
+      namespace:   e.main.name,
+      code,          // Complete snippet (tests/debug)
+      main:        e.main,        // Function signature
+      entry:       e.main.name,   // Entry point name
+      externals,
+      uniforms,
+      attributes,
+      varyings
     };
   };
-  adopt = function(namespace, code, priority) {
-    var record;
-    record = library[namespace];
+
+  // Adopt given code as a library at given priority
+  const adopt = function(namespace, code, priority) {
+    const record = library[namespace];
     if (record != null) {
       return record.priority = Priority.max(record.priority, priority);
     } else {
-      return library[namespace] = {
-        code: code,
-        priority: priority
-      };
+      return library[namespace] = {code, priority};
     }
   };
-  include = function(node, module, priority) {
-    var def, ext, i, key, len, lib, ns, ref, ref1, ref2, ref3, ref4, results;
+
+  // Include piece of code
+  var include = function(node, module, priority) {
+    let def, key;
     priority = Priority.make(priority);
-    ref = module.library;
-    for (ns in ref) {
-      lib = ref[ns];
-      adopt(ns, lib.code, Priority.nest(priority, lib.priority));
-    }
+
+    // Adopt snippet's libraries
+    for (let ns in module.library) { const lib = module.library[ns]; adopt(ns, lib.code, Priority.nest(priority, lib.priority)); }
+
+    // Adopt snippet body as library
     adopt(module.namespace, module.body, priority);
-    ref1 = module.uniforms;
-    for (key in ref1) {
-      def = ref1[key];
-      uniforms[key] = def;
-    }
-    ref2 = module.varyings;
-    for (key in ref2) {
-      def = ref2[key];
-      varyings[key] = def;
-    }
-    ref3 = module.attributes;
-    for (key in ref3) {
-      def = ref3[key];
-      attributes[key] = def;
-    }
-    ref4 = module.symbols;
-    results = [];
-    for (i = 0, len = ref4.length; i < len; i++) {
-      key = ref4[i];
-      ext = module.externals[key];
-      if (isDangling(node, ext.name)) {
-        externals[key] = ext;
-        results.push(symbols.push(key));
-      } else {
-        results.push(void 0);
+
+    // Adopt externals
+    for (key in module.uniforms) { def = module.uniforms[key]; uniforms[key]   = def; }
+    for (key in module.varyings) { def = module.varyings[key]; varyings[key]   = def; }
+    for (key in module.attributes) { def = module.attributes[key]; attributes[key] = def; }
+
+    return (() => {
+      const result = [];
+      for (key of Array.from(module.symbols)) {
+        const ext = module.externals[key];
+        if (isDangling(node, ext.name)) {
+          externals[key] = ext;
+          result.push(symbols.push(key));
+        } else {
+          result.push(undefined);
+        }
       }
-    }
-    return results;
+      return result;
+    })();
   };
-  isDangling = function(node, name) {
-    var module, outlet, ref, ref1;
-    outlet = node.get(name);
+
+  // Check for dangling input/output
+  var isDangling = function(node, name) {
+    const outlet = node.get(name);
+
     if (!outlet) {
-      module = (ref = (ref1 = node.owner.snippet) != null ? ref1._name : void 0) != null ? ref : node.owner.namespace;
-      throw new Error("Unable to link program. Unlinked callback `" + name + "` on `" + module + "`");
+      const module = (node.owner.snippet != null ? node.owner.snippet._name : undefined) != null ? (node.owner.snippet != null ? node.owner.snippet._name : undefined) : node.owner.namespace;
+      throw new Error(`Unable to link program. Unlinked callback \`${name}\` on \`${module}\``);
     }
+
     if (outlet.inout === Graph.IN) {
       return outlet.input === null;
+
     } else if (outlet.inout === Graph.OUT) {
       return outlet.output.length === 0;
     }
   };
+
   return process();
 };
 
+
 module.exports = link;
-
-
-
 },{"../graph":25,"./priority":33}],33:[function(require,module,exports){
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS202: Simplify dynamic range loops
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
 exports.make = function(x) {
-  var ref;
-  if (x == null) {
-    x = [];
-  }
-  if (!(x instanceof Array)) {
-    x = [(ref = +x) != null ? ref : 0];
-  }
+  if ((x == null)) { x = []; }
+  if (!(x instanceof Array)) { x = [+x != null ? +x : 0]; }
   return x;
 };
 
-exports.nest = function(a, b) {
-  return a.concat(b);
-};
+exports.nest = (a, b) => a.concat(b);
 
 exports.compare = function(a, b) {
-  var i, j, n, p, q, ref;
-  n = Math.min(a.length, b.length);
-  for (i = j = 0, ref = n; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
-    p = a[i];
-    q = b[i];
+  const n = Math.min(a.length, b.length);
+  for (let i = 0, end = n, asc = 0 <= end; asc ? i < end : i > end; asc ? i++ : i--) {
+    const p = a[i];
+    const q = b[i];
     if (p > q) {
       return -1;
     }
@@ -3837,32 +3161,23 @@ exports.compare = function(a, b) {
   }
   a = a.length;
   b = b.length;
-  if (a > b) {
-    return -1;
-  } else if (a < b) {
-    return 1;
-  } else {
-    return 0;
-  }
+  if (a > b) { return -1; } else if (a < b) { return 1; } else { return 0; }
 };
 
-exports.max = function(a, b) {
-  if (exports.compare(a, b) > 0) {
-    return b;
-  } else {
-    return a;
-  }
+exports.max  = function(a, b) {
+  if (exports.compare(a, b) > 0) { return b; } else { return a; }
 };
-
-
 
 },{}],34:[function(require,module,exports){
-var Program, Snippet, assemble;
-
-Snippet = require('./snippet');
-
-assemble = require('./assemble');
-
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS206: Consider reworking classes to avoid initClass
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Snippet  = require('./snippet');
+const assemble = require('./assemble');
 
 /*
   Program assembly model
@@ -3876,294 +3191,235 @@ assemble = require('./assemble');
   The result is a new instance of Snippet that acts as if it
   was parsed from the combined source of the component
   nodes.
- */
+*/
+class Program {
+  static initClass() {
+    this.index = 0;
+  }
+  static entry() { return `_pg_${++Program.index}_`; }
 
-Program = (function() {
-  Program.index = 0;
-
-  Program.entry = function() {
-    return "_pg_" + (++Program.index) + "_";
-  };
-
-  function Program(language, namespace, graph) {
+  // Program starts out empty, ready to compile starting from a particular block
+  constructor(language, namespace, graph) {
     this.language = language;
     this.namespace = namespace;
     this.graph = graph;
-    this.calls = {};
-    this.requires = {};
+    this.calls      = {};
+    this.requires   = {};
   }
 
-  Program.prototype.call = function(node, module, priority) {
-    var exists, ns;
-    ns = module.namespace;
-    if (exists = this.calls[ns]) {
+  // Call a given module at certain priority
+  call(node, module, priority) {
+    let exists;
+    const ns = module.namespace;
+
+    // Merge all calls down into one with the right priority
+    if ((exists = this.calls[ns])) {
       exists.priority = Math.max(exists.priority, priority);
     } else {
-      this.calls[ns] = {
-        node: node,
-        module: module,
-        priority: priority
-      };
+      this.calls[ns] = {node, module, priority};
     }
+
     return this;
-  };
+  }
 
-  Program.prototype.require = function(node, module) {
-    var ns;
-    ns = module.namespace;
-    return this.requires[ns] = {
-      node: node,
-      module: module
-    };
-  };
+  // Require a given (callback) module's externals
+  require(node, module) {
+    const ns = module.namespace;
+    return this.requires[ns] = {node, module};
+  }
 
-  Program.prototype.assemble = function() {
-    var data, key, ref, snippet;
-    data = assemble(this.language, (ref = this.namespace) != null ? ref : Program.entry, this.calls, this.requires);
-    snippet = new Snippet;
-    for (key in data) {
-      snippet[key] = data[key];
-    }
+  // Compile queued ops into result
+  assemble() {
+    const data          = assemble(this.language, this.namespace != null ? this.namespace : Program.entry, this.calls, this.requires);
+    const snippet       = new Snippet;
+    for (let key in data) { snippet[key]  = data[key]; }
     snippet.graph = this.graph;
     return snippet;
-  };
-
-  return Program;
-
-})();
+  }
+}
+Program.initClass();
 
 module.exports = Program;
 
 
 
 },{"./assemble":29,"./snippet":35}],35:[function(require,module,exports){
-var Snippet;
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS104: Avoid inline assignments
+ * DS205: Consider reworking code to avoid use of IIFEs
+ * DS206: Consider reworking classes to avoid initClass
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+class Snippet {
+  static initClass() {
+    this.index = 0;
+  }
+  static namespace() { return `_sn_${++Snippet.index}_`; }
 
-Snippet = (function() {
-  Snippet.index = 0;
-
-  Snippet.namespace = function() {
-    return "_sn_" + (++Snippet.index) + "_";
-  };
-
-  Snippet.load = function(language, name, code) {
-    var compiler, program, ref, sigs;
-    program = language.parse(name, code);
-    ref = language.compile(program), sigs = ref[0], compiler = ref[1];
+  static load(language, name, code) {
+    const program          = language.parse(name, code);
+    const [sigs, compiler] = Array.from(language.compile(program));
     return new Snippet(language, sigs, compiler, name, code);
-  };
+  }
 
-  function Snippet(language1, _signatures, _compiler, _name, _original) {
-    var ref;
-    this.language = language1;
+  constructor(language, _signatures, _compiler, _name, _original) {
+    this.language = language;
     this._signatures = _signatures;
     this._compiler = _compiler;
     this._name = _name;
     this._original = _original;
-    this.namespace = null;
-    this.code = null;
-    this.main = null;
-    this.entry = null;
-    this.uniforms = null;
-    this.externals = null;
-    this.symbols = null;
+    this.namespace  = null;
+    this.code       = null;
+
+    this.main       = null;
+    this.entry      = null;
+
+    this.uniforms   = null;
+    this.externals  = null;
+    this.symbols    = null;
     this.attributes = null;
-    this.varyings = null;
-    if (!this.language) {
-      delete this.language;
-    }
-    if (!this._signatures) {
-      delete this._signatures;
-    }
-    if (!this._compiler) {
-      delete this._compiler;
-    }
-    if (!this._original) {
-      delete this._original;
-    }
-    if (!this._name) {
-      this._name = (ref = this._signatures) != null ? ref.main.name : void 0;
-    }
+    this.varyings   = null;
+
+    // Tidy up object for export
+    if (!this.language) { delete this.language; }
+    if (!this._signatures) { delete this._signatures; }
+    if (!this._compiler) { delete this._compiler; }
+    if (!this._original) { delete this._original; }
+
+    // Insert snippet name if not provided
+    if (!this._name) { this._name = this._signatures != null ? this._signatures.main.name : undefined; }
   }
 
-  Snippet.prototype.clone = function() {
+  clone() {
     return new Snippet(this.language, this._signatures, this._compiler, this._name, this._original);
-  };
+  }
 
-  Snippet.prototype.bind = function(config, uniforms, namespace, defines) {
-    var _a, _e, _u, _v, a, def, defs, e, exceptions, exist, global, i, j, k, key, l, len, len1, len2, len3, len4, len5, local, m, n, name, o, redef, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, u, v, x;
-    if (uniforms === '' + uniforms) {
-      ref = [uniforms, namespace != null ? namespace : {}, defines != null ? defines : {}], namespace = ref[0], uniforms = ref[1], defines = ref[2];
-    } else if (namespace !== '' + namespace) {
-      ref1 = [namespace != null ? namespace : {}, void 0], defines = ref1[0], namespace = ref1[1];
+  bind(config, uniforms, namespace, defines) {
+
+    // Alt syntax (namespace, uniforms, defines)
+    let def, left;
+    let v;
+    if (uniforms === ('' + uniforms)) {
+      [namespace, uniforms, defines] = Array.from([uniforms, namespace != null ? namespace : {}, defines != null ? defines : {}]);
+    // Alt syntax (uniforms, defines)
+    } else if (namespace !== ('' + namespace)) {
+      [defines, namespace] = Array.from([namespace != null ? namespace : {}, undefined]);
     }
-    this.main = this._signatures.main;
-    this.namespace = (ref2 = namespace != null ? namespace : this.namespace) != null ? ref2 : Snippet.namespace();
-    this.entry = this.namespace + this.main.name;
-    this.uniforms = {};
-    this.varyings = {};
+
+    // Prepare data structure
+    this.main       = this._signatures.main;
+    this.namespace  = (left = namespace != null ? namespace : this.namespace) != null ? left : Snippet.namespace();
+    this.entry      = this.namespace + this.main.name;
+
+    this.uniforms   = {};
+    this.varyings   = {};
     this.attributes = {};
-    this.externals = {};
-    this.symbols = [];
-    exist = {};
-    exceptions = {};
-    global = function(name) {
+    this.externals  = {};
+    this.symbols    = [];
+    const exist       = {};
+    const exceptions  = {};
+
+    // Handle globals and locals for prefixing
+    const global = function(name) {
       exceptions[name] = true;
       return name;
     };
-    local = (function(_this) {
-      return function(name) {
-        return _this.namespace + name;
-      };
-    })(this);
-    if (config.globals) {
-      ref3 = config.globals;
-      for (i = 0, len = ref3.length; i < len; i++) {
-        key = ref3[i];
-        global(key);
-      }
-    }
-    _u = config.globalUniforms ? global : local;
-    _v = config.globalVaryings ? global : local;
-    _a = config.globalAttributes ? global : local;
-    _e = local;
-    x = (function(_this) {
-      return function(def) {
-        return exist[def.name] = true;
-      };
-    })(this);
-    u = (function(_this) {
-      return function(def, name) {
-        return _this.uniforms[_u(name != null ? name : def.name)] = def;
-      };
-    })(this);
-    v = (function(_this) {
-      return function(def) {
-        return _this.varyings[_v(def.name)] = def;
-      };
-    })(this);
-    a = (function(_this) {
-      return function(def) {
-        return _this.attributes[_a(def.name)] = def;
-      };
-    })(this);
-    e = (function(_this) {
-      return function(def) {
-        var name;
-        name = _e(def.name);
-        _this.externals[name] = def;
-        return _this.symbols.push(name);
-      };
-    })(this);
-    redef = function(def) {
-      return {
-        type: def.type,
-        name: def.name,
-        value: def.value
-      };
+    const local  = name => {
+      return this.namespace + name;
     };
-    ref4 = this._signatures.uniform;
-    for (j = 0, len1 = ref4.length; j < len1; j++) {
-      def = ref4[j];
-      x(def);
-    }
-    ref5 = this._signatures.uniform;
-    for (l = 0, len2 = ref5.length; l < len2; l++) {
-      def = ref5[l];
-      u(redef(def));
-    }
-    ref6 = this._signatures.varying;
-    for (m = 0, len3 = ref6.length; m < len3; m++) {
-      def = ref6[m];
-      v(redef(def));
-    }
-    ref7 = this._signatures.external;
-    for (n = 0, len4 = ref7.length; n < len4; n++) {
-      def = ref7[n];
-      e(def);
-    }
-    ref8 = this._signatures.attribute;
-    for (o = 0, len5 = ref8.length; o < len5; o++) {
-      def = ref8[o];
-      a(redef(def));
-    }
-    for (name in uniforms) {
-      def = uniforms[name];
-      if (exist[name]) {
-        u(def, name);
-      }
-    }
-    this.body = this.code = this._compiler(this.namespace, exceptions, defines);
+
+    // Apply config
+    if (config.globals) { for (let key of Array.from(config.globals)) { global(key); } }
+    const _u = config.globalUniforms   ? global : local;
+    const _v = config.globalVaryings   ? global : local;
+    const _a = config.globalAttributes ? global : local;
+    const _e = local;
+
+    // Build finalized properties
+    const x = def       => {       return exist[def.name]           = true; };
+    const u = (def, name) => {   return this.uniforms[_u(name != null ? name : def.name)] = def; };
+    v = def       => {   return this.varyings[_v(def.name)]        = def; };
+    const a = def       => { return this.attributes[_a(def.name)]        = def; };
+    const e = def       => {
+                        const name = _e(def.name);
+                        this.externals[name]               = def;
+                        return this.symbols.push(name);
+                      };
+
+    const redef = def => ({
+      type: def.type,
+      name: def.name,
+      value: def.value
+    });
+
+    for (def of Array.from(this._signatures.uniform)) { x(def); }
+    for (def of Array.from(this._signatures.uniform)) { u(redef(def)); }
+    for (def of Array.from(this._signatures.varying)) { v(redef(def)); }
+    for (def of Array.from(this._signatures.external)) { e(def); }
+    for (def of Array.from(this._signatures.attribute)) { a(redef(def)); }
+    for (let name in uniforms) { def = uniforms[name]; if (exist[name]) { u(def, name); } }
+
+    this.body = (this.code = this._compiler(this.namespace, exceptions, defines));
+
+    // Adds defs to original snippet for inspection
     if (defines) {
-      defs = ((function() {
-        var results;
-        results = [];
-        for (k in defines) {
+      const defs = ((() => {
+        const result = [];
+        for (let k in defines) {
           v = defines[k];
-          results.push("#define " + k + " " + v);
+          result.push(`#define ${k} ${v}`);
         }
-        return results;
+        return result;
       })()).join('\n');
-      if (defs.length) {
-        this._original = [defs, "//----------------------------------------", this._original].join("\n");
-      }
+      if (defs.length) { this._original = [defs, "//----------------------------------------", this._original].join("\n"); }
     }
+
     return null;
-  };
-
-  return Snippet;
-
-})();
+  }
+}
+Snippet.initClass();
 
 module.exports = Snippet;
-
-
-
 },{}],36:[function(require,module,exports){
-var Graph, markup, merge, resolve, serialize, visualize;
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+let markup, serialize;
+const {
+  Graph
+} = require('../Graph');
 
-Graph = require('../Graph').Graph;
+exports.serialize = (serialize = require('./serialize'));
+exports.markup    = (markup    = require('./markup'));
 
-exports.serialize = serialize = require('./serialize');
+const visualize = function(graph) {
+  if (!graph) { return; }
+  if (!graph.nodes) { return graph; }
 
-exports.markup = markup = require('./markup');
-
-visualize = function(graph) {
-  var data;
-  if (!graph) {
-    return;
-  }
-  if (!graph.nodes) {
-    return graph;
-  }
-  data = serialize(graph);
+  const data   = serialize(graph);
   return markup.process(data);
 };
 
-resolve = function(arg) {
-  if (arg == null) {
-    return arg;
-  }
-  if (arg instanceof Array) {
-    return arg.map(resolve);
-  }
-  if ((arg.vertex != null) && (arg.fragment != null)) {
-    return [resolve(arg.vertex, resolve(arg.fragment))];
-  }
-  if (arg._graph != null) {
-    return arg._graph;
-  }
-  if (arg.graph != null) {
-    return arg.graph;
-  }
+var resolve = function(arg) {
+  if ((arg == null)) { return arg; }
+  if (arg instanceof Array) { return arg.map(resolve); }
+  if ((arg.vertex != null) && (arg.fragment != null)) { return [resolve(arg.vertex, resolve(arg.fragment))]; }
+  if (arg._graph != null) { return arg._graph; }
+  if (arg.graph != null) { return arg.graph; }
   return arg;
 };
 
-merge = function(args) {
-  var arg, i, len, out;
-  out = [];
-  for (i = 0, len = args.length; i < len; i++) {
-    arg = args[i];
+var merge = function(args) {
+  let out = [];
+  for (let arg of Array.from(args)) {
     if (arg instanceof Array) {
       out = out.concat(merge(arg));
     } else if (arg != null) {
@@ -4174,456 +3430,434 @@ merge = function(args) {
 };
 
 exports.visualize = function() {
-  var graph, list;
-  list = merge(resolve([].slice.call(arguments)));
-  return markup.merge((function() {
-    var i, len, results;
-    results = [];
-    for (i = 0, len = list.length; i < len; i++) {
-      graph = list[i];
-      if (graph) {
-        results.push(visualize(graph));
-      }
-    }
-    return results;
-  })());
+  const list = merge(resolve([].slice.call(arguments)));
+  return markup.merge((Array.from(list).filter((graph) => graph).map((graph) => visualize(graph))));
 };
 
 exports.inspect = function() {
-  var contents, el, element, i, len, ref;
-  contents = exports.visualize.apply(null, arguments);
-  element = markup.overlay(contents);
-  ref = document.querySelectorAll('.shadergraph-overlay');
-  for (i = 0, len = ref.length; i < len; i++) {
-    el = ref[i];
-    el.remove();
-  }
+  const contents = exports.visualize.apply(null, arguments);
+  const element  = markup.overlay(contents);
+
+  for (let el of Array.from(document.querySelectorAll('.shadergraph-overlay'))) { el.remove(); }
   document.body.appendChild(element);
   contents.update();
+
   return element;
 };
 
-
-
 },{"../Graph":2,"./markup":37,"./serialize":38}],37:[function(require,module,exports){
-var _activate, _markup, _order, connect, cssColor, escapeText, hash, hashColor, makeSVG, merge, overlay, path, process, sqr, trim, wrap;
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS205: Consider reworking code to avoid use of IIFEs
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const hash = require('../factory/hash');
 
-hash = require('../factory/hash');
+const trim = string => ("" + string).replace(/^\s+|\s+$/g, '');
 
-trim = function(string) {
-  return ("" + string).replace(/^\s+|\s+$/g, '');
-};
+const cssColor = (r, g, b, alpha) => 'rgba(' + [r, g, b, alpha].join(', ') + ')';
 
-cssColor = function(r, g, b, alpha) {
-  return 'rgba(' + [r, g, b, alpha].join(', ') + ')';
-};
+const hashColor = function(string, alpha) {
+  if (alpha == null) { alpha = 1; }
+  const color = hash(string) ^ 0x123456;
 
-hashColor = function(string, alpha) {
-  var b, color, g, max, min, norm, r;
-  if (alpha == null) {
-    alpha = 1;
-  }
-  color = hash(string) ^ 0x123456;
-  r = color & 0xFF;
-  g = (color >>> 8) & 0xFF;
-  b = (color >>> 16) & 0xFF;
-  max = Math.max(r, g, b);
-  norm = 140 / max;
-  min = Math.round(max / 3);
+  let r =  color & 0xFF;
+  let g = (color >>> 8) & 0xFF;
+  let b = (color >>> 16) & 0xFF;
+
+  const max  = Math.max(r, g, b);
+  const norm = 140 / max;
+  const min  = Math.round(max / 3);
+
   r = Math.min(255, Math.round(norm * Math.max(r, min)));
   g = Math.min(255, Math.round(norm * Math.max(g, min)));
   b = Math.min(255, Math.round(norm * Math.max(b, min)));
+
   return cssColor(r, g, b, alpha);
 };
 
-escapeText = function(string) {
+const escapeText = function(string) {
   string = string != null ? string : "";
-  return string.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+  return string
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/'/g, '&#39;')
+    .replace(/"/g, '&quot;');
 };
 
-process = function(data) {
-  var el, links;
-  links = [];
-  el = _markup(data, links);
-  el.update = function() {
-    return connect(el, links);
-  };
+const process = function(data) {
+  const links = [];
+  const el = _markup(data, links);
+  el.update = () => connect(el, links);
   _activate(el);
   return el;
 };
 
-_activate = function(el) {
-  var code, codes, i, len, results;
-  codes = el.querySelectorAll('.shadergraph-code');
-  results = [];
-  for (i = 0, len = codes.length; i < len; i++) {
-    code = codes[i];
-    results.push((function() {
-      var popup;
-      popup = code;
+var _activate = function(el) {
+  const codes = el.querySelectorAll('.shadergraph-code');
+  return Array.from(codes).map((code) =>
+    (function() {
+      const popup = code;
       popup.parentNode.classList.add('shadergraph-has-code');
-      return popup.parentNode.addEventListener('click', function(event) {
-        return popup.style.display = {
-          block: 'none',
-          none: 'block'
-        }[popup.style.display || 'none'];
-      });
+      return popup.parentNode.addEventListener('click', event => popup.style.display = {
+        block: 'none',
+        none:  'block'
+      }[popup.style.display || 'none']);
     })());
-  }
-  return results;
 };
 
-_order = function(data) {
-  var i, j, k, len, len1, len2, link, linkMap, name, node, nodeMap, recurse, ref1, ref2, ref3;
-  nodeMap = {};
-  linkMap = {};
-  ref1 = data.nodes;
-  for (i = 0, len = ref1.length; i < len; i++) {
-    node = ref1[i];
+const _order = function(data) {
+  let link, node;
+  const nodeMap = {};
+  const linkMap = {};
+  for (node of Array.from(data.nodes)) {
     nodeMap[node.id] = node;
   }
-  ref2 = data.links;
-  for (j = 0, len1 = ref2.length; j < len1; j++) {
-    link = ref2[j];
-    if (linkMap[name = link.from] == null) {
-      linkMap[name] = [];
-    }
+
+  for (link of Array.from(data.links)) {
+    if (linkMap[link.from] == null) { linkMap[link.from] = []; }
     linkMap[link.from].push(link);
   }
-  recurse = function(node, depth) {
-    var k, len2, next, ref3;
-    if (depth == null) {
-      depth = 0;
-    }
-    node.depth = Math.max((ref3 = node.depth) != null ? ref3 : 0, depth);
+
+  var recurse = function(node, depth) {
+    let next;
+    if (depth == null) { depth = 0; }
+    node.depth = Math.max(node.depth != null ? node.depth : 0, depth);
     if (next = linkMap[node.id]) {
-      for (k = 0, len2 = next.length; k < len2; k++) {
-        link = next[k];
-        recurse(nodeMap[link.to], depth + 1);
-      }
+      for (link of Array.from(next)) { recurse(nodeMap[link.to], depth + 1); }
     }
     return null;
   };
-  ref3 = data.nodes;
-  for (k = 0, len2 = ref3.length; k < len2; k++) {
-    node = ref3[k];
-    if (node.depth == null) {
-      recurse(node);
-    }
+
+  for (node of Array.from(data.nodes)) {
+    if ((node.depth == null)) { recurse(node); }
   }
+
   return null;
 };
 
-_markup = function(data, links) {
-  var addOutlet, block, clear, color, column, columns, div, i, j, k, l, len, len1, len2, len3, len4, link, m, node, outlet, outlets, ref1, ref2, ref3, ref4, wrapper;
+var _markup = function(data, links) {
+  let column;
   _order(data);
-  wrapper = document.createElement('div');
+
+  const wrapper = document.createElement('div');
   wrapper.classList.add('shadergraph-graph');
-  columns = [];
-  outlets = {};
-  ref1 = data.nodes;
-  for (i = 0, len = ref1.length; i < len; i++) {
-    node = ref1[i];
-    block = document.createElement('div');
+
+  const columns = [];
+  const outlets = {};
+
+  for (let node of Array.from(data.nodes)) {
+    var outlet;
+    var block = document.createElement('div');
     block.classList.add("shadergraph-node");
-    block.classList.add("shadergraph-node-" + node.type);
-    block.innerHTML = "<div class=\"shadergraph-header\">" + (escapeText(node.name)) + "</div>";
-    addOutlet = function(outlet, inout) {
-      var color, div;
-      color = hashColor(outlet.type);
-      div = document.createElement('div');
+    block.classList.add(`shadergraph-node-${node.type}`);
+
+    block.innerHTML = `\
+<div class="shadergraph-header">${escapeText(node.name)}</div>\
+`;
+
+    const addOutlet = function(outlet, inout) {
+      const color = hashColor(outlet.type);
+
+      const div = document.createElement('div');
       div.classList.add('shadergraph-outlet');
-      div.classList.add("shadergraph-outlet-" + inout);
-      div.innerHTML = "<div class=\"shadergraph-point\" style=\"background: " + color + "\"></div>\n<div class=\"shadergraph-type\" style=\"color: " + color + "\">" + (escapeText(outlet.type)) + "</div>\n<div class=\"shadergraph-name\">" + (escapeText(outlet.name)) + "</div>";
+      div.classList.add(`shadergraph-outlet-${inout}`);
+      div.innerHTML = `\
+<div class="shadergraph-point" style="background: ${color}"></div>
+<div class="shadergraph-type" style="color: ${color}">${escapeText(outlet.type)}</div>
+<div class="shadergraph-name">${escapeText(outlet.name)}</div>\
+`;
       block.appendChild(div);
+
       return outlets[outlet.id] = div.querySelector('.shadergraph-point');
     };
-    ref2 = node.inputs;
-    for (j = 0, len1 = ref2.length; j < len1; j++) {
-      outlet = ref2[j];
-      addOutlet(outlet, 'in');
-    }
-    ref3 = node.outputs;
-    for (k = 0, len2 = ref3.length; k < len2; k++) {
-      outlet = ref3[k];
-      addOutlet(outlet, 'out');
-    }
+
+    for (outlet of Array.from(node.inputs)) { addOutlet(outlet, 'in'); }
+    for (outlet of Array.from(node.outputs)) { addOutlet(outlet, 'out'); }
+
     if (node.graph != null) {
       block.appendChild(_markup(node.graph, links));
     } else {
-      clear = document.createElement('div');
+      const clear = document.createElement('div');
       clear.classList.add('shadergraph-clear');
       block.appendChild(clear);
     }
+
     if (node.code != null) {
-      div = document.createElement('div');
+      const div = document.createElement('div');
       div.classList.add('shadergraph-code');
       div.innerHTML = escapeText(trim(node.code));
       block.appendChild(div);
     }
+
     column = columns[node.depth];
-    if (column == null) {
+    if ((column == null)) {
       column = document.createElement('div');
       column.classList.add('shadergraph-column');
       columns[node.depth] = column;
     }
     column.appendChild(block);
   }
-  for (l = 0, len3 = columns.length; l < len3; l++) {
-    column = columns[l];
-    if (column != null) {
-      wrapper.appendChild(column);
-    }
-  }
-  ref4 = data.links;
-  for (m = 0, len4 = ref4.length; m < len4; m++) {
-    link = ref4[m];
-    color = hashColor(link.type);
+
+  for (column of Array.from(columns)) { if (column != null) { wrapper.appendChild(column); } }
+
+  for (let link of Array.from(data.links)) {
+    const color = hashColor(link.type);
+
     links.push({
-      color: color,
+      color,
       out: outlets[link.out],
-      "in": outlets[link["in"]]
-    });
+      in:  outlets[link.in]});
   }
+
   return wrapper;
 };
 
-sqr = function(x) {
-  return x * x;
-};
+const sqr    = x => x * x;
 
-path = function(x1, y1, x2, y2) {
-  var d, dx, dy, f, h, mx, my, vert;
-  dx = x2 - x1;
-  dy = y2 - y1;
-  d = Math.sqrt(sqr(dx) + sqr(dy));
-  vert = Math.abs(dy) > Math.abs(dx);
+const path   = function(x1, y1, x2, y2) {
+  let h;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const d = Math.sqrt(sqr(dx) + sqr(dy));
+
+  const vert = Math.abs(dy) > Math.abs(dx);
   if (vert) {
-    mx = (x1 + x2) / 2;
-    my = (y1 + y2) / 2;
-    f = dy > 0 ? .3 : -.3;
-    h = Math.min(Math.abs(dx) / 2, 20 + d / 8);
-    return ['M', x1, y1, 'C', x1 + h, y1 + ',', mx, my - d * f, mx, my, 'C', mx, my + d * f, x2 - h, y2 + ',', x2, y2].join(' ');
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+
+    const f = dy > 0 ? .3 : -.3;
+    h = Math.min(Math.abs(dx) / 2, 20 + (d / 8));
+
+    return [
+      'M', x1, y1,
+      'C', x1 + h, y1 + ',',
+           mx, my - (d * f),
+           mx, my,
+      'C', mx, my + (d * f),
+           x2 - h, y2 + ',',
+           x2, y2,
+    ].join(' ');
   } else {
-    h = Math.min(Math.abs(dx) / 2.5, 20 + d / 4);
-    return ['M', x1, y1, 'C', x1 + h, y1 + ',', x2 - h, y2 + ',', x2, y2].join(' ');
+    h = Math.min(Math.abs(dx) / 2.5, 20 + (d / 4));
+
+    return [
+      'M', x1, y1,
+      'C', x1 + h, y1 + ',',
+           x2 - h, y2 + ',',
+           x2, y2,
+    ].join(' ');
   }
 };
 
-makeSVG = function(tag) {
-  if (tag == null) {
-    tag = 'svg';
-  }
+const makeSVG = function(tag) {
+  if (tag == null) { tag = 'svg'; }
   return document.createElementNS('http://www.w3.org/2000/svg', tag);
 };
 
-connect = function(element, links) {
-  var a, b, box, c, i, j, len, len1, line, link, ref, svg;
-  if (element.parentNode == null) {
-    return;
-  }
-  ref = element.getBoundingClientRect();
-  for (i = 0, len = links.length; i < len; i++) {
-    link = links[i];
-    a = link.out.getBoundingClientRect();
-    b = link["in"].getBoundingClientRect();
+var connect = function(element, links) {
+  let link;
+  if (element.parentNode == null) { return; }
+
+  const ref = element.getBoundingClientRect();
+
+  for (link of Array.from(links)) {
+    const a = link.out.getBoundingClientRect();
+    const b = link.in .getBoundingClientRect();
+
     link.coords = {
-      x1: (a.left + a.right) / 2 - ref.left,
-      y1: (a.top + a.bottom) / 2 - ref.top,
-      x2: (b.left + b.right) / 2 - ref.left,
-      y2: (b.top + b.bottom) / 2 - ref.top
+      x1: ((a.left + a.right)  / 2) - ref.left,
+      y1: ((a.top  + a.bottom) / 2) - ref.top,
+      x2: ((b.left + b.right)  / 2) - ref.left,
+      y2: ((b.top  + b.bottom) / 2) - ref.top
     };
   }
-  svg = element.querySelector('svg');
-  if (svg != null) {
-    element.removeChild(svg);
-  }
-  box = element;
-  while (box.parentNode && box.offsetHeight === 0) {
-    box = box.parentNode;
-  }
+
+  let svg = element.querySelector('svg');
+  if (svg != null) { element.removeChild(svg); }
+
+  let box = element;
+  while (box.parentNode && (box.offsetHeight === 0)) { box = box.parentNode; }
+
   svg = makeSVG();
-  svg.setAttribute('width', box.offsetWidth);
+  svg.setAttribute('width',  box.offsetWidth);
   svg.setAttribute('height', box.offsetHeight);
-  for (j = 0, len1 = links.length; j < len1; j++) {
-    link = links[j];
-    c = link.coords;
-    line = makeSVG('path');
+
+  for (link of Array.from(links)) {
+    const c = link.coords;
+
+    const line = makeSVG('path');
     line.setAttribute('d', path(c.x1, c.y1, c.x2, c.y2));
-    line.setAttribute('stroke', link.color);
+    line.setAttribute('stroke',       link.color);
     line.setAttribute('stroke-width', 3);
-    line.setAttribute('fill', 'transparent');
+    line.setAttribute('fill',         'transparent');
     svg.appendChild(line);
   }
+
   return element.appendChild(svg);
 };
 
-overlay = function(contents) {
-  var close, div, inside, view;
-  div = document.createElement('div');
+const overlay = function(contents) {
+  const div = document.createElement('div');
   div.setAttribute('class', 'shadergraph-overlay');
-  close = document.createElement('div');
+
+  const close = document.createElement('div');
   close.setAttribute('class', 'shadergraph-close');
   close.innerHTML = '&times;';
-  view = document.createElement('div');
+
+  const view = document.createElement('div');
   view.setAttribute('class', 'shadergraph-view');
-  inside = document.createElement('div');
+
+  const inside = document.createElement('div');
   inside.setAttribute('class', 'shadergraph-inside');
+
   inside.appendChild(contents);
   view.appendChild(inside);
   div.appendChild(view);
   div.appendChild(close);
-  close.addEventListener('click', function() {
-    return div.parentNode.removeChild(div);
-  });
+
+  close.addEventListener('click', () => div.parentNode.removeChild(div));
+
   return div;
 };
 
-wrap = function(markup) {
-  var p;
-  if (markup instanceof Node) {
-    return markup;
-  }
-  p = document.createElement('span');
+const wrap = function(markup) {
+  if (markup instanceof Node) { return markup; }
+  const p = document.createElement('span');
   p.innerText = markup != null ? markup : '';
   return p;
 };
 
-merge = function(markup) {
-  var div, el, i, len;
+const merge = function(markup) {
   if (markup.length !== 1) {
-    div = document.createElement('div');
-    for (i = 0, len = markup.length; i < len; i++) {
-      el = markup[i];
-      div.appendChild(wrap(el));
-    }
-    div.update = function() {
-      var j, len1, results;
-      results = [];
-      for (j = 0, len1 = markup.length; j < len1; j++) {
-        el = markup[j];
-        results.push(typeof el.update === "function" ? el.update() : void 0);
+    let el;
+    const div = document.createElement('div');
+    for (el of Array.from(markup)) { div.appendChild(wrap(el)); }
+    div.update = () => (() => {
+      const result = [];
+      for (el of Array.from(markup)) {         result.push((typeof el.update === 'function' ? el.update() : undefined));
       }
-      return results;
-    };
+      return result;
+    })();
     return div;
   } else {
     return wrap(markup[0]);
   }
 };
 
-module.exports = {
-  process: process,
-  merge: merge,
-  overlay: overlay
-};
-
+module.exports = {process, merge, overlay};
 
 
 },{"../factory/hash":13}],38:[function(require,module,exports){
-var Block, isCallback, serialize;
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+// Dump graph for debug/visualization purposes
+const Block = require('../block');
 
-Block = require('../block');
+const isCallback = outlet => outlet.type[0] === '(';
 
-isCallback = function(outlet) {
-  return outlet.type[0] === '(';
-};
+var serialize = function(graph) {
 
-serialize = function(graph) {
-  var block, format, i, inputs, j, k, l, len, len1, len2, len3, links, node, nodes, other, outlet, outputs, record, ref, ref1, ref2, ref3, ref4;
-  nodes = [];
-  links = [];
-  ref = graph.nodes;
-  for (i = 0, len = ref.length; i < len; i++) {
-    node = ref[i];
-    record = {
-      id: node.id,
-      name: null,
-      type: null,
+  const nodes = [];
+  const links = [];
+
+  for (let node of Array.from(graph.nodes)) {
+    var outlet;
+    const record = {
+      // Data
+      id:    node.id,
+      name:  null,
+      type:  null,
       depth: null,
       graph: null,
-      inputs: [],
+      inputs:  [],
       outputs: []
     };
+
     nodes.push(record);
-    inputs = record.inputs;
-    outputs = record.outputs;
-    block = node.owner;
-    if (block instanceof Block.Call) {
-      record.name = block.snippet._name;
-      record.type = 'call';
-      record.code = block.snippet._original;
+
+    const {
+      inputs
+    } = record;
+    const {
+      outputs
+    } = record;
+
+    const block = node.owner;
+
+    if      (block instanceof Block.Call) {
+      record.name  = block.snippet._name;
+      record.type  = 'call';
+      record.code  = block.snippet._original;
+
     } else if (block instanceof Block.Callback) {
-      record.name = "Callback";
-      record.type = 'callback';
+      record.name  = "Callback";
+      record.type  = 'callback';
       record.graph = serialize(block.graph);
+
     } else if (block instanceof Block.Isolate) {
-      record.name = 'Isolate';
-      record.type = 'isolate';
+      record.name  = 'Isolate';
+      record.type  = 'isolate';
       record.graph = serialize(block.graph);
+
     } else if (block instanceof Block.Join) {
-      record.name = 'Join';
-      record.type = 'join';
+      record.name  = 'Join';
+      record.type  = 'join';
+
     } else if (block != null) {
-      if (record.name == null) {
-        record.name = (ref1 = block.name) != null ? ref1 : block.type;
-      }
-      if (record.type == null) {
-        record.type = block.type;
-      }
-      if (record.code == null) {
-        record.code = block.code;
-      }
-      if (block.graph != null) {
-        record.graph = serialize(block.graph);
-      }
+      if (record.name == null) { record.name = block.name != null ? block.name : block.type; }
+      if (record.type == null) { record.type = block.type; }
+      if (record.code == null) { record.code = block.code; }
+      if (block.graph != null) { record.graph = serialize(block.graph); }
     }
-    format = function(type) {
+
+    const format = function(type) {
       type = type.replace(")(", ")→(");
       return type = type.replace("()", "");
     };
-    ref2 = node.inputs;
-    for (j = 0, len1 = ref2.length; j < len1; j++) {
-      outlet = ref2[j];
+
+    for (outlet of Array.from(node.inputs)) {
       inputs.push({
-        id: outlet.id,
+        id:   outlet.id,
         name: outlet.name,
         type: format(outlet.type),
-        open: outlet.input == null
+        open: (outlet.input == null)
       });
     }
-    ref3 = node.outputs;
-    for (k = 0, len2 = ref3.length; k < len2; k++) {
-      outlet = ref3[k];
+
+    for (outlet of Array.from(node.outputs)) {
       outputs.push({
-        id: outlet.id,
+        id:   outlet.id,
         name: outlet.name,
         type: format(outlet.type),
         open: !outlet.output.length
       });
-      ref4 = outlet.output;
-      for (l = 0, len3 = ref4.length; l < len3; l++) {
-        other = ref4[l];
+
+      for (let other of Array.from(outlet.output)) {
         links.push({
           from: node.id,
-          out: outlet.id,
-          to: other.node.id,
-          "in": other.id,
+          out:  outlet.id,
+          to:   other.node.id,
+          in:   other.id,
           type: format(outlet.type)
         });
       }
     }
   }
-  return {
-    nodes: nodes,
-    links: links
-  };
+
+  return {nodes, links};
 };
 
 module.exports = serialize;
-
-
-
 },{"../block":8}],39:[function(require,module,exports){
 module.exports = require('./lib/index')
 
@@ -6522,36 +5756,45 @@ module.exports = [
 ]
 
 },{}],47:[function(require,module,exports){
-var through;
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+// Synchronous stream wrapper for glsl tokenizer/parser
 
-through = function(write, end) {
-  var errors, output;
-  output = [];
-  errors = [];
+const through = function(write, end) {
+  const output = [];
+  const errors = [];
+
   return {
-    output: output,
+    output,
     parser: null,
-    write: write,
-    end: end,
-    process: function(parser, data) {
+    write,
+    end,
+
+    process(parser, data) {
       this.parser = parser;
       write(data);
       this.flush();
       return this.parser.flush();
     },
-    flush: function() {
+
+    flush() {
       end();
       return [output, errors];
     },
-    queue: function(obj) {
-      var ref;
-      if (obj != null) {
-        return (ref = this.parser) != null ? ref.write(obj) : void 0;
-      }
+
+    // From tokenizer
+    queue(obj) {
+      if (obj != null) { return (this.parser != null ? this.parser.write(obj) : undefined); }
     },
-    emit: function(type, node) {
+
+    // From parser
+    emit(type, node) {
       if (type === 'data') {
-        if (node.parent == null) {
+        if ((node.parent == null)) {
           output.push(node);
         }
       }
@@ -6563,7 +5806,4 @@ through = function(write, end) {
 };
 
 module.exports = through;
-
-
-
-},{}]},{},[28])
+},{}]},{},[28]);

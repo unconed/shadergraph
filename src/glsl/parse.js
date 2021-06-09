@@ -7,10 +7,10 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const tokenizer = require('../../vendor/glsl-tokenizer');
-const parser    = require('../../vendor/glsl-parser');
-const decl      = require('./decl');
-const $         = require('./constants');
+import { tokenize } from '../../vendor/glsl-tokenizer';
+import { parser } from '../../vendor/glsl-parser';
+import { decl } from './decl';
+import { SHADOW_ARG, RETURN_ARG } from './constants';
 
 let debug = false;
 
@@ -34,7 +34,7 @@ var parseGLSL = function(name, code) {
   // Sync stream hack (see /vendor/through)
   try {
     let array;
-    array = tokenizer().process(parser(), code), [ast] = Array.from(array[0]), errors = array[1];
+    array = tokenize().process(parser(), code), [ast] = Array.from(array[0]), errors = array[1];
   } catch (e) {
     errors = [{message:e}];
   }
@@ -163,7 +163,7 @@ var extractSignatures = function(main, internals, externals) {
         a.inout  = decl.in;
         b.inout  = decl.out;
         b.meta   = {shadow: a.name};
-        b.name  += $.SHADOW_ARG;
+        b.name  += SHADOW_ARG;
         a.meta   = {shadowed: b.name};
 
         signature.push(b);
@@ -172,7 +172,7 @@ var extractSignatures = function(main, internals, externals) {
 
     // Add output for return type
     if (symbol.type !== 'void') {
-      signature.unshift(decl.type($.RETURN_ARG, symbol.type, false, '', 'out'));
+      signature.unshift(decl.type(RETURN_ARG, symbol.type, false, '', 'out'));
     }
 
     // Make type string
@@ -181,7 +181,7 @@ var extractSignatures = function(main, internals, externals) {
       for (d of Array.from(signature)) {         if (d.inout === decl.in) {
           result.push(d.type);
         }
-      } 
+      }
       return result;
     })()).join(',');
     const outTypes = ((() => {
@@ -262,4 +262,3 @@ var tick = function() {
 
 module.exports = walk;
 module.exports = parse;
-

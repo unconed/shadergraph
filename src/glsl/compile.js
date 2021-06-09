@@ -9,7 +9,7 @@
   Compile snippet back into GLSL, but with certain symbols replaced by prefixes / placeholders
 */
 
-const compile = function(program) {
+export const compile = function(program) {
   const {ast, code, signatures} = program;
 
   // Prepare list of placeholders
@@ -95,5 +95,3 @@ var string_compiler = function(code, placeholders) {
     return defs.join("\n") + compiled;
   };
 };
-
-module.exports = compile;

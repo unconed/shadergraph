@@ -6,14 +6,14 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Graph = require('./graph');
+import { Graph } from './graph';
 
 /*
   In/out outlet on node
 */
-class Outlet {
+export class Outlet {
   static initClass() {
-  
+
     this.index = 0;
   }
   static make(outlet, extra) {
@@ -119,5 +119,3 @@ class Outlet {
   }
 }
 Outlet.initClass();
-
-module.exports = Outlet;

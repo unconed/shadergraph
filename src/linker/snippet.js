@@ -8,7 +8,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-class Snippet {
+export class Snippet {
   static initClass() {
     this.index = 0;
   }
@@ -136,5 +136,3 @@ class Snippet {
   }
 }
 Snippet.initClass();
-
-module.exports = Snippet;

@@ -4,8 +4,10 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const debug = false;
-const Visualize = require('../visualize');
+
+import * as Visualize from '../visualize';
+
+let debug = false;
 
 const tick = function() {
   const now = +new Date;
@@ -16,7 +18,7 @@ const tick = function() {
   };
 };
 
-class Material {
+export class Material {
   constructor(vertex, fragment) {
     this.vertex = vertex;
     this.fragment = fragment;
@@ -58,5 +60,3 @@ class Material {
     return Visualize.inspect('Vertex Shader', this.vertex, 'Fragment Shader', this.fragment.graph);
   }
 }
-
-module.exports = Material;

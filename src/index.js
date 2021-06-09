@@ -5,12 +5,12 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Block     = require('./block');
-const Factory   = require('./factory');
-const GLSL      = require('./glsl');
-const Graph     = require('./graph');
-const Linker    = require('./linker');
-const Visualize = require('./visualize');
+import * as Block from './block';
+import * as Factory from './factory';
+import * as GLSL from './glsl';
+import * as Graph from './graph';
+import * as Linker from './linker';
+import * as  Visualize from './visualize';
 
 const { library, cache } = Factory;
 const { visualize, inspect } = Visualize;
@@ -23,7 +23,7 @@ const merge = function(a, b) {
   return out;
 };
 
-class ShaderGraph {
+export class ShaderGraph {
   static initClass() {
 
     // Expose class hierarchy
@@ -67,6 +67,3 @@ class ShaderGraph {
   static visualize(shader) { return visualize(shader); }
 }
 ShaderGraph.initClass();
-
-module.exports = ShaderGraph;
-if (typeof window !== 'undefined') { window.ShaderGraph = ShaderGraph; }

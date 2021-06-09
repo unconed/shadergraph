@@ -6,15 +6,15 @@
  */
 /*
   Snippet library
-  
+
   Takes:
     - Hash of snippets: named library
     - (name) -> getter: dynamic lookup
     - nothing:          no library, only pass in inline source code
-  
+
   If 'name' contains any of "{;(#" it is assumed to be direct GLSL code.
 */
-const library = function(language, snippets, load) {
+export const library = function(language, snippets, load) {
 
   let callback = null;
   let used = {};
@@ -44,6 +44,3 @@ const library = function(language, snippets, load) {
 
   return fetch;
 };
-
-
-module.exports = library;

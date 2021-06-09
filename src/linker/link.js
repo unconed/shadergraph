@@ -6,12 +6,12 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Graph      = require('../graph');
-const Priority   = require('./priority');
+import * as Graph from '../graph';
+import * as Priority from './priority';
 
 /*
  Callback linker
- 
+
  Imports given modules and generates linkages for registered callbacks.
 
  Builds composite program with single module as exported entry point

@@ -7,8 +7,7 @@
  */
 // AST node parsers
 
-let decl;
-module.exports = (decl = {});
+export let decl = {};
 
 decl.in    = 0;
 decl.out   = 1;
@@ -207,4 +206,3 @@ class Definition {
     return def = new Definition(name != null ? name : this.name, this.type, this.spec, this.param, this.value, this.inout, meta);
   }
 }
-

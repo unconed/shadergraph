@@ -5,14 +5,14 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 /*
-  Cache decorator  
+  Cache decorator
   Fetches snippets once, clones for reuse
   Inline code is hashed to avoid bloat
 */
-const queue = require('./queue');
-const hash  = require('./hash');
+import { queue } from './queue';
+import { hash } from './hash';
 
-const cache = function(fetch) {
+export const cache = function(fetch) {
   const cached = {};
   const push  = queue(100);
 
@@ -29,5 +29,3 @@ const cache = function(fetch) {
     return cached[key].clone();
   };
 };
-
-module.exports = cache;

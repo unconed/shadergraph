@@ -4,19 +4,19 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Snippet  = require('./snippet');
-const link     = require('./link');
+import * as Snippet from './snippet';
+import * as link from './link';
 
 const debug = false;
 
 /*
   Program linkage layout
-  
+
   Entry points are added to its dependency graph
   Callbacks are linked either with a go-between function
   or a #define if the signatures are identical.
 */
-class Layout {
+export class Layout {
 
   constructor(language, graph) {
     this.language = language;
@@ -59,6 +59,3 @@ class Layout {
     return snippet;
   }
 }
-
-
-module.exports = Layout;

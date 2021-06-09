@@ -5,13 +5,13 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Graph   = require('../graph');
-const Block   = require('./block');
+import * as Graph from '../graph';
+import * as Block from './block';
 
 /*
   Re-use a subgraph as a callback
 */
-class Callback extends Block {
+export class Callback extends Block {
   constructor(graph) {
     super(true);
     this.graph = graph;
@@ -93,5 +93,3 @@ class Callback extends Block {
     return this._callback(this.subroutine, layout, depth, name, external, outlet);
   }
 }
-
-module.exports = Callback;

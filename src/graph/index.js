@@ -1,6 +1,7 @@
-exports.Graph  = require('./graph');
-exports.Node   = require('./node');
-exports.Outlet = require('./outlet');
+export * from './graph';
+export * from './node';
+export * from './outlet';
 
-exports.IN  = exports.Graph.IN;
-exports.OUT = exports.Graph.OUT;
+// TODO is this legit?
+export const IN = Graph.IN;
+export const OUT = Graph.OUT;

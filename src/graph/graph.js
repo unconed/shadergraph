@@ -8,7 +8,7 @@
 /*
   Graph of nodes with outlets
 */
-class Graph {
+export class Graph {
   static initClass() {
     this.index = 0;
 
@@ -81,5 +81,3 @@ class Graph {
   }
 }
 Graph.initClass();
-
-module.exports = Graph;

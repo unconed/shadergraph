@@ -4,9 +4,9 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Block   = require('./block');
+import * as Block from './block';
 
-class Call extends Block {
+export class Call extends Block {
   constructor(snippet) {
     super(true);
 
@@ -46,5 +46,3 @@ class Call extends Block {
     return this._trace(this.snippet, layout, depth);
   }
 }
-
-module.exports = Call;

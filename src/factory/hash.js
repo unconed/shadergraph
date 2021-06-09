@@ -28,7 +28,7 @@ if (Math.imul != null) {
 }
 
 
-const hash = function(string) {
+export const hash = function(string) {
   let h;
   const n = string.length;
   let m = Math.floor(n / 2);
@@ -60,5 +60,3 @@ const hash = function(string) {
   h  = imul(h, c5);
   return h ^= h >>> 16;
 };
-
-module.exports = hash;

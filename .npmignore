@@ -1,9 +1,6 @@
 .*
 **/webpack.config.js
-
 node_modules
-src
 docs
 examples
 karma.conf.js
-vendor

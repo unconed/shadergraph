@@ -13,12 +13,11 @@
     "test": "gulp test"
   },
   "peerDependencies": {
-    "three": "^0.72.0"
+    "three": ">= 0.72.0 < 0.130.0"
   },
   "devDependencies": {
     "webpack": "^5.38.1",
     "webpack-cli": "^4.7.2",
-
     "browserify": "^11.2.0",
     "vinyl-transform": "^1.0.0",
     "gulp": "^4.0.2",

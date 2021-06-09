@@ -12,7 +12,7 @@
 class Graph {
   static initClass() {
     this.index = 0;
-  
+
     this.IN = 0;
     this.OUT = 1;
   }
@@ -1652,7 +1652,6 @@ module.exports = queue;
 },{}],18:[function(require,module,exports){
 /*
  * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
  * DS102: Remove unnecessary code created because of implicit returns
  * DS205: Consider reworking code to avoid use of IIFEs
  * DS207: Consider shorter variations of null checks
@@ -1693,7 +1692,7 @@ var replaced = function(signatures) {
 
   // Prefix all global symbols
   for (let key of ['external', 'internal', 'varying', 'uniform', 'attribute']) {
-    for (let sig of Array.from(signatures[key])) { s(sig); }
+    for (let sig of signatures[key]) { s(sig); }
   }
 
   return out;

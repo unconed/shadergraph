@@ -5,13 +5,11 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {
-  Graph
-} = ShaderGraph;
 
 // Legacy shadergraph.js tests
 
 describe("graph", function() {
+  const { Graph } = ShaderGraph;
 
   let node1, node2, node3;
   let graph = (node1 = (node2 = (node3 = null)));

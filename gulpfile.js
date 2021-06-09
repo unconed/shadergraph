@@ -41,7 +41,7 @@ const bundle = vendor.concat(core);
 const test = [
   'node_modules/three/three.js',
 ].concat(bundle).concat([
-  'test/**/*.spec.coffee',
+  'test/**/*.spec.js',
 ]);
 
 gulp.task('browserify', function () {

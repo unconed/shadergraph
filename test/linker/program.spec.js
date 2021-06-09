@@ -6,15 +6,14 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {
-  Linker
-} = ShaderGraph;
-const {
-  Graph
-} = ShaderGraph;
 
 describe("program", function() {
-  return;
+  const {
+    Linker
+  } = ShaderGraph;
+  const {
+    Graph
+  } = ShaderGraph;
 
   const ns = name => (name.match(/_sn_([0-9]+)_/))[0];
 
@@ -75,7 +74,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -136,7 +135,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -205,7 +204,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -279,7 +278,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -351,7 +350,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -394,7 +393,7 @@ void join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
       'code2': code2
     };
 
-    // note: normalized numbering is wrong for callbacks, is verified later 
+    // note: normalized numbering is wrong for callbacks, is verified later
     const result = `\
 vec2 _sn_1_callback1(float value);
 void _sn_2_split(out vec3 color1, out vec3 color2, in vec4 colorIn) {
@@ -413,7 +412,7 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -474,7 +473,7 @@ void join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
       'code3': code3
     };
 
-    // note: normalized numbering is wrong for uniforms, is verified later 
+    // note: normalized numbering is wrong for uniforms, is verified later
     const result = `\
 attribute vec2 att1;
 void _sn_1_split(out vec3 color1, out vec3 color2, in vec4 colorIn) {
@@ -505,7 +504,7 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -553,4 +552,3 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
     return expect(snippet.main.signature[1].inout).toBe(1);
   });
 });
-

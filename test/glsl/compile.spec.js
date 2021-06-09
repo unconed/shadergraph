@@ -7,11 +7,11 @@
  * DS104: Avoid inline assignments
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {
-  GLSL
-} = ShaderGraph;
 
 describe("compiler", function() {
+  const {
+    GLSL
+  } = ShaderGraph;
 
   let program    = null;
   let signatures = null;

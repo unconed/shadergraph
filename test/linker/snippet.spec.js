@@ -5,14 +5,14 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {
-  Snippet
-} = ShaderGraph.Linker;
-const {
-  GLSL
-} = ShaderGraph;
 
 describe("snippet", function() {
+  const {
+    Snippet
+  } = ShaderGraph.Linker;
+  const {
+    GLSL
+  } = ShaderGraph;
 
   let snippet = null;
   const configLocal  = { globalAttributes: false, globalVaryings: false, globalUniforms: false };
@@ -139,4 +139,3 @@ void testSnippet(float param) { };\
     return expect(snippet.code).toMatch(/#define FOOBAR\s+#define BARFOO 1\s/m);
   });
 });
-

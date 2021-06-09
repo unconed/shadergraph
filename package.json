@@ -27,7 +27,6 @@
     "karma": "^6.3.3",
     "karma-browserify": "^8.0.0",
     "karma-chrome-launcher": "^3.1.0",
-    "karma-coffee2-preprocessor": "1.0.0-rc.3",
     "karma-jasmine": "^4.0.1"
   },
   "author": "Steven Wittens",

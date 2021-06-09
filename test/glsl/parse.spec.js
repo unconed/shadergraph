@@ -5,11 +5,9 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {
-  GLSL
-} = ShaderGraph;
 
 describe("parser", function() {
+  const { GLSL } = ShaderGraph;
 
   let program = null;
 
@@ -94,7 +92,7 @@ void snippetTest(
     return expect(s.uniform[2].type).toBe('v2');
   });
 
-    // ...
+  // ...
 
   it('parses varyings', function() {
 
@@ -113,7 +111,7 @@ void snippetTest(
     return expect(s.varying[2].type).toBe('m3');
   });
 
-    // ...
+  // ...
 
   it('parses attributes', function() {
 
@@ -132,7 +130,7 @@ void snippetTest(
     return expect(s.attribute[2].type).toBe('v3');
   });
 
-    // ...
+  // ...
 
   it('parses internals', function() {
 
@@ -174,4 +172,3 @@ void snippetTest(
     return expect(s.main.type).toBe('(v4,m3v,v3)(v4,v4v,m4,m4v,v3)');
   });
 });
-

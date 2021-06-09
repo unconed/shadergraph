@@ -11,7 +11,7 @@
 class Graph {
   static initClass() {
     this.index = 0;
-  
+
     this.IN = 0;
     this.OUT = 1;
   }

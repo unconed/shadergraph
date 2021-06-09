@@ -6,15 +6,15 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {
-  Linker
-} = ShaderGraph;
-const {
-  Graph
-} = ShaderGraph;
+
 
 describe("layout", function() {
-  return;
+  const {
+    Linker
+  } = ShaderGraph;
+  const {
+    Graph
+  } = ShaderGraph;
 
   const ns = name => (name.match(/_sn_([0-9]+)_/))[0];
 
@@ -60,7 +60,7 @@ void main(in vec3 _io_1_color) {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -110,7 +110,7 @@ void main(in vec3 _io_1_color) {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -170,7 +170,7 @@ void main(in vec3 _io_1_color) {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -246,7 +246,7 @@ void main(in vec3 _io_4_color) {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -297,7 +297,7 @@ void main(vec3 _io_1_color) {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -366,7 +366,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -435,7 +435,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -506,7 +506,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -590,7 +590,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     // Prepare pipeline of two snippets
     const pipeline = shadergraph.shader();
@@ -674,7 +674,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     // Prepare instanced snippet
     const instance = shadergraph.shader();
@@ -774,7 +774,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     // Prepare pipeline of two snippets
     const pipeline = shadergraph.shader();
@@ -817,7 +817,7 @@ varying vec3 vColor2;
 
 void main() {
   vColor2 = color2 * color2 * rgba;
-}    `;
+}`;
 
     const getColor = `\
 uniform vec4 rgba;
@@ -849,7 +849,7 @@ varying vec3 vColor2;
 
 void _sn_2_main() {
   vColor2 = color2 * color2 * rgba;
-}    
+}
 void main() {
   _sn_1_main();
   _sn_2_main();
@@ -874,7 +874,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets, { globalUniforms: true });
+    const shadergraph = new ShaderGraph(snippets, { globalUniforms: true });
 
     // Prepare new material
     const material = shadergraph.material();
@@ -959,7 +959,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph();
+    const shadergraph = new ShaderGraph();
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -1023,7 +1023,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -1095,7 +1095,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -1113,4 +1113,3 @@ void main() {
     return expect(code).toBe(result);
   });
 });
-

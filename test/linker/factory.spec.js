@@ -6,15 +6,15 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {
-  Linker
-} = ShaderGraph;
-const {
-  Graph
-} = ShaderGraph;
+
 
 describe("program", function() {
-  return;
+  const {
+    Linker
+  } = ShaderGraph;
+  const {
+    Graph
+  } = ShaderGraph;
 
   const ns = name => (name.match(/_sn_([0-9]+)_/))[0];
 
@@ -60,7 +60,7 @@ void main(in vec3 _io_1_color) {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader = shadergraph.shader();
     shader.pipe('code1');
@@ -109,7 +109,7 @@ void main(in vec3 _io_1_color) {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader = shadergraph.shader();
 
@@ -170,7 +170,7 @@ void main(in vec3 _io_1_color) {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader = shadergraph.shader();
 
@@ -212,7 +212,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = ShaderGraph(snippets);
+    const shadergraph = new ShaderGraph(snippets);
 
     const shader = shadergraph.shader();
 

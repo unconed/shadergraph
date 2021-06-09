@@ -1,10 +1,10 @@
 {
-  "name": "shadergraph",
+  "name": "@mentat/shadergraph",
   "version": "2.0.7-dev",
   "description": "GLSL linker",
   "repository": {
     "type": "git",
-    "url": "https://github.com/unconed/shadergraph.git"
+    "url": "https://github.com/mentat-collective/shadergraph.git"
   },
   "main": "src/index.js",
   "scripts": {

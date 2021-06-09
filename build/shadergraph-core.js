@@ -2661,22 +2661,9 @@ const Graph     = require('./graph');
 const Linker    = require('./linker');
 const Visualize = require('./visualize');
 
-const {
-  library
-} = Factory;
-const {
-  cache
-} = Factory;
-const {
-  visualize
-} = Visualize;
-const {
-  inspect
-} = Visualize;
-
-const {
-  Snippet
-} = Linker;
+const { library, cache } = Factory;
+const { visualize, inspect } = Visualize;
+const { Snippet } = Linker;
 
 const merge = function(a, b) {
   if (b == null) { b = {}; }
@@ -2687,7 +2674,7 @@ const merge = function(a, b) {
 
 class ShaderGraph {
   static initClass() {
-  
+
     // Expose class hierarchy
     this.Block =     Block;
     this.Factory =   Factory;

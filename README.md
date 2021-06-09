@@ -88,7 +88,7 @@ var fetch = {
   getRampColor: "...",
 };
 
-var shadergraph = ShaderGraph(fetch);
+var shadergraph = new ShaderGraph(fetch);
 ```
 
 You can use the chainable Factory API to build graphs. It's a smart wrapper
@@ -183,7 +183,7 @@ var config = {
   globals:          [],    // Make specific symbols global
   autoInspect:      false, // Pop-up a graph inspector if compilation fails
 }
-shadergraph = ShaderGraph(fetch, config);
+shadergraph = new ShaderGraph(fetch, config);
 ```
 
 *ShaderGraph*

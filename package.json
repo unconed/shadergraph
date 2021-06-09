@@ -6,14 +6,19 @@
     "type": "git",
     "url": "https://github.com/mentat-collective/shadergraph.git"
   },
-  "main": "src/index.js",
+  "main": "dist/shadergraph-bundle.js",
   "scripts": {
+    "build": "webpack --mode development",
+    "dev": "webpack --mode development --progress --colors --watch",
     "test": "gulp test"
   },
-  "dependencies": {
+  "peerDependencies": {
     "three": "^0.72.0"
   },
   "devDependencies": {
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.2",
+
     "browserify": "^11.2.0",
     "vinyl-transform": "^1.0.0",
     "gulp": "^4.0.2",

@@ -3,10 +3,9 @@ const uglify      = require('gulp-uglify');
 const concat      = require('gulp-concat');
 const rename      = require("gulp-rename");
 const browserify  = require('browserify');
-const coffeeify   = require('coffeeify');
 const watch       = require('gulp-watch');
-const vSource     = require('vinyl-source-stream');
 const karma       = require('karma');
+const vSource     = require('vinyl-source-stream');
 
 const parseConfig = karma.config.parseConfig;
 const KarmaServer = karma.Server;
@@ -33,8 +32,8 @@ const core = [
   '.tmp/index.js'
 ];
 
-const coffees = [
-  'src/**/*.coffee',
+const files = [
+  'src/**/*.js',
 ];
 
 const bundle = vendor.concat(core);
@@ -50,9 +49,7 @@ gulp.task('browserify', function () {
     debug: false,
     //detectGlobals: false,
     //bare: true,
-    entries: 'src/index.coffee',
-    extensions: ['.coffee'],
-    transform: [coffeeify]
+    entries: 'src/index.js'
   });
   return b.bundle()
     .pipe(vSource('index.js'))
@@ -108,7 +105,7 @@ gulp.task('watch-karma', function() {
 });
 
 gulp.task('watch-build-watch', function () {
-  watch(coffees.concat(css), gulp.series('build'));
+  watch(files.concat(css), gulp.series('build'));
 });
 
 // Main tasks

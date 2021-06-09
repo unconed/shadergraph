@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/unconed/shadergraph.git"
   },
-  "main": "src/index.coffee",
+  "main": "src/index.js",
   "scripts": {
     "test": "gulp test"
   },
@@ -14,11 +14,8 @@
     "three": "^0.72.0"
   },
   "devDependencies": {
-    "coffeescript": "^2.5.1",
     "browserify": "^11.2.0",
-    "coffeeify": "^3.0.0",
     "vinyl-transform": "^1.0.0",
-    "vinyl-source-stream": "2.0.0",
     "gulp": "^4.0.2",
     "gulp-browserify": "^0.5.1",
     "gulp-concat": "^2.6.1",

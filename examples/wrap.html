@@ -48,7 +48,7 @@ void setColor(vec3 color) {
 
   // Load ShaderGraph with given fetch function
   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  var shadergraph = ShaderGraph(fetch, { autoInspect: true });
+  var shadergraph = new ShaderGraph(fetch, { autoInspect: true });
 
   // Prepare instanced snippet
   var instance = shadergraph.shader();
@@ -89,6 +89,6 @@ void setColor(vec3 color) {
   console.log("shader.link() = ", snippet);
 
   </script>
-  
+
 </body>
 </html>

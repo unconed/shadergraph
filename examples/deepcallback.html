@@ -5,7 +5,7 @@
   <title>ShaderGraph - Deep Callback</title>
   <link rel="stylesheet" href="../build/shadergraph.css" />
   <script type="text/javascript" src="../build/shadergraph.js"></script>
-    
+
 <script type="application/x-glsl" id="getColor">
 vec3 getColor() {
   return vec3(0.2, 0.3, 0.4);
@@ -47,7 +47,7 @@ void main() {
 
   // Load ShaderGraph with given fetch function
   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  var shadergraph = ShaderGraph(fetch, { autoInspect: true });
+  var shadergraph = new ShaderGraph(fetch, { autoInspect: true });
 
   var shader = shadergraph.shader()
                  .isolate()
@@ -78,6 +78,6 @@ void main() {
   console.log("shader.link() = ", snippet);
 
   </script>
-  
+
 </body>
 </html>

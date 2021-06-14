@@ -1,41 +1,33 @@
 /*
  * decaffeinate suggestions:
  * DS102: Remove unnecessary code created because of implicit returns
- * DS206: Consider reworking classes to avoid initClass
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Block     = require('./block');
-const Factory   = require('./factory');
-const GLSL      = require('./glsl');
-const Graph     = require('./graph');
-const Linker    = require('./linker');
-const Visualize = require('./visualize');
+import { Block } from './block';
+import * as Factory from './factory';
+import * as GLSL from './glsl';
+import * as Graph from './graph';
+import * as Linker from './linker';
+import * as  Visualize from './visualize';
 
 const { library, cache } = Factory;
 const { visualize, inspect } = Visualize;
 const { Snippet } = Linker;
 
-const merge = function(a, b) {
-  if (b == null) { b = {}; }
+const merge = function(a, b = {}) {
   const out = {};
-  for (let key in a) { const value = a[key]; out[key] = b[key] != null ? b[key] : a[key]; }
+  for (let key in a) {
+    out[key] = b[key] || a[key];
+  }
   return out;
 };
 
-class ShaderGraph {
-  static initClass() {
-
-    // Expose class hierarchy
-    this.Block =     Block;
-    this.Factory =   Factory;
-    this.GLSL =      GLSL;
-    this.Graph =     Graph;
-    this.Linker =    Linker;
-    this.Visualize = Visualize;
-  }
+export class ShaderGraph {
   constructor(snippets, config) {
-    if (!(this instanceof ShaderGraph)) { return new ShaderGraph(snippets, config); }
+    if (!(this instanceof ShaderGraph)) {
+      return new ShaderGraph(snippets, config);
+    }
 
     const defaults = {
       globalUniforms:   false,
@@ -66,7 +58,15 @@ class ShaderGraph {
   static inspect(shader) { return inspect(shader); }
   static visualize(shader) { return visualize(shader); }
 }
-ShaderGraph.initClass();
 
-module.exports = ShaderGraph;
-if (typeof window !== 'undefined') { window.ShaderGraph = ShaderGraph; }
+// Expose class hierarchy
+ShaderGraph.Block =     Block;
+ShaderGraph.Factory =   Factory;
+ShaderGraph.GLSL =      GLSL;
+ShaderGraph.Graph =     Graph;
+ShaderGraph.Linker =    Linker;
+ShaderGraph.Visualize = Visualize;
+
+export function load(snippets, config = {}) {
+  return new ShaderGraph(snippets, config);
+}

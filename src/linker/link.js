@@ -6,22 +6,20 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Graph      = require('../graph');
-const Priority   = require('./priority');
+import * as Graph from '../graph';
+import * as Priority from './priority';
 
 /*
  Callback linker
- 
+
  Imports given modules and generates linkages for registered callbacks.
 
  Builds composite program with single module as exported entry point
 */
 
-const link = function(language, links, modules, exported) {
+export const link = function(language, links, modules, exported) {
 
-  const {
-    generate
-  } = language;
+  const generate = language;
   let includes   = [];
 
   const symbols    = [];
@@ -130,6 +128,3 @@ const link = function(language, links, modules, exported) {
 
   return process();
 };
-
-
-module.exports = link;

@@ -5,12 +5,12 @@
  * DS205: Consider reworking code to avoid use of IIFEs
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Block   = require('./block');
+import { Block } from './block';
 
 /*
   Join multiple disconnected nodes
 */
-class Join extends Block {
+export class Join extends Block {
   constructor(nodes) {
     super(true);
     this.nodes = nodes;
@@ -45,5 +45,3 @@ class Join extends Block {
     })();
   }
 }
-
-module.exports = Join;

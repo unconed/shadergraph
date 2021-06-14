@@ -50,11 +50,11 @@ void setColor() {
   var fetch = function (key) {
     element = document.getElementById(key);
     return element.textContent || element.innerText;
-  }
+   }
 
   // Load ShaderGraph with given fetch function
-  // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  var shadergraph = ShaderGraph(fetch, { autoInspect: true });
+   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
+  var shadergraph = ShaderGraph.load(fetch, { autoInspect: true });
 
   // Prepare pipeline of two snippets
   var pipeline = shadergraph.shader();
@@ -90,6 +90,6 @@ void setColor() {
   console.log("shader.link() = ", snippet);
 
   </script>
-  
+
 </body>
 </html>

@@ -1,5 +1,7 @@
+/* global ShaderGraph */
+
 describe("parser", function() {
-  const { GLSL } = ShaderGraph;
+  const { GLSL } = ShaderGraph.ShaderGraph;
 
   let program = null;
 

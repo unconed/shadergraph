@@ -8,17 +8,13 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Graph   = require('../graph');
-const {
-  Program
-} = require('../linker');
-const {
-  Layout
-} = require('../linker');
 
-const debug = false;
+import * as Graph from '../graph';
+import { Program, Layout } from '../linker';
 
-class Block {
+let debug = false;
+
+export class Block {
   static previous(outlet) { return (outlet.input != null ? outlet.input.node.owner : undefined); }
 
   constructor(delay) {
@@ -61,9 +57,9 @@ class Block {
   }
 
   // Subclassed methods
-  call(program, depth) {}
-  callback(layout, depth, name, external, outlet) {}
-  export(layout, depth) {}
+  call(_program, _depth) {}
+  callback(_layout, _depth, _name, _external, _outlet) {}
+  export(_layout, _depth) {}
 
   // Info string for debugging
   _info(suffix) {
@@ -122,12 +118,13 @@ class Block {
 
         if (outlet.meta.child != null) { continue; }
 
-        let [orig, parent, block] = Array.from([outlet, outlet, null]);
+        let parent = outlet;
+        let block;
         while (!block && parent) {
           [parent, outlet] = Array.from([outlet.meta.parent, parent]);
         }
 
-        block  = Block.previous(outlet);
+        block = Block.previous(outlet);
         if (!block) { throw new OutletError(`Missing connection on ${this._info(ext.name)}`); }
 
         debug && console.log('callback -> ', this.toString(), ext.name, outlet);
@@ -159,8 +156,6 @@ var OutletError = function(message) {
 };
 
 OutletError.prototype = new Error;
-
-module.exports = Block;
 
 function __guard__(value, transform) {
   return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;

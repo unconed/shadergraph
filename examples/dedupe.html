@@ -45,7 +45,7 @@ void setColor(vec3 color) {
 
   <div class="graph"></div>
   <h5>View Source for Code</h5>
-  
+
   <h4>Vertex Shader</h4>
   <pre></pre>
 
@@ -62,7 +62,7 @@ void setColor(vec3 color) {
 
   // Load ShaderGraph with given fetch function
   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  shadergraph = ShaderGraph(fetch, { autoInspect: true });
+  shadergraph = ShaderGraph.load(fetch, { autoInspect: true });
 
   // Prepare new material (vertex + fragment shader)
   material = shadergraph.material()
@@ -95,6 +95,6 @@ void setColor(vec3 color) {
   console.log('material.link() = ', program);
 
   </script>
-  
+
 </body>
 </html>

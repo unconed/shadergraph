@@ -1,9 +1,6 @@
+/* global ShaderGraph */
 describe("layout", function() {
-  const { Linker, Graph } = ShaderGraph;
-
-  const ns = name => (name.match(/_sn_([0-9]+)_/))[0];
-
-  const normalize = function(code, ignore) {
+  const normalize = function(code, _ignore) {
     // renumber generated outputs
     let p = 0;
     let s = 0;
@@ -46,7 +43,7 @@ void main(in vec3 _io_1_color) {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -96,7 +93,7 @@ void main(in vec3 _io_1_color) {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -156,7 +153,7 @@ void main(in vec3 _io_1_color) {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -232,7 +229,7 @@ void main(in vec3 _io_4_color) {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -283,7 +280,7 @@ void main(vec3 _io_1_color) {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -352,7 +349,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -421,7 +418,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -492,7 +489,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -576,7 +573,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     // Prepare pipeline of two snippets
     const pipeline = shadergraph.shader();
@@ -660,7 +657,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     // Prepare instanced snippet
     const instance = shadergraph.shader();
@@ -760,7 +757,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     // Prepare pipeline of two snippets
     const pipeline = shadergraph.shader();
@@ -860,7 +857,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets, { globalUniforms: true });
+    const shadergraph = ShaderGraph.load(snippets, { globalUniforms: true });
 
     // Prepare new material
     const material = shadergraph.material();
@@ -945,7 +942,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph();
+    const shadergraph = ShaderGraph.load();
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -1009,7 +1006,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -1081,7 +1078,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader

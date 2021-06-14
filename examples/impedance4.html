@@ -60,7 +60,7 @@ vec3 getColor(out vec3 color) {
 
   // Load ShaderGraph with given fetch function
   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  var shadergraph = ShaderGraph(fetch, { autoInspect: true });
+  var shadergraph = ShaderGraph.load(fetch, { autoInspect: true });
 
   var shader = shadergraph.shader()
                 .isolate()
@@ -87,6 +87,6 @@ vec3 getColor(out vec3 color) {
   console.log("shader.link() = ", snippet);
 
   </script>
-  
+
 </body>
 </html>

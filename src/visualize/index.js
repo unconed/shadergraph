@@ -5,19 +5,18 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-let markup, serialize;
-const {
-  Graph
-} = require('../Graph');
 
-exports.serialize = (serialize = require('./serialize'));
-exports.markup    = (markup    = require('./markup'));
+import { serialize as _serialize } from './serialize';
+import * as _markup from './markup';
 
-const visualize = function(graph) {
+export const serialize = _serialize;
+export const markup = _markup;
+
+const _visualize = function(graph) {
   if (!graph) { return; }
   if (!graph.nodes) { return graph; }
 
-  const data   = serialize(graph);
+  const data = serialize(graph);
   return markup.process(data);
 };
 
@@ -42,13 +41,13 @@ var merge = function(args) {
   return out;
 };
 
-exports.visualize = function() {
+export const visualize = function() {
   const list = merge(resolve([].slice.call(arguments)));
-  return markup.merge((Array.from(list).filter((graph) => graph).map((graph) => visualize(graph))));
+  return markup.merge((Array.from(list).filter((graph) => graph).map((graph) => _visualize(graph))));
 };
 
-exports.inspect = function() {
-  const contents = exports.visualize.apply(null, arguments);
+export const inspect = function() {
+  const contents = visualize.apply(null, arguments);
   const element  = markup.overlay(contents);
 
   for (let el of Array.from(document.querySelectorAll('.shadergraph-overlay'))) { el.remove(); }

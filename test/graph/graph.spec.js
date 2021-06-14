@@ -1,7 +1,8 @@
+/* global ShaderGraph */
 // Legacy shadergraph.js tests
 
 describe("graph", function() {
-  const { Graph } = ShaderGraph;
+  const { Graph } = ShaderGraph.ShaderGraph;
 
   let node1 = null;
   let node2 = null;

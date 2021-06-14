@@ -1,3 +1,5 @@
 .tmp/
 node_modules/
 .DS_Store
+dist
+build

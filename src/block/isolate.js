@@ -5,13 +5,13 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Graph   = require('../graph');
-const Block   = require('./block');
+import { Graph } from '../graph';
+import { Block } from './block';
 
 /*
   Isolate a subgraph as a single node
 */
-class Isolate extends Block {
+export class Isolate extends Block {
   constructor(graph) {
     super(true);
     this.graph = graph;
@@ -83,5 +83,3 @@ class Isolate extends Block {
     return outlet.node.owner.callback(layout, depth, name, external, outlet);
   }
 }
-
-module.exports = Isolate;

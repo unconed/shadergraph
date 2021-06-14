@@ -47,7 +47,7 @@ void main() {
 
   // Load ShaderGraph with given fetch function
   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  var shadergraph = ShaderGraph(fetch, { autoInspect: true });
+  var shadergraph = ShaderGraph.load(fetch, { autoInspect: true });
 
   // Build shader graph
   var shader = shadergraph.shader();
@@ -73,6 +73,6 @@ void main() {
   console.log("shader.link('main') = ", snippet);
 
   </script>
-  
+
 </body>
 </html>

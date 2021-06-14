@@ -7,10 +7,10 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const tokenizer = require('../../vendor/glsl-tokenizer');
-const parser    = require('../../vendor/glsl-parser');
-const decl      = require('./decl');
-const $         = require('./constants');
+import tokenize from 'glsl-tokenizer/string';
+import parser from 'glsl-parser/direct';
+import { decl } from './decl';
+import { SHADOW_ARG, RETURN_ARG } from './constants';
 
 let debug = false;
 
@@ -19,22 +19,20 @@ parse GLSL into AST
 extract all global symbols and make type signatures
 */
 // Parse a GLSL snippet
-const parse = function(name, code) {
-  let program;
-  const ast        = parseGLSL(name, code);
-  return program    = processAST(ast, code);
+export const parse = function(name, code) {
+  const ast = parseGLSL(name, code);
+  return processAST(ast, code);
 };
 
 // Parse GLSL language into AST
 var parseGLSL = function(name, code) {
-
-  let ast, errors, tock;
+  let ast, tock;
+  let errors = [];
   if (debug) { tock = tick(); }
 
-  // Sync stream hack (see /vendor/through)
   try {
-    let array;
-    array = tokenizer().process(parser(), code), [ast] = Array.from(array[0]), errors = array[1];
+    const tokens = tokenize(code);
+    ast = parser(tokens);
   } catch (e) {
     errors = [{message:e}];
   }
@@ -43,15 +41,21 @@ var parseGLSL = function(name, code) {
 
   const fmt = function(code) {
     code = code.split("\n");
-    const max  = ("" + code.length).length;
-    const pad  = function(v) { if ((v = "" + v).length < max) { return ("       " + v).slice(-max); } else { return v; } };
+    const max = ("" + code.length).length;
+    const pad = function(v) {
+      if ((v = "" + v).length < max) {
+        return ("       " + v).slice(-max);
+      } else {
+        return v;
+      }
+    };
     return code.map((line, i) => `${pad(i + 1)}: ${line}`).join("\n");
   };
 
   if (!ast || errors.length) {
     if (!name) { name = '(inline code)'; }
     console.warn(fmt(code));
-    for (let error of Array.from(errors)) { console.error(`${name} -`, error.message); }
+    for (let error of errors) { console.error(`${name} -`, error.message); }
     throw new Error("GLSL parse error");
   }
 
@@ -84,12 +88,15 @@ var mapSymbols = function(node, collect) {
     case 'decl':
       collect(decl.node(node));
       return false;
-      break;
   }
   return true;
 };
 
-var collect = out => (function(value) { if (value != null) { return Array.from(value).map((obj) => out.push(obj)); } });
+const collect = out => function(value) {
+  if (value != null) {
+    Array.from(value).map((obj) => out.push(obj));
+  }
+};
 
 // Identify internals, externals and main function
 var sortSymbols = function(symbols) {
@@ -150,7 +157,6 @@ var extractSignatures = function(main, internals, externals) {
   const defn = symbol => decl.type(symbol.ident, symbol.type, symbol.quant, symbol.count, symbol.inout, symbol.storage);
 
   const func = function(symbol, inout) {
-    let def;
     let d;
     const signature = (Array.from(symbol.args).map((arg) => defn(arg)));
 
@@ -163,7 +169,7 @@ var extractSignatures = function(main, internals, externals) {
         a.inout  = decl.in;
         b.inout  = decl.out;
         b.meta   = {shadow: a.name};
-        b.name  += $.SHADOW_ARG;
+        b.name  += SHADOW_ARG;
         a.meta   = {shadowed: b.name};
 
         signature.push(b);
@@ -172,7 +178,7 @@ var extractSignatures = function(main, internals, externals) {
 
     // Add output for return type
     if (symbol.type !== 'void') {
-      signature.unshift(decl.type($.RETURN_ARG, symbol.type, false, '', 'out'));
+      signature.unshift(decl.type(RETURN_ARG, symbol.type, false, '', 'out'));
     }
 
     // Make type string
@@ -181,7 +187,7 @@ var extractSignatures = function(main, internals, externals) {
       for (d of Array.from(signature)) {         if (d.inout === decl.in) {
           result.push(d.type);
         }
-      } 
+      }
       return result;
     })()).join(',');
     const outTypes = ((() => {
@@ -194,7 +200,7 @@ var extractSignatures = function(main, internals, externals) {
     })()).join(',');
     const type     = `(${inTypes})(${outTypes})`;
 
-    return def = {
+    return {
       name: symbol.ident,
       type,
       signature,
@@ -236,13 +242,15 @@ var extractSignatures = function(main, internals, externals) {
 // Walk AST, apply map and collect values
 debug = false;
 
-var walk = function(map, collect, node, indent) {
+export var walk = function(map, collect, node, indent) {
   debug && console.log(indent, node.type, node.token != null ? node.token.data : undefined, node.token != null ? node.token.type : undefined);
 
   const recurse = map(node, collect);
 
   if (recurse) {
-    for (let i = 0; i < node.children.length; i++) { const child = node.children[i]; walk(map, collect, child, indent + '  ', debug); }
+    for (let i = 0; i < node.children.length; i++) {
+      const child = node.children[i]; walk(map, collect, child, indent + '  ', debug);
+    }
   }
 
   return null;
@@ -258,8 +266,3 @@ var tick = function() {
     return delta;
   };
 };
-
-
-module.exports = walk;
-module.exports = parse;
-

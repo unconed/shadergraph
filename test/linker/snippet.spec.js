@@ -1,5 +1,7 @@
+/* global ShaderGraph */
+
 describe("snippet", function() {
-  const { GLSL, Linker } = ShaderGraph;
+  const { GLSL, Linker } = ShaderGraph.ShaderGraph;
   const { Snippet } = Linker;
 
   let snippet = null;

@@ -1,8 +1,10 @@
-exports.Snippet  = require('./snippet');
-exports.Program  = require('./program');
-exports.Layout   = require('./layout');
-exports.assemble = require('./assemble');
-exports.link     = require('./link');
-exports.priority = require('./priority');
+import { Snippet } from './snippet';
 
-exports.load = exports.Snippet.load;
+export const { load } = Snippet;
+
+export * from './snippet';
+export * from './program';
+export * from './layout';
+export * from './assemble';
+export * from './link';
+export * from './priority';

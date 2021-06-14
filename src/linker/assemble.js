@@ -6,8 +6,8 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Graph      = require('../graph');
-const Priority   = require('./priority');
+import * as Graph from '../graph';
+import * as Priority from './priority';
 
 /*
   Program assembler
@@ -16,11 +16,8 @@ const Priority   = require('./priority');
   Unconnected input/outputs and undefined callbacks are exposed in the new global/main scope
   If there is only one call with an identical call signature, a #define is output instead.
 */
-const assemble = function(language, namespace, calls, requires) {
-
-  const {
-    generate
-  } = language;
+export const assemble = function(language, namespace, calls, requires) {
+  const generate = language;
 
   const externals  = {};
   const symbols    = [];
@@ -178,6 +175,3 @@ const assemble = function(language, namespace, calls, requires) {
 
   return process();
 };
-
-module.exports = assemble;
-

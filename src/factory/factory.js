@@ -6,18 +6,16 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {
-  Graph
-} = require('../graph');
-const Block     = require('../block');
-const Visualize = require('../visualize');
+import { Graph } from '../graph';
+import * as Block from '../block';
+import * as Visualize from '../visualize';
 
 /*
   Chainable factory
-  
+
   Exposes methods to build a graph incrementally
 */
-class Factory {
+export class Factory {
   constructor(language, fetch, config) {
     this.language = language;
     this.fetch = fetch;
@@ -204,7 +202,7 @@ class Factory {
     return main.nodes = main.nodes.concat(sub.nodes);
   }
 
-  // Make subgraph and connect to tail 
+  // Make subgraph and connect to tail
   _isolate(sub, main) {
     if (sub.nodes.length) {
       let block;
@@ -367,7 +365,7 @@ class Factory {
     this._state.end   = [node];
 
     this._state.nodes.push(node);
-    if (!node.outputs.length) { return this._state.tail .push(node); }
+    if (!node.outputs.length) { this._state.tail.push(node); }
   }
 
   // Add block and connect to start
@@ -380,11 +378,11 @@ class Factory {
 
     for (start of Array.from(this._state.start)) { node.connect(start); }
 
-    if (!this._state.end.length) { this._state.end   = [node]; }
+    if (!this._state.end.length) { this._state.end = [node]; }
     this._state.start = [node];
 
     this._state.nodes.push(node);
-    if (!node.outputs.length) { return this._state.tail .push(node); }
+    if (!node.outputs.length) { this._state.tail.push(node); }
   }
 
   // Insert loose block
@@ -417,5 +415,3 @@ class State {
     this.tail = tail;
   }
 }
-
-module.exports = Factory;

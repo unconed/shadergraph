@@ -1,6 +1,6 @@
-exports.Graph  = require('./graph');
-exports.Node   = require('./node');
-exports.Outlet = require('./outlet');
+import { Graph } from './graph';
+export const { IN, OUT } = Graph;
 
-exports.IN  = exports.Graph.IN;
-exports.OUT = exports.Graph.OUT;
+export * from './graph';
+export * from './node';
+export * from './outlet';

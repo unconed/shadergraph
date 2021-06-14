@@ -6,7 +6,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const hash = require('../factory/hash');
+import { hash } from '../factory/hash';
 
 const trim = string => ("" + string).replace(/^\s+|\s+$/g, '');
 
@@ -41,7 +41,7 @@ const escapeText = function(string) {
     .replace(/"/g, '&quot;');
 };
 
-const process = function(data) {
+export const process = function(data) {
   const links = [];
   const el = _markup(data, links);
   el.update = () => connect(el, links);
@@ -253,7 +253,7 @@ var connect = function(element, links) {
   return element.appendChild(svg);
 };
 
-const overlay = function(contents) {
+export const overlay = function(contents) {
   const div = document.createElement('div');
   div.setAttribute('class', 'shadergraph-overlay');
 
@@ -284,7 +284,7 @@ const wrap = function(markup) {
   return p;
 };
 
-const merge = function(markup) {
+export const merge = function(markup) {
   if (markup.length !== 1) {
     let el;
     const div = document.createElement('div');
@@ -300,6 +300,3 @@ const merge = function(markup) {
     return wrap(markup[0]);
   }
 };
-
-module.exports = {process, merge, overlay};
-

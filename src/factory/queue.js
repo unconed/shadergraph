@@ -5,7 +5,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 // Least-recently-used queue for key expiry via linked list
-const queue = function(limit) {
+export const queue = function(limit) {
   if (limit == null) { limit = 100; }
   const map = {};
 
@@ -43,7 +43,7 @@ const queue = function(limit) {
   // Push key to top of list
   return function(key) {
     let dead, item;
-    if (item = map[key] && (item !== head)) {
+    if ((item = map[key]) && (item !== head)) {
       // Already in queue
       remove(item);
       add(item);
@@ -73,5 +73,3 @@ const queue = function(limit) {
     return dead;
   };
 };
-
-module.exports = queue;

@@ -28,11 +28,7 @@ const config = {
     extensions: [
       // '.ts',
       '.js'
-    ],
-    fallback: {
-      'stream': require.resolve("stream-browserify")
-
-    }
+    ]
   },
   // Activate source maps for the bundles in order to preserve the original
   // source when the user debugs the application

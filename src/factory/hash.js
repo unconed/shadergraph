@@ -61,5 +61,6 @@ export const hash = function (string) {
   h = imul(h, c4);
   h ^= h >>> 13;
   h = imul(h, c5);
+
   return (h ^= h >>> 16);
 };

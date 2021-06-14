@@ -7,8 +7,8 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import { tokenize } from '../../vendor/glsl-tokenizer';
-import { parser } from '../../vendor/glsl-parser';
+import tokenize from '../../vendor/glsl-tokenizer';
+import parser from '../../vendor/glsl-parser';
 import { decl } from './decl';
 import { SHADOW_ARG, RETURN_ARG } from './constants';
 
@@ -19,10 +19,9 @@ parse GLSL into AST
 extract all global symbols and make type signatures
 */
 // Parse a GLSL snippet
-const parse = function(name, code) {
-  let program;
-  const ast        = parseGLSL(name, code);
-  return program    = processAST(ast, code);
+export const parse = function(name, code) {
+  const ast = parseGLSL(name, code);
+  return processAST(ast, code);
 };
 
 // Parse GLSL language into AST
@@ -84,12 +83,15 @@ var mapSymbols = function(node, collect) {
     case 'decl':
       collect(decl.node(node));
       return false;
-      break;
   }
   return true;
 };
 
-var collect = out => (function(value) { if (value != null) { return Array.from(value).map((obj) => out.push(obj)); } });
+const collect = out => function(value) {
+  if (value != null) {
+    Array.from(value).map((obj) => out.push(obj));
+  }
+};
 
 // Identify internals, externals and main function
 var sortSymbols = function(symbols) {
@@ -236,7 +238,7 @@ var extractSignatures = function(main, internals, externals) {
 // Walk AST, apply map and collect values
 debug = false;
 
-var walk = function(map, collect, node, indent) {
+export var walk = function(map, collect, node, indent) {
   debug && console.log(indent, node.type, node.token != null ? node.token.data : undefined, node.token != null ? node.token.type : undefined);
 
   const recurse = map(node, collect);
@@ -258,7 +260,3 @@ var tick = function() {
     return delta;
   };
 };
-
-
-module.exports = walk;
-module.exports = parse;

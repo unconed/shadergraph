@@ -1,5 +1,4 @@
-export * as compile from './compile';
-export * as parse from './parse';
-export * as generate from './generate';
-
+export * from './compile';
+export * from './parse';
+export * from './generate';
 export * from './constants';

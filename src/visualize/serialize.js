@@ -6,7 +6,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 // Dump graph for debug/visualization purposes
-import { Block } from '../block';
+import * as Block from '../block';
 
 const isCallback = outlet => outlet.type[0] === '(';
 

@@ -38,7 +38,6 @@ void main() {
   <pre></pre>
 
   <script>
-
   // Fetch snippets above
   var fetch = function (key) {
     element = document.getElementById(key);
@@ -47,7 +46,7 @@ void main() {
 
   // Load ShaderGraph with given fetch function
   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  var shadergraph = new ShaderGraph(fetch, { autoInspect: true });
+  var shadergraph = ShaderGraph.load(fetch, { autoInspect: true });
 
   var shader = shadergraph.shader()
                  .isolate()

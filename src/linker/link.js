@@ -17,11 +17,9 @@ import * as Priority from './priority';
  Builds composite program with single module as exported entry point
 */
 
-const link = function(language, links, modules, exported) {
+export const link = function(language, links, modules, exported) {
 
-  const {
-    generate
-  } = language;
+  const generate = language;
   let includes   = [];
 
   const symbols    = [];
@@ -130,6 +128,3 @@ const link = function(language, links, modules, exported) {
 
   return process();
 };
-
-
-module.exports = link;

@@ -52,7 +52,7 @@ void setColor(vec3 color) {
 
   // Load ShaderGraph with given fetch function
   // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  shadergraph = new ShaderGraph(fetch, { autoInspect: true });
+  shadergraph = ShaderGraph.load(fetch, { autoInspect: true });
 
   // Prepare new shader
   shader = shadergraph.shader()

@@ -17,10 +17,7 @@ import * as Priority from './priority';
   If there is only one call with an identical call signature, a #define is output instead.
 */
 export const assemble = function(language, namespace, calls, requires) {
-
-  const {
-    generate
-  } = language;
+  const generate = language;
 
   const externals  = {};
   const symbols    = [];

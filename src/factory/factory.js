@@ -365,7 +365,7 @@ export class Factory {
     this._state.end   = [node];
 
     this._state.nodes.push(node);
-    if (!node.outputs.length) { return this._state.tail .push(node); }
+    if (!node.outputs.length) { this._state.tail.push(node); }
   }
 
   // Add block and connect to start
@@ -378,11 +378,11 @@ export class Factory {
 
     for (start of Array.from(this._state.start)) { node.connect(start); }
 
-    if (!this._state.end.length) { this._state.end   = [node]; }
+    if (!this._state.end.length) { this._state.end = [node]; }
     this._state.start = [node];
 
     this._state.nodes.push(node);
-    if (!node.outputs.length) { return this._state.tail .push(node); }
+    if (!node.outputs.length) { this._state.tail.push(node); }
   }
 
   // Insert loose block

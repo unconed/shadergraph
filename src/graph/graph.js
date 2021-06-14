@@ -15,6 +15,7 @@ export class Graph {
     this.IN = 0;
     this.OUT = 1;
   }
+  // eslint-disable-next-line no-unused-vars
   static id(name) { return ++Graph.index; }
 
   constructor(nodes, parent = null) {
@@ -53,7 +54,7 @@ export class Graph {
     if (node.graph && !ignore) { throw new Error("Adding node to two graphs at once"); }
 
     node.graph = this;
-    return this.nodes.push(node);
+    this.nodes.push(node);
   }
 
   remove(node, ignore) {
@@ -67,7 +68,7 @@ export class Graph {
     ignore || node.disconnect();
 
     this.nodes.splice(this.nodes.indexOf(node), 1);
-    return node.graph = null;
+    node.graph = null;
   }
 
   adopt(node) {
@@ -77,7 +78,7 @@ export class Graph {
     }
 
     node.graph.remove(node, true);
-    return this.add(node, true);
+    this.add(node, true);
   }
 }
 Graph.initClass();

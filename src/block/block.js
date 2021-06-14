@@ -12,7 +12,7 @@
 import * as Graph from '../graph';
 import { Program, Layout } from '../linker';
 
-const debug = false;
+let debug = false;
 
 export class Block {
   static previous(outlet) { return (outlet.input != null ? outlet.input.node.owner : undefined); }

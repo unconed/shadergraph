@@ -5,8 +5,8 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import * as Graph from '../graph';
-import * as Block from './block';
+import { Graph } from '../graph';
+import { Block } from './block';
 
 /*
   Re-use a subgraph as a callback

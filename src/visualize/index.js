@@ -6,8 +6,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 
-import { Graph } from '../graph';
-import * as _serialize from './serialize';
+import { serialize as _serialize } from './serialize';
 import * as _markup from './markup';
 
 export const serialize = _serialize;

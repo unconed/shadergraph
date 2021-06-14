@@ -4,8 +4,8 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import * as Snippet from './snippet';
-import * as link from './link';
+import { Snippet } from './snippet';
+import { link } from './link';
 
 const debug = false;
 

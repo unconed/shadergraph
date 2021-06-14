@@ -7,8 +7,8 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import tokenize from '../../vendor/glsl-tokenizer';
-import parser from '../../vendor/glsl-parser';
+import tokenize from 'glsl-tokenizer/string';
+import parser from 'glsl-parser/direct';
 import { decl } from './decl';
 import { SHADOW_ARG, RETURN_ARG } from './constants';
 
@@ -26,14 +26,13 @@ export const parse = function(name, code) {
 
 // Parse GLSL language into AST
 var parseGLSL = function(name, code) {
-
-  let ast, errors, tock;
+  let ast, tock;
+  let errors = [];
   if (debug) { tock = tick(); }
 
-  // Sync stream hack (see /vendor/through)
   try {
-    let array;
-    array = tokenize().process(parser(), code), [ast] = Array.from(array[0]), errors = array[1];
+    const tokens = tokenize(code);
+    ast = parser(tokens);
   } catch (e) {
     errors = [{message:e}];
   }
@@ -42,15 +41,21 @@ var parseGLSL = function(name, code) {
 
   const fmt = function(code) {
     code = code.split("\n");
-    const max  = ("" + code.length).length;
-    const pad  = function(v) { if ((v = "" + v).length < max) { return ("       " + v).slice(-max); } else { return v; } };
+    const max = ("" + code.length).length;
+    const pad = function(v) {
+      if ((v = "" + v).length < max) {
+        return ("       " + v).slice(-max);
+      } else {
+        return v;
+      }
+    };
     return code.map((line, i) => `${pad(i + 1)}: ${line}`).join("\n");
   };
 
   if (!ast || errors.length) {
     if (!name) { name = '(inline code)'; }
     console.warn(fmt(code));
-    for (let error of Array.from(errors)) { console.error(`${name} -`, error.message); }
+    for (let error of errors) { console.error(`${name} -`, error.message); }
     throw new Error("GLSL parse error");
   }
 
@@ -152,7 +157,6 @@ var extractSignatures = function(main, internals, externals) {
   const defn = symbol => decl.type(symbol.ident, symbol.type, symbol.quant, symbol.count, symbol.inout, symbol.storage);
 
   const func = function(symbol, inout) {
-    let def;
     let d;
     const signature = (Array.from(symbol.args).map((arg) => defn(arg)));
 
@@ -196,7 +200,7 @@ var extractSignatures = function(main, internals, externals) {
     })()).join(',');
     const type     = `(${inTypes})(${outTypes})`;
 
-    return def = {
+    return {
       name: symbol.ident,
       type,
       signature,
@@ -244,7 +248,9 @@ export var walk = function(map, collect, node, indent) {
   const recurse = map(node, collect);
 
   if (recurse) {
-    for (let i = 0; i < node.children.length; i++) { const child = node.children[i]; walk(map, collect, child, indent + '  ', debug); }
+    for (let i = 0; i < node.children.length; i++) {
+      const child = node.children[i]; walk(map, collect, child, indent + '  ', debug);
+    }
   }
 
   return null;

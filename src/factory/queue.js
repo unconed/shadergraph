@@ -5,49 +5,58 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 // Least-recently-used queue for key expiry via linked list
-export const queue = function(limit) {
-  if (limit == null) { limit = 100; }
+export const queue = function (limit) {
+  if (limit == null) {
+    limit = 100;
+  }
   const map = {};
 
-  let head  = null;
-  let tail  = null;
+  let head = null;
+  let tail = null;
   let count = 0;
 
   // Insert at front
-  const add = function(item) {
+  const add = function (item) {
     item.prev = null;
     item.next = head;
 
-    if (head != null) { head.prev = item; }
+    if (head != null) {
+      head.prev = item;
+    }
 
-    head      = item;
-    if ((tail == null)) { return tail      = item; }
+    head = item;
+    if (tail == null) {
+      return (tail = item);
+    }
   };
 
   // Remove from list
-  const remove = function(item) {
-    const {
-      prev
-    } = item;
-    const {
-      next
-    } = item;
+  const remove = function (item) {
+    const { prev } = item;
+    const { next } = item;
 
-    if (prev != null) { prev.next = next; }
-    if (next != null) { next.prev = prev; }
+    if (prev != null) {
+      prev.next = next;
+    }
+    if (next != null) {
+      next.prev = prev;
+    }
 
-    if (head === item) { head = next; }
-    if (tail === item) { return tail = prev; }
+    if (head === item) {
+      head = next;
+    }
+    if (tail === item) {
+      return (tail = prev);
+    }
   };
 
   // Push key to top of list
-  return function(key) {
+  return function (key) {
     let dead, item;
-    if ((item = map[key]) && (item !== head)) {
+    if ((item = map[key]) && item !== head) {
       // Already in queue
       remove(item);
       add(item);
-
     } else {
       // Check capacity
       if (count === limit) {
@@ -62,7 +71,7 @@ export const queue = function(limit) {
       }
 
       // Replace head
-      item = {next: head, prev: null, key};
+      item = { next: head, prev: null, key };
       add(item);
 
       // Map record for lookup

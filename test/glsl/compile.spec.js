@@ -1,13 +1,13 @@
 /* global ShaderGraph */
 
-describe("compiler", function() {
+describe("compiler", function () {
   const { GLSL } = ShaderGraph.ShaderGraph;
 
-  let program    = null;
+  let program = null;
 
   // eslint-disable-next-line no-unused-vars
   let signatures = null;
-  let assembler  = null;
+  let assembler = null;
 
   const code = `\
 uniform float uf1[2], uf2[3];
@@ -67,21 +67,21 @@ void _t_main() {
 };\
 `;
 
-  beforeEach(function() {
+  beforeEach(function () {
     const { compile, parse } = GLSL;
 
-    program = parse('test', code);
+    program = parse("test", code);
     [signatures, assembler] = compile(program);
   });
 
-  it('creates an assembler function', function() {
+  it("creates an assembler function", function () {
     expect(assembler).toBeTruthy();
     expect(assembler.call).toBeTruthy();
     expect(assembler.apply).toBeTruthy();
   });
 
-  return it('assembles with prefix on all global symbols', function() {
-    const namespace = '_t_';
+  return it("assembles with prefix on all global symbols", function () {
+    const namespace = "_t_";
     const compiled = assembler(namespace);
 
     expect(compiled).toBe(result);

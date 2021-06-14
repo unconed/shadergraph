@@ -1,0 +1,4 @@
+.*
+**/webpack.config.js
+docs
+karma.conf.js

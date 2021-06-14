@@ -5,8 +5,8 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import { Graph } from '../graph';
-import { Block } from './block';
+import { Graph } from "../graph";
+import { Block } from "./block";
 
 /*
   Re-use a subgraph as a callback
@@ -32,8 +32,8 @@ export class Callback extends Block {
     this.make();
 
     const outlets = [];
-    let ins     = [];
-    let outs    = [];
+    let ins = [];
+    let outs = [];
 
     // Pass-through existing callbacks
     // Collect open inputs/outputs
@@ -42,7 +42,9 @@ export class Callback extends Block {
         if (outlet.inout === Graph.IN) {
           // Dupe outlet and create two-way link between cloned outlets
           const dupe = outlet.dupe();
-          if (dupe  .meta.child == null) { dupe.meta.child = outlet; }
+          if (dupe.meta.child == null) {
+            dupe.meta.child = outlet;
+          }
           outlet.meta.parent = dupe;
 
           return outlets.push(dupe);
@@ -52,33 +54,39 @@ export class Callback extends Block {
       }
     };
 
-    for (outlet of Array.from(this.graph.inputs())) { handle(outlet, ins); }
-    for (outlet of Array.from(this.graph.outputs())) { handle(outlet, outs); }
+    for (outlet of Array.from(this.graph.inputs())) {
+      handle(outlet, ins);
+    }
+    for (outlet of Array.from(this.graph.outputs())) {
+      handle(outlet, outs);
+    }
 
     // Merge inputs/outputs into new callback signature
-    ins  = ins.join(',');
-    outs = outs.join(',');
+    ins = ins.join(",");
+    outs = outs.join(",");
     const type = `(${ins})(${outs})`;
 
     outlets.push({
-      name:  'callback',
+      name: "callback",
       type,
       inout: Graph.OUT,
       meta: {
         callback: true,
-        def: this.subroutine.main
-      }
+        def: this.subroutine.main,
+      },
     });
 
     return outlets;
   }
 
   make() {
-    return this.subroutine = this.graph.compile(this.namespace);
+    return (this.subroutine = this.graph.compile(this.namespace));
   }
 
   export(layout, depth) {
-    if (!layout.visit(this.namespace, depth)) { return; }
+    if (!layout.visit(this.namespace, depth)) {
+      return;
+    }
 
     this._link(this.subroutine, layout, depth);
     return this.graph.export(layout, depth);
@@ -90,6 +98,13 @@ export class Callback extends Block {
 
   callback(layout, depth, name, external, outlet) {
     this._include(this.subroutine, layout, depth);
-    return this._callback(this.subroutine, layout, depth, name, external, outlet);
+    return this._callback(
+      this.subroutine,
+      layout,
+      depth,
+      name,
+      external,
+      outlet
+    );
   }
 }

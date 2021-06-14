@@ -1,18 +1,27 @@
 /* global ShaderGraph */
-describe("layout", function() {
-  const normalize = function(code, _ignore) {
+describe("layout", function () {
+  const normalize = function (code, _ignore) {
     // renumber generated outputs
     let p = 0;
     let s = 0;
     let o = 0;
     const map = {};
     return code
-      .replace(/\b_io_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] ||= `_io_${++o}${name}`)
-      .replace(/\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] ||= `_sn_${++s}${name}`)
-      .replace(/\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g, (match, name) => map[match] ||= `_pg_${++p}_${name || ''}`);
+      .replace(
+        /\b_io_[0-9]+([A-Za-z0-9_]+)\b/g,
+        (match, name) => (map[match] ||= `_io_${++o}${name}`)
+      )
+      .replace(
+        /\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g,
+        (match, name) => (map[match] ||= `_sn_${++s}${name}`)
+      )
+      .replace(
+        /\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g,
+        (match, name) => (map[match] ||= `_pg_${++p}_${name || ""}`)
+      );
   };
 
-  it('links a callback (callback/end)', function() {
+  it("links a callback (callback/end)", function () {
     const code1 = `\
 float foobar(vec3 color) {
 }\
@@ -26,8 +35,8 @@ void main(in vec3 color) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2
+      code1: code1,
+      code2: code2,
     };
 
     const result = `\
@@ -45,13 +54,8 @@ void main(in vec3 _io_1_color) {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .callback()
-                .pipe('code1')
-              .end()
-              .pipe('code2')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader.callback().pipe("code1").end().pipe("code2").graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -60,9 +64,7 @@ void main(in vec3 _io_1_color) {
     expect(snippet.entry.match(/^_pg_[0-9]+_$/)).toBeTruthy;
   });
 
-
-  it('links a callback (require)', function() {
-
+  it("links a callback (require)", function () {
     const code1 = `\
 float foobar(vec3 color) {
 }\
@@ -76,8 +78,8 @@ void main(in vec3 color) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2
+      code1: code1,
+      code2: code2,
     };
 
     const result = `\
@@ -95,11 +97,8 @@ void main(in vec3 _io_1_color) {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .require('code1')
-              .pipe('code2')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader.require("code1").pipe("code2").graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -108,9 +107,7 @@ void main(in vec3 _io_1_color) {
     expect(snippet.entry.match(/^_pg_[0-9]+_$/)).toBeTruthy;
   });
 
-
-  it('links a callback recursively (callback/end)', function() {
-
+  it("links a callback recursively (callback/end)", function () {
     const code1 = `\
 float foobar(vec3 color) {
 }\
@@ -130,14 +127,13 @@ void main(in vec3 color) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     //wtf coffeescript?
-    const result =
-    `#define _sn_1_callback _pg_1_
+    const result = `#define _sn_1_callback _pg_1_
 #define _sn_2_callback _pg_2_
 #define _pg_2_ _sn_3_foobar
 #define _pg_1_ _sn_4_foobar
@@ -155,16 +151,16 @@ void main(in vec3 _io_1_color) {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .callback()
-                .callback()
-                  .pipe('code1')
-                .end()
-                .pipe('code2')
-              .end()
-              .pipe('code3')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .callback()
+      .callback()
+      .pipe("code1")
+      .end()
+      .pipe("code2")
+      .end()
+      .pipe("code3")
+      .graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -172,10 +168,7 @@ void main(in vec3 _io_1_color) {
     expect(code).toBe(result);
   });
 
-
-
-  it('creates linkages for subgraphs and signature mismatches (callback/end)', function() {
-
+  it("creates linkages for subgraphs and signature mismatches (callback/end)", function () {
     const code1 = `\
 float foobar(vec3 color) {
   return color.x;
@@ -196,9 +189,9 @@ void main(in vec3 color) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     const result = `\
@@ -231,14 +224,14 @@ void main(in vec3 _io_4_color) {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .callback()
-                .pipe('code1')
-                .pipe('code2')
-              .end()
-              .pipe('code3')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .callback()
+      .pipe("code1")
+      .pipe("code2")
+      .end()
+      .pipe("code3")
+      .graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -246,9 +239,7 @@ void main(in vec3 _io_4_color) {
     return expect(code).toBe(result);
   });
 
-
-  it('links nested graphs (isolate/end)', function() {
-
+  it("links nested graphs (isolate/end)", function () {
     const code1 = `\
 float foobar(vec3 color) {
   return color.x;
@@ -261,8 +252,8 @@ void main(float f) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2
+      code1: code1,
+      code2: code2,
     };
 
     const result = `\
@@ -282,13 +273,8 @@ void main(vec3 _io_1_color) {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .isolate()
-                .pipe('code1')
-              .end()
-              .pipe('code2')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader.isolate().pipe("code1").end().pipe("code2").graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -296,8 +282,7 @@ void main(vec3 _io_1_color) {
     return expect(code).toBe(result);
   });
 
-  it('handles piped requires (require/require/pipe)', function() {
-
+  it("handles piped requires (require/require/pipe)", function () {
     const code1 = `\
 vec3 getColor() {
   return vec3(0.2, 0.3, 0.4);
@@ -320,9 +305,9 @@ void main() {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     const result = `\
@@ -351,13 +336,13 @@ void main() {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .require('code1')
-              .require('code1')
-              .require('code2')
-              .pipe('code3')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .require("code1")
+      .require("code1")
+      .require("code2")
+      .pipe("code3")
+      .graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -365,8 +350,7 @@ void main() {
     return expect(code).toBe(result);
   });
 
-  it('handles piped requires with deep nesting (require/isolate/require/end/pipe)', function() {
-
+  it("handles piped requires with deep nesting (require/isolate/require/end/pipe)", function () {
     const code1 = `\
 vec3 getColor() {
   return vec3(0.2, 0.3, 0.4);
@@ -389,9 +373,9 @@ void main() {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     const result = `\
@@ -420,15 +404,15 @@ void main() {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .require('code1')
-              .require('code1')
-              .isolate()
-                .require('code2')
-              .end()
-              .pipe('code3')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .require("code1")
+      .require("code1")
+      .isolate()
+      .require("code2")
+      .end()
+      .pipe("code3")
+      .graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -436,8 +420,7 @@ void main() {
     return expect(code).toBe(result);
   });
 
-  it('handles piped requires with deep deep nesting (require/isolate/require/end/pipe)', function() {
-
+  it("handles piped requires with deep deep nesting (require/isolate/require/end/pipe)", function () {
     const code1 = `\
 vec3 getColor() {
   return vec3(0.2, 0.3, 0.4);
@@ -460,9 +443,9 @@ void main() {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     const result = `\
@@ -491,17 +474,17 @@ void main() {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .require('code1')
-              .require('code1')
-              .isolate()
-                .isolate()
-                  .require('code2')
-                .end()
-              .end()
-              .pipe('code3')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .require("code1")
+      .require("code1")
+      .isolate()
+      .isolate()
+      .require("code2")
+      .end()
+      .end()
+      .pipe("code3")
+      .graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -509,8 +492,7 @@ void main() {
     return expect(code).toBe(result);
   });
 
-  it('de-dupes a repeated singleton (require/require/pipe)', function() {
-
+  it("de-dupes a repeated singleton (require/require/pipe)", function () {
     const squareColor = `\
 vec3 squareColor(vec3 rgb) {
   return rgb * rgb;
@@ -539,7 +521,7 @@ void setColor() {
 }\
 `;
 
-    const snippets = {squareColor, getColor, getCallbackColor, setColor};
+    const snippets = { squareColor, getColor, getCallbackColor, setColor };
 
     const result = `\
 #define _sn_1_getColor1 _pg_1_
@@ -577,19 +559,19 @@ void main() {
 
     // Prepare pipeline of two snippets
     const pipeline = shadergraph.shader();
-    pipeline.pipe('getColor');
-    pipeline.pipe('squareColor');
+    pipeline.pipe("getColor");
+    pipeline.pipe("squareColor");
 
     // Prepare callback
     const callback = shadergraph.shader();
     callback.require(pipeline);
-    callback.pipe('getCallbackColor');
+    callback.pipe("getCallbackColor");
 
     // Build shader graph
     const shader = shadergraph.shader();
     shader.require(callback);
     shader.require(callback);
-    shader.pipe('setColor');
+    shader.pipe("setColor");
 
     const snippet = shader.link();
     const code = normalize(snippet.code);
@@ -597,8 +579,7 @@ void main() {
     return expect(code).toBe(result);
   });
 
-  it('de-dupes a repeated isolated singleton (require/require/pipe)', function() {
-
+  it("de-dupes a repeated isolated singleton (require/require/pipe)", function () {
     const squareColor = `\
 vec3 squareColor(vec3 rgb) {
   return rgb * rgb;
@@ -621,7 +602,7 @@ void setColor(vec3 color) {
 }\
 `;
 
-    const snippets = {squareColor, getColor, setColor};
+    const snippets = { squareColor, getColor, setColor };
 
     const result = `\
 #define _sn_1_mapColor1 _pg_1_
@@ -661,7 +642,7 @@ void main() {
 
     // Prepare instanced snippet
     const instance = shadergraph.shader();
-    instance.pipe('squareColor');
+    instance.pipe("squareColor");
 
     // Build callback graph
     const callback = shadergraph.shader();
@@ -674,10 +655,10 @@ void main() {
 
     // Build shader graph
     const shader = shadergraph.shader();
-    shader.pipe('getColor');
+    shader.pipe("getColor");
     shader.require(isolate);
     shader.require(isolate);
-    shader.pipe('setColor');
+    shader.pipe("setColor");
 
     // Link entire shader into a main() function
     const snippet = shader.link();
@@ -686,8 +667,7 @@ void main() {
     return expect(code).toBe(result);
   });
 
-  it('impedance matches a singleton (require/require/pipe)', function() {
-
+  it("impedance matches a singleton (require/require/pipe)", function () {
     const squareColor = `\
 vec3 squareColor(vec3 rgb) {
   return rgb * rgb;
@@ -718,7 +698,7 @@ void setColor() {
 }\
 `;
 
-    const snippets = {squareColor, getColor, getCallbackColor, setColor};
+    const snippets = { squareColor, getColor, getCallbackColor, setColor };
 
     const result = `\
 #define _sn_1_getColor1 _pg_1_
@@ -761,19 +741,19 @@ void main() {
 
     // Prepare pipeline of two snippets
     const pipeline = shadergraph.shader();
-    pipeline.pipe('getColor');
-    pipeline.pipe('squareColor');
+    pipeline.pipe("getColor");
+    pipeline.pipe("squareColor");
 
     // Prepare callback
     const callback = shadergraph.shader();
     callback.require(pipeline);
-    callback.pipe('getCallbackColor');
+    callback.pipe("getCallbackColor");
 
     // Build shader graph
     const shader = shadergraph.shader();
     shader.require(callback);
     shader.require(callback);
-    shader.pipe('setColor');
+    shader.pipe("setColor");
 
     const snippet = shader.link();
     const code = normalize(snippet.code);
@@ -781,8 +761,7 @@ void main() {
     return expect(code).toBe(result);
   });
 
-  it('de-dupes attributes/uniforms on a material', function() {
-
+  it("de-dupes attributes/uniforms on a material", function () {
     const vertex1 = `\
 uniform vec4 rgba;
 attribute vec3 color;
@@ -818,7 +797,7 @@ void setColor(vec3 color) {
 }\
 `;
 
-    const snippets = {vertex1, vertex2, getColor, setColor};
+    const snippets = { vertex1, vertex2, getColor, setColor };
 
     const vertexResult = `\
 uniform vec4 rgba;
@@ -862,24 +841,19 @@ void main() {
     // Prepare new material
     const material = shadergraph.material();
 
-    material.vertex
-      .pipe('vertex1')
-      .pipe('vertex2');
+    material.vertex.pipe("vertex1").pipe("vertex2");
 
-    material.fragment
-      .pipe('getColor')
-      .pipe('setColor');
+    material.fragment.pipe("getColor").pipe("setColor");
 
-    const program  = material.link();
-    const vertex   = normalize(program.vertexShader);
+    const program = material.link();
+    const vertex = normalize(program.vertexShader);
     const fragment = normalize(program.fragmentShader);
 
     expect(vertex).toBe(vertexResult);
     return expect(fragment).toBe(fragmentResult);
   });
 
-  it('handles multiple merged returns (callback/pipe/next/pipe/end/require)', function() {
-
+  it("handles multiple merged returns (callback/pipe/next/pipe/end/require)", function () {
     const getColor1 = `\
 vec3 getColor1() {
   return vec3(0.1, 0.1, 0.1);
@@ -944,16 +918,16 @@ void main() {
 
     const shadergraph = ShaderGraph.load();
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .callback()
-                .pipe(getColor1)
-              .next()
-                .pipe(getColor2)
-              .end()
-              .require(getColorSum)
-              .pipe(setColor)
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .callback()
+      .pipe(getColor1)
+      .next()
+      .pipe(getColor2)
+      .end()
+      .require(getColorSum)
+      .pipe(setColor)
+      .graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -961,9 +935,7 @@ void main() {
     return expect(code).toBe(result);
   });
 
-
-  it('handles inouts inside isolates (isolate/pipe/end)', function() {
-
+  it("handles inouts inside isolates (isolate/pipe/end)", function () {
     const getColor = `\
 vec3 getColor() {
   return vec3(1.0, 0.5, 0.25);
@@ -982,7 +954,7 @@ void setColor(vec3 color) {
 }\
 `;
 
-    const snippets = {getColor, squareColor, setColor};
+    const snippets = { getColor, squareColor, setColor };
 
     const result = `\
 #define _pg_1_ _sn_1_squareColor
@@ -1008,14 +980,14 @@ void main() {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .pipe('getColor')
-              .isolate()
-                .pipe('squareColor')
-              .end()
-              .pipe('setColor')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .pipe("getColor")
+      .isolate()
+      .pipe("squareColor")
+      .end()
+      .pipe("setColor")
+      .graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -1023,9 +995,7 @@ void main() {
     expect(code).toBe(result);
   });
 
-
-  it('splits piped inouts inside isolates (isolate/pipe/pipe/end)', function() {
-
+  it("splits piped inouts inside isolates (isolate/pipe/pipe/end)", function () {
     const getColor = `\
 vec3 getColor() {
   return vec3(1.0, 0.5, 0.25);
@@ -1044,7 +1014,7 @@ void setColor(vec3 color) {
 }\
 `;
 
-    const snippets = {getColor, squareColor, setColor};
+    const snippets = { getColor, squareColor, setColor };
 
     const result = `\
 vec3 _sn_1_getColor() {
@@ -1080,15 +1050,15 @@ void main() {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .pipe('getColor')
-              .isolate()
-                .pipe('squareColor')
-                .pipe('squareColor')
-              .end()
-              .pipe('setColor')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .pipe("getColor")
+      .isolate()
+      .pipe("squareColor")
+      .pipe("squareColor")
+      .end()
+      .pipe("setColor")
+      .graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);

@@ -4,7 +4,7 @@
   position: relative;
 }
 .shadergraph-graph:after {
-  content: ' ';
+  content: " ";
   display: block;
   height: 0;
   font-size: 0;
@@ -34,14 +34,13 @@
   overflow: visible;
 }
 .shadergraph-node .shadergraph-graph .shadergraph-node {
-  margin: 5px 15px 15px; 
+  margin: 5px 15px 15px;
 }
 .shadergraph-node {
-  margin: 5px 15px 25px; 
-  background: rgba(0, 0, 0, .1);
+  margin: 5px 15px 25px;
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 5px;
-  box-shadow: 0 1px  2px rgba(0, 0, 0, .2),
-              0 1px  10px rgba(0, 0, 0, .2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 1px 10px rgba(0, 0, 0, 0.2);
   min-height: 35px;
   float: left;
   clear: left;
@@ -54,8 +53,8 @@
   font-weight: bold;
   text-align: center;
   height: 25px;
-  background: rgba(0, 0, 0, .3);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+  background: rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   color: #fff;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
@@ -76,7 +75,7 @@
 }
 .shadergraph-point {
   margin: 6px;
-  width:  11px;
+  width: 11px;
   height: 11px;
   border-radius: 7.5px;
   background: rgba(255, 255, 255, 1);
@@ -97,39 +96,36 @@
 }
 
 .shadergraph-node-callback {
-  background: rgba(205, 209, 221, .5);
-  box-shadow: 0 1px  2px rgba(0, 10, 40, .2),
-              0 1px  10px rgba(0, 10, 40, .2);
+  background: rgba(205, 209, 221, 0.5);
+  box-shadow: 0 1px 2px rgba(0, 10, 40, 0.2), 0 1px 10px rgba(0, 10, 40, 0.2);
 }
 .shadergraph-node-callback > .shadergraph-header {
-  background: rgba(0, 20, 80, .3);
+  background: rgba(0, 20, 80, 0.3);
 }
 .shadergraph-graph .shadergraph-graph .shadergraph-node-callback {
-  background: rgba(0, 20, 80, .1);
+  background: rgba(0, 20, 80, 0.1);
 }
 
 .shadergraph-node-call {
-  background: rgba(209, 221, 205, .5);
-  box-shadow: 0 1px  2px rgba(10, 40, 0, .2),
-              0 1px  10px rgba(10, 40, 0, .2);
+  background: rgba(209, 221, 205, 0.5);
+  box-shadow: 0 1px 2px rgba(10, 40, 0, 0.2), 0 1px 10px rgba(10, 40, 0, 0.2);
 }
 .shadergraph-node-call > .shadergraph-header {
-  background: rgba(20, 80, 0, .3);
+  background: rgba(20, 80, 0, 0.3);
 }
 .shadergraph-graph .shadergraph-graph .shadergraph-node-call {
-  background: rgba(20, 80, 0, .1);
+  background: rgba(20, 80, 0, 0.1);
 }
 
 .shadergraph-node-isolate {
-  background: rgba(221, 205, 209, .5);
-  box-shadow: 0 1px  2px rgba(40, 0, 10, .2),
-              0 1px  10px rgba(40, 0, 10, .2);
+  background: rgba(221, 205, 209, 0.5);
+  box-shadow: 0 1px 2px rgba(40, 0, 10, 0.2), 0 1px 10px rgba(40, 0, 10, 0.2);
 }
 .shadergraph-node-isolate > .shadergraph-header {
-  background: rgba(80, 0, 20, .3);
+  background: rgba(80, 0, 20, 0.3);
 }
 .shadergraph-graph .shadergraph-graph .shadergraph-node-isolate {
-  background: rgba(80, 0, 20, .1);
+  background: rgba(80, 0, 20, 0.1);
 }
 
 .shadergraph-node.shadergraph-has-code {
@@ -137,13 +133,13 @@
 }
 .shadergraph-node.shadergraph-has-code::before {
   position: absolute;
-  content: ' ';
+  content: " ";
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   display: none;
-  border: 2px solid rgba(0, 0, 0, .25);
+  border: 2px solid rgba(0, 0, 0, 0.25);
   border-radius: 5px;
 }
 .shadergraph-node.shadergraph-has-code:hover::before {
@@ -158,8 +154,7 @@
   white-space: pre;
   padding: 10px;
   border-radius: 5px;
-  box-shadow: 0 1px  2px rgba(0, 0, 0, .2),
-              0 1px  10px rgba(0, 0, 0, .2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 1px 10px rgba(0, 0, 0, 0.2);
   font-family: monospace;
   font-size: 10px;
   line-height: 12px;
@@ -172,7 +167,7 @@
   right: 0;
   bottom: 0;
   background: #fff;
-  border-top: 1px solid #CCC;
+  border-top: 1px solid #ccc;
 }
 .shadergraph-overlay .shadergraph-view {
   position: absolute;
@@ -193,8 +188,8 @@
   right: 5px;
   padding: 4px;
   border-radius: 16px;
-  background: rgba(255,255,255,.3);
-  color: rgba(0, 0, 0, .3);
+  background: rgba(255, 255, 255, 0.3);
+  color: rgba(0, 0, 0, 0.3);
   cursor: pointer;
   font-size: 24px;
   line-height: 24px;
@@ -203,7 +198,7 @@
   vertical-align: middle;
 }
 .shadergraph-overlay .shadergraph-close:hover {
-  background: rgba(255,255,255,1);
+  background: rgba(255, 255, 255, 1);
   color: rgba(0, 0, 0, 1);
 }
 .shadergraph-overlay .shadergraph-graph {
@@ -215,7 +210,7 @@
   display: block;
   padding: 5px 15px;
   margin: 0;
-  background: rgba(0, 0, 0, .1);
+  background: rgba(0, 0, 0, 0.1);
   font-weight: bold;
   font-family: sans-serif;
 }

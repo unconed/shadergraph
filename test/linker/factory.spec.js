@@ -1,19 +1,28 @@
 /* global ShaderGraph */
 
-describe("program", function() {
-  const normalize = function(code, _ignore) {
+describe("program", function () {
+  const normalize = function (code, _ignore) {
     // renumber generated outputs
     let p = 0;
     let s = 0;
     let o = 0;
     const map = {};
     return code
-      .replace(/\b_io_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] ||= `_io_${++o}${name}`)
-      .replace(/\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] ||= `_sn_${++s}${name}`)
-      .replace(/\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g, (match, name) => map[match] ||= `_pg_${++p}_${name || ''}`);
+      .replace(
+        /\b_io_[0-9]+([A-Za-z0-9_]+)\b/g,
+        (match, name) => (map[match] ||= `_io_${++o}${name}`)
+      )
+      .replace(
+        /\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g,
+        (match, name) => (map[match] ||= `_sn_${++s}${name}`)
+      )
+      .replace(
+        /\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g,
+        (match, name) => (map[match] ||= `_pg_${++p}_${name || ""}`)
+      );
   };
 
-  it('imports a factory (require/pipe)', function() {
+  it("imports a factory (require/pipe)", function () {
     const code1 = `\
 float foobar(vec3 color) {
 }\
@@ -27,8 +36,8 @@ void main(in vec3 color) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2
+      code1: code1,
+      code2: code2,
     };
 
     const result = `\
@@ -47,12 +56,9 @@ void main(in vec3 _io_1_color) {
     const shadergraph = ShaderGraph.load(snippets);
 
     const shader = shadergraph.shader();
-    shader.pipe('code1');
+    shader.pipe("code1");
 
-    const graph = shadergraph.shader()
-              .require(shader)
-              .pipe('code2')
-              .graph();
+    const graph = shadergraph.shader().require(shader).pipe("code2").graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -61,7 +67,7 @@ void main(in vec3 _io_1_color) {
     expect(snippet.entry.match(/^_pg_[0-9]+_$/)).toBeTruthy;
   });
 
-  it('constructs an implicit callback (import/call)', function() {
+  it("constructs an implicit callback (import/call)", function () {
     const code1 = `\
 float foobar(vec3 color) {
 }\
@@ -75,8 +81,8 @@ void main(in vec3 color) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2
+      code1: code1,
+      code2: code2,
     };
 
     const result = `\
@@ -96,10 +102,7 @@ void main(in vec3 _io_1_color) {
 
     const shader = shadergraph.shader();
 
-    const graph  = shader
-              .import('code1')
-              .pipe('code2')
-              .graph();
+    const graph = shader.import("code1").pipe("code2").graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -108,7 +111,7 @@ void main(in vec3 _io_1_color) {
     expect(snippet.entry.match(/^_pg_[0-9]+_$/)).toBeTruthy;
   });
 
-  it('passes through an implicit callback (call/import/call)', function() {
+  it("passes through an implicit callback (call/import/call)", function () {
     const code1 = `\
 float foobar(vec3 color) {
 }\
@@ -128,9 +131,9 @@ float callback() {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     const result = `\
@@ -156,11 +159,7 @@ void main(in vec3 _io_1_color) {
 
     const shader = shadergraph.shader();
 
-    const graph  = shader
-              .pipe('code3')
-              .import('code1')
-              .pipe('code2')
-              .graph();
+    const graph = shader.pipe("code3").import("code1").pipe("code2").graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);
@@ -169,14 +168,14 @@ void main(in vec3 _io_1_color) {
     expect(snippet.entry.match(/^_pg_[0-9]+_$/)).toBeTruthy;
   });
 
-  it('aggregates tail blocks (pipe/pipe)', function() {
+  it("aggregates tail blocks (pipe/pipe)", function () {
     const code1 = `\
 void foobar() {
 }\
 `;
 
     const snippets = {
-      'code1': code1
+      code1: code1,
     };
 
     const result = `\
@@ -197,11 +196,7 @@ void main() {
 
     const shader = shadergraph.shader();
 
-    const graph  = shader
-              .pipe('code1')
-              .pipe('code1')
-              .pipe('code1')
-              .graph();
+    const graph = shader.pipe("code1").pipe("code1").pipe("code1").graph();
 
     const snippet = graph.link();
     const code = normalize(snippet.code);

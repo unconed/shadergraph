@@ -5,8 +5,8 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import { Snippet } from './snippet';
-import { assemble } from './assemble';
+import { Snippet } from "./snippet";
+import { assemble } from "./assemble";
 
 /*
   Program assembly model
@@ -25,15 +25,17 @@ export class Program {
   static initClass() {
     this.index = 0;
   }
-  static entry() { return `_pg_${++Program.index}_`; }
+  static entry() {
+    return `_pg_${++Program.index}_`;
+  }
 
   // Program starts out empty, ready to compile starting from a particular block
   constructor(language, namespace, graph) {
     this.language = language;
     this.namespace = namespace;
     this.graph = graph;
-    this.calls      = {};
-    this.requires   = {};
+    this.calls = {};
+    this.requires = {};
   }
 
   // Call a given module at certain priority
@@ -45,7 +47,7 @@ export class Program {
     if ((exists = this.calls[ns])) {
       exists.priority = Math.max(exists.priority, priority);
     } else {
-      this.calls[ns] = {node, module, priority};
+      this.calls[ns] = { node, module, priority };
     }
 
     return this;
@@ -54,14 +56,21 @@ export class Program {
   // Require a given (callback) module's externals
   require(node, module) {
     const ns = module.namespace;
-    return this.requires[ns] = {node, module};
+    return (this.requires[ns] = { node, module });
   }
 
   // Compile queued ops into result
   assemble() {
-    const data          = assemble(this.language, this.namespace != null ? this.namespace : Program.entry, this.calls, this.requires);
-    const snippet       = new Snippet;
-    for (let key in data) { snippet[key]  = data[key]; }
+    const data = assemble(
+      this.language,
+      this.namespace != null ? this.namespace : Program.entry,
+      this.calls,
+      this.requires
+    );
+    const snippet = new Snippet();
+    for (let key in data) {
+      snippet[key] = data[key];
+    }
     snippet.graph = this.graph;
     return snippet;
   }

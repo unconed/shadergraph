@@ -16,11 +16,13 @@ export class Graph {
     this.OUT = 1;
   }
   // eslint-disable-next-line no-unused-vars
-  static id(name) { return ++Graph.index; }
+  static id(name) {
+    return ++Graph.index;
+  }
 
   constructor(nodes, parent = null) {
     this.parent = parent;
-    this.id    = Graph.id();
+    this.id = Graph.id();
     this.nodes = [];
     nodes && this.add(nodes);
   }
@@ -28,7 +30,11 @@ export class Graph {
   inputs() {
     const inputs = [];
     for (let node of Array.from(this.nodes)) {
-      for (let outlet of Array.from(node.inputs)) { if (outlet.input === null) { inputs.push(outlet); } }
+      for (let outlet of Array.from(node.inputs)) {
+        if (outlet.input === null) {
+          inputs.push(outlet);
+        }
+      }
     }
     return inputs;
   }
@@ -36,22 +42,37 @@ export class Graph {
   outputs() {
     const outputs = [];
     for (let node of Array.from(this.nodes)) {
-      for (let outlet of Array.from(node.outputs)) { if (outlet.output.length === 0) { outputs.push(outlet); } }
+      for (let outlet of Array.from(node.outputs)) {
+        if (outlet.output.length === 0) {
+          outputs.push(outlet);
+        }
+      }
     }
     return outputs;
   }
 
-  getIn(name) { return (Array.from(this.inputs()).filter((outlet) => outlet.name === name))[0]; }
-  getOut(name) { return (Array.from(this.outputs()).filter((outlet) => outlet.name === name))[0]; }
+  getIn(name) {
+    return Array.from(this.inputs()).filter(
+      (outlet) => outlet.name === name
+    )[0];
+  }
+  getOut(name) {
+    return Array.from(this.outputs()).filter(
+      (outlet) => outlet.name === name
+    )[0];
+  }
 
   add(node, ignore) {
-
     if (node.length) {
-      for (let _node of Array.from(node)) { this.add(_node); }
+      for (let _node of Array.from(node)) {
+        this.add(_node);
+      }
       return;
     }
 
-    if (node.graph && !ignore) { throw new Error("Adding node to two graphs at once"); }
+    if (node.graph && !ignore) {
+      throw new Error("Adding node to two graphs at once");
+    }
 
     node.graph = this;
     this.nodes.push(node);
@@ -59,11 +80,15 @@ export class Graph {
 
   remove(node, ignore) {
     if (node.length) {
-      for (let _node of Array.from(node)) { this.remove(_node); }
+      for (let _node of Array.from(node)) {
+        this.remove(_node);
+      }
       return;
     }
 
-    if (node.graph !== this) { throw new Error("Removing node from wrong graph."); }
+    if (node.graph !== this) {
+      throw new Error("Removing node from wrong graph.");
+    }
 
     ignore || node.disconnect();
 
@@ -73,7 +98,9 @@ export class Graph {
 
   adopt(node) {
     if (node.length) {
-      for (let _node of Array.from(node)) { this.adopt(_node); }
+      for (let _node of Array.from(node)) {
+        this.adopt(_node);
+      }
       return;
     }
 

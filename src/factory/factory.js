@@ -6,9 +6,9 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import { Graph } from '../graph';
-import * as Block from '../block';
-import * as Visualize from '../visualize';
+import { Graph } from "../graph";
+import * as Block from "../block";
+import * as Visualize from "../visualize";
 
 /*
   Chainable factory
@@ -58,26 +58,26 @@ export class Factory {
   // Create parallel branches that connect as one block to the end
   // (one outgoing connection per outlet)
   split() {
-    this._group('_combine', true);
+    this._group("_combine", true);
     return this;
   }
 
   // Create parallel branches that fan out from the end
   // (multiple outgoing connections per outlet)
   fan() {
-    this._group('_combine', false);
+    this._group("_combine", false);
     return this;
   }
 
   // Create isolated subgraph
   isolate() {
-    this._group('_isolate');
+    this._group("_isolate");
     return this;
   }
 
   // Create callback subgraph
   callback() {
-    this._group('_callback');
+    this._group("_callback");
     return this;
   }
 
@@ -99,9 +99,7 @@ export class Factory {
   // applying stored op along the way
   end() {
     const [sub, main] = Array.from(this._exit());
-    const {
-      op
-    } = sub;
+    const { op } = sub;
     if (this[op]) {
       this[op](sub, main);
     }
@@ -116,7 +114,9 @@ export class Factory {
   // Return finalized graph / reset factory
   graph() {
     // Pop remaining stack
-    while ((this._stack != null ? this._stack.length : undefined) > 1) { this.end(); }
+    while ((this._stack != null ? this._stack.length : undefined) > 1) {
+      this.end();
+    }
 
     // Remember terminating node(s) of graph
     if (this._graph) {
@@ -125,8 +125,8 @@ export class Factory {
 
     const graph = this._graph;
 
-    this._graph = new Graph;
-    this._state = new State;
+    this._graph = new Graph();
+    this._state = new State();
     this._stack = [this._state];
 
     return graph;
@@ -134,13 +134,17 @@ export class Factory {
 
   // Compile shortcut (graph is thrown away)
   compile(namespace) {
-    if (namespace == null) { namespace = 'main'; }
+    if (namespace == null) {
+      namespace = "main";
+    }
     return this.graph().compile(namespace);
   }
 
   // Link shortcut (graph is thrown away)
   link(namespace) {
-    if (namespace == null) { namespace = 'main'; }
+    if (namespace == null) {
+      namespace = "main";
+    }
     return this.graph().link(namespace);
   }
 
@@ -150,21 +154,27 @@ export class Factory {
   }
 
   // Return true if empty
-  empty() { return this._graph.nodes.length === 0; }
+  empty() {
+    return this._graph.nodes.length === 0;
+  }
 
   // Concatenate existing factory onto tail
   // Retains original factory
   _concat(factory) {
     // Ignore empty concat
     let block;
-    if (factory._state.nodes.length === 0) { return this; }
+    if (factory._state.nodes.length === 0) {
+      return this;
+    }
 
     this._tail(factory._state, factory._graph);
 
     try {
       block = new Block.Isolate(factory._graph);
     } catch (error) {
-      if (this.config.autoInspect) { Visualize.inspect(error, this._graph, factory); }
+      if (this.config.autoInspect) {
+        Visualize.inspect(error, this._graph, factory);
+      }
       throw error;
     }
 
@@ -177,14 +187,18 @@ export class Factory {
   _import(factory) {
     // Check for empty require
     let block;
-    if (factory._state.nodes.length === 0) { throw "Can't import empty callback"; }
+    if (factory._state.nodes.length === 0) {
+      throw "Can't import empty callback";
+    }
 
     this._tail(factory._state, factory._graph);
 
     try {
       block = new Block.Callback(factory._graph);
     } catch (error) {
-      if (this.config.autoInspect) { Visualize.inspect(error, this._graph, factory); }
+      if (this.config.autoInspect) {
+        Visualize.inspect(error, this._graph, factory);
+      }
       throw error;
     }
 
@@ -195,11 +209,13 @@ export class Factory {
   // Connect parallel branches to tail
   _combine(sub, main) {
     for (let to of Array.from(sub.start)) {
-      for (let from of Array.from(main.end)) { from.connect(to, sub.multi); }
+      for (let from of Array.from(main.end)) {
+        from.connect(to, sub.multi);
+      }
     }
 
-    main.end   = sub.end;
-    return main.nodes = main.nodes.concat(sub.nodes);
+    main.end = sub.end;
+    return (main.nodes = main.nodes.concat(sub.nodes));
   }
 
   // Make subgraph and connect to tail
@@ -212,7 +228,9 @@ export class Factory {
       try {
         block = new Block.Isolate(subgraph);
       } catch (error) {
-        if (this.config.autoInspect) { Visualize.inspect(error, this._graph, subgraph); }
+        if (this.config.autoInspect) {
+          Visualize.inspect(error, this._graph, subgraph);
+        }
         throw error;
       }
 
@@ -230,7 +248,9 @@ export class Factory {
       try {
         block = new Block.Callback(subgraph);
       } catch (error) {
-        if (this.config.autoInspect) { Visualize.inspect(error, this._graph, subgraph); }
+        if (this.config.autoInspect) {
+          Visualize.inspect(error, this._graph, subgraph);
+        }
         throw error;
       }
 
@@ -255,7 +275,6 @@ export class Factory {
 
   // Finalize graph tail
   _tail(state, graph) {
-
     // Merge (unique) terminating ends into single tail node if needed
     let tail = state.end.concat(state.tail);
     tail = tail.filter((node, i) => tail.indexOf(node) === i);
@@ -268,7 +287,7 @@ export class Factory {
 
     // Save single endpoint
     graph.tail = tail[0];
-    state.end  = tail;
+    state.end = tail;
     state.tail = [];
 
     if (!graph.tail) {
@@ -276,37 +295,46 @@ export class Factory {
     }
 
     // Add compile/link/export/inspect shortcut methods
-    graph.compile = namespace => {
-      if (namespace == null) { namespace = 'main'; }
+    graph.compile = (namespace) => {
+      if (namespace == null) {
+        namespace = "main";
+      }
       try {
         return graph.tail.owner.compile(this.language, namespace);
       } catch (error) {
-        if (this.config.autoInspect) { graph.inspect(error); }
+        if (this.config.autoInspect) {
+          graph.inspect(error);
+        }
         throw error;
       }
     };
 
-    graph.link    = namespace => {
-      if (namespace == null) { namespace = 'main'; }
+    graph.link = (namespace) => {
+      if (namespace == null) {
+        namespace = "main";
+      }
       try {
         return graph.tail.owner.link(this.language, namespace);
       } catch (error) {
-        if (this.config.autoInspect) { graph.inspect(error); }
+        if (this.config.autoInspect) {
+          graph.inspect(error);
+        }
         throw error;
       }
     };
 
-    graph.export  = (layout, depth) => {
+    graph.export = (layout, depth) => {
       return graph.tail.owner.export(layout, depth);
     };
 
-    return graph.inspect = (message = null) => Visualize.inspect(message, graph);
+    return (graph.inspect = (message = null) =>
+      Visualize.inspect(message, graph));
   }
 
   // Create group for branches or callbacks
   _group(op, multi) {
     this._push(op, multi); // Accumulator
-    this._push();         // Current
+    this._push(); // Current
     return this;
   }
 
@@ -315,9 +343,9 @@ export class Factory {
     const sub = this._pop();
 
     this._state.start = this._state.start.concat(sub.start);
-    this._state.end   = this._state.end  .concat(sub.end);
+    this._state.end = this._state.end.concat(sub.end);
     this._state.nodes = this._state.nodes.concat(sub.nodes);
-    this._state.tail  = this._state.tail .concat(sub.tail);
+    this._state.tail = this._state.tail.concat(sub.tail);
 
     return this._push();
   }
@@ -332,14 +360,16 @@ export class Factory {
   // State stack
   _push(op, multi) {
     this._stack.unshift(new State(op, multi));
-    return this._state = this._stack[0];
+    return (this._state = this._stack[0]);
   }
 
   _pop() {
     let left;
     this._state = this._stack[1];
-    if (this._state == null) { this._state = new State; }
-    return (left = this._stack.shift()) != null ? left : new State;
+    if (this._state == null) {
+      this._state = new State();
+    }
+    return (left = this._stack.shift()) != null ? left : new State();
   }
 
   // Auto append or insert depending on whether we have inputs
@@ -354,64 +384,82 @@ export class Factory {
   // Add block and connect to end
   _append(block) {
     let end;
-    const {
-      node
-    } = block;
+    const { node } = block;
     this._graph.add(node);
 
-    for (end of Array.from(this._state.end)) { end.connect(node); }
+    for (end of Array.from(this._state.end)) {
+      end.connect(node);
+    }
 
-    if (!this._state.start.length) { this._state.start = [node]; }
-    this._state.end   = [node];
+    if (!this._state.start.length) {
+      this._state.start = [node];
+    }
+    this._state.end = [node];
 
     this._state.nodes.push(node);
-    if (!node.outputs.length) { this._state.tail.push(node); }
+    if (!node.outputs.length) {
+      this._state.tail.push(node);
+    }
   }
 
   // Add block and connect to start
   _prepend(block) {
     let start;
-    const {
-      node
-    } = block;
+    const { node } = block;
     this._graph.add(node);
 
-    for (start of Array.from(this._state.start)) { node.connect(start); }
+    for (start of Array.from(this._state.start)) {
+      node.connect(start);
+    }
 
-    if (!this._state.end.length) { this._state.end = [node]; }
+    if (!this._state.end.length) {
+      this._state.end = [node];
+    }
     this._state.start = [node];
 
     this._state.nodes.push(node);
-    if (!node.outputs.length) { this._state.tail.push(node); }
+    if (!node.outputs.length) {
+      this._state.tail.push(node);
+    }
   }
 
   // Insert loose block
   _insert(block) {
-    const {
-      node
-    } = block;
+    const { node } = block;
     this._graph.add(node);
 
     this._state.start.push(node);
-    this._state.end  .push(node);
+    this._state.end.push(node);
 
     this._state.nodes.push(node);
-    if (!node.outputs.length) { return this._state.tail .push(node); }
+    if (!node.outputs.length) {
+      return this._state.tail.push(node);
+    }
   }
 }
 
 class State {
   constructor(op = null, multi, start, end, nodes, tail) {
     this.op = op;
-    if (multi == null) { multi = false; }
+    if (multi == null) {
+      multi = false;
+    }
     this.multi = multi;
-    if (start == null) { start = []; }
+    if (start == null) {
+      start = [];
+    }
     this.start = start;
-    if (end == null) { end = []; }
+    if (end == null) {
+      end = [];
+    }
     this.end = end;
-    if (nodes == null) { nodes = []; }
+    if (nodes == null) {
+      nodes = [];
+    }
     this.nodes = nodes;
-    if (tail == null) { tail = []; }
+    if (tail == null) {
+      tail = [];
+    }
     this.tail = tail;
   }
 }

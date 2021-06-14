@@ -1,139 +1,144 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>ShaderGraph - Raw Graph</title>
-  <link rel="stylesheet" href="../build/shadergraph.css" />
-  <script type="text/javascript" src="../build/shadergraph.js"></script>
-</head>
-<body>
+  <head>
+    <meta charset="utf-8" />
+    <title>ShaderGraph - Raw Graph</title>
+    <link rel="stylesheet" href="../build/shadergraph.css" />
+    <script type="text/javascript" src="../build/shadergraph.js"></script>
+  </head>
+  <body>
+    <h1>Raw Graph Example</h1>
 
-  <h1>Raw Graph Example</h1>
+    <p>Using ShaderGraph's graph visualizer directly, without real GLSL.</p>
 
-  <p>Using ShaderGraph's graph visualizer directly, without real GLSL.</p>
+    <div class="graph"></div>
 
-  <div class="graph"></div>
+    <pre></pre>
 
-  <pre></pre>
+    <script>
+      // Namespace
+      var Graph = ShaderGraph.ShaderGraph.Graph;
 
-  <script>
+      // Make two graphs
+      var graph = new Graph.Graph();
+      var subgraph = new Graph.Graph();
 
-   // Namespace
-   var Graph = ShaderGraph.ShaderGraph.Graph;
+      // Definitions for the node's outlets
+      var def1 = [
+        {
+          inout: Graph.OUT,
+          name: "matrix",
+          type: "m4",
+        },
+        {
+          inout: Graph.OUT,
+          name: "position",
+          type: "v3",
+        },
+        {
+          inout: Graph.OUT,
+          name: "alpha",
+          type: "f",
+        },
+        {
+          inout: Graph.OUT,
+          name: "color",
+          type: "v3",
+        },
+        {
+          inout: Graph.IN,
+          name: "color",
+          type: "v3",
+        },
+      ];
 
+      var def2 = [
+        {
+          inout: Graph.IN,
+          name: "color",
+          type: "v3",
+        },
+        {
+          inout: Graph.IN,
+          name: "position",
+          type: "v3",
+        },
+        {
+          inout: Graph.IN,
+          name: "alpha",
+          type: "f",
+        },
+        {
+          inout: Graph.IN,
+          name: "matrix",
+          type: "m4",
+        },
+        {
+          inout: Graph.OUT,
+          name: "matrix",
+          type: "m4",
+        },
+      ];
 
-   // Make two graphs
-   var graph    = new Graph.Graph();
-   var subgraph = new Graph.Graph();
+      var def3 = [
+        {
+          inout: Graph.IN,
+          name: "alpha",
+          type: "f",
+        },
+        {
+          inout: Graph.IN,
+          name: "matrix",
+          type: "m4",
+        },
+      ];
 
-   // Definitions for the node's outlets
-   var def1 = [
-       {
-           inout: Graph.OUT,
-           name: 'matrix',
-           type: 'm4',
-       },
-       {
-           inout: Graph.OUT,
-           name: 'position',
-           type: 'v3',
-       },
-       {
-           inout: Graph.OUT,
-           name: 'alpha',
-           type: 'f',
-       },
-       {
-           inout: Graph.OUT,
-           name: 'color',
-           type: 'v3',
-       },
-       {
-           inout: Graph.IN,
-           name: 'color',
-           type: 'v3',
-       },
-   ];
+      var def4 = [
+        {
+          inout: Graph.OUT,
+          name: "callback",
+          type: "(f,m4)()",
+        },
+      ];
 
-   var def2 = [
-       {
-           inout: Graph.IN,
-           name: 'color',
-           type: 'v3',
-       },
-       {
-           inout: Graph.IN,
-           name: 'position',
-           type: 'v3',
-       },
-       {
-           inout: Graph.IN,
-           name: 'alpha',
-           type: 'f',
-       },
-       {
-           inout: Graph.IN,
-           name: 'matrix',
-           type: 'm4',
-       },
-       {
-           inout: Graph.OUT,
-           name: 'matrix',
-           type: 'm4',
-       },
-   ];
+      // Make nodes
+      var node1 = new Graph.Node({ type: "call", name: "First call" }, def1);
+      var node2 = new Graph.Node({ type: "call", name: "Second call" }, def2);
+      var node3 = new Graph.Node(
+        { type: "isolate", name: "Isolate", graph: subgraph },
+        def3
+      );
+      var node4 = new Graph.Node(
+        { type: "callback", name: "Callback", graph: subgraph },
+        def4
+      );
 
-   var def3 = [
-       {
-           inout: Graph.IN,
-           name: 'alpha',
-           type: 'f',
-       },
-       {
-           inout: Graph.IN,
-           name: 'matrix',
-           type: 'm4',
-       },
-   ];
+      // Add to graph
+      graph.add(node1);
+      graph.add(node2);
+      graph.add(node3);
+      graph.add(node4);
 
-   var def4 = [
-       {
-           inout: Graph.OUT,
-           name: 'callback',
-           type: '(f,m4)()',
-       },
-   ];
+      // Connect nodes automatically
+      node1.connect(node2);
 
-   // Make nodes
-   var node1 = new Graph.Node({type: 'call',     name: 'First call' }, def1);
-   var node2 = new Graph.Node({type: 'call',     name: 'Second call'}, def2);
-   var node3 = new Graph.Node({type: 'isolate',  name: 'Isolate',  graph: subgraph}, def3);
-   var node4 = new Graph.Node({type: 'callback', name: 'Callback', graph: subgraph}, def4);
+      // Connect individual outlets
+      node2.getOut("matrix").connect(node3.getIn("matrix"));
+      node1.getOut("alpha").connect(node3.getIn("alpha"));
 
-   // Add to graph
-   graph.add(node1);
-   graph.add(node2);
-   graph.add(node3);
-   graph.add(node4);
+      // Create subgraph
+      var subnode = new Graph.Node(
+        { type: "call", name: "Child", code: "//\n// Hello World\n//" },
+        def3
+      );
+      subgraph.add(subnode);
 
-   // Connect nodes automatically
-   node1.connect(node2);
+      // Generate visualization of graph
+      var visualize = ShaderGraph.ShaderGraph.visualize(graph);
+      document.querySelector(".graph").appendChild(visualize);
+      visualize.update();
 
-   // Connect individual outlets
-   node2.getOut('matrix').connect(node3.getIn('matrix'));
-   node1.getOut('alpha') .connect(node3.getIn('alpha'));
-
-   // Create subgraph
-   var subnode = new Graph.Node({type: 'call', name: 'Child', code: "//\n// Hello World\n//"}, def3);
-   subgraph.add(subnode);
-
-   // Generate visualization of graph
-   var visualize = ShaderGraph.ShaderGraph.visualize(graph);
-   document.querySelector('.graph').appendChild(visualize);
-   visualize.update();
-
-   console.info(node1, node2);
-  </script>
-
-</body>
+      console.info(node1, node2);
+    </script>
+  </body>
 </html>

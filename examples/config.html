@@ -1,100 +1,93 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>ShaderGraph - Custom Configuration</title>
-  <link rel="stylesheet" href="../build/shadergraph.css" />
-  <script type="text/javascript" src="../build/shadergraph.js"></script>
+  <head>
+    <meta charset="utf-8" />
+    <title>ShaderGraph - Custom Configuration</title>
+    <link rel="stylesheet" href="../build/shadergraph.css" />
+    <script type="text/javascript" src="../build/shadergraph.js"></script>
 
-<script type="application/x-glsl" id="vertex">
-uniform float strength;
-attribute vec3 color;
-varying vec3 vColor;
+    <script type="application/x-glsl" id="vertex">
+      uniform float strength;
+      attribute vec3 color;
+      varying vec3 vColor;
 
-void main() {
-  vColor = color * strength;
-}
-</script>
+      void main() {
+        vColor = color * strength;
+      }
+    </script>
 
-<script type="application/x-glsl" id="getColor">
-varying vec3 vColor;
-vec3 getColor() {
-  return vColor * vColor * 2.0;
-}
-</script>
+    <script type="application/x-glsl" id="getColor">
+      varying vec3 vColor;
+      vec3 getColor() {
+        return vColor * vColor * 2.0;
+      }
+    </script>
 
-<script type="application/x-glsl" id="setColor">
-void setColor(vec3 color) {
-  gl_FragColor = vec4(color, 1.0);
-}
-</script>
+    <script type="application/x-glsl" id="setColor">
+      void setColor(vec3 color) {
+        gl_FragColor = vec4(color, 1.0);
+      }
+    </script>
+  </head>
+  <body>
+    <h4>Custom Configuration</h4>
+    <p>Local attributes and varyings, but global uniforms</p>
 
-</head>
-<body>
-  <h4>Custom Configuration</h4>
-  <p>Local attributes and varyings, but global uniforms</p>
+    <div class="graph"></div>
+    <h5>View Source for Code</h5>
 
-  <div class="graph"></div>
-  <h5>View Source for Code</h5>
+    <h4>Vertex Shader</h4>
+    <pre></pre>
 
-  <h4>Vertex Shader</h4>
-  <pre></pre>
+    <h4>Fragment Shader</h4>
+    <pre></pre>
 
-  <h4>Fragment Shader</h4>
-  <pre></pre>
+    <script>
+      // Fetch snippets above
+      var fetch = function (key) {
+        element = document.getElementById(key);
+        return element.textContent || element.innerText;
+      };
 
-  <script>
+      // Load ShaderGraph with given fetch function
+      // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
+      shadergraph = ShaderGraph.load(fetch, {
+        // Flip all global / local toggles from the default
+        globalAttributes: false,
+        globalVaryings: false,
+        globalUniforms: true,
+      });
 
-  // Fetch snippets above
-  var fetch = function (key) {
-    element = document.getElementById(key);
-    return element.textContent || element.innerText;
-  }
+      // Prepare new material (vertex + fragment shader)
+      material = shadergraph.material();
 
-  // Load ShaderGraph with given fetch function
-  // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  shadergraph = ShaderGraph.load(fetch, {
-    // Flip all global / local toggles from the default
-    globalAttributes: false,
-    globalVaryings: false,
-    globalUniforms: true,
-  });
+      // Prepare uniform (three.js style)
+      uniforms = {
+        strength: { type: "f", value: 0.5 },
+      };
 
-  // Prepare new material (vertex + fragment shader)
-  material = shadergraph.material()
+      // Build vertex shader graph
+      material.vertex.pipe("vertex", "my", uniforms);
 
-  // Prepare uniform (three.js style)
-  uniforms = {
-    strength: { type: 'f', value: 0.5 }
-  };
+      // Build fragment shader graph
+      material.fragment.pipe("getColor", "my").pipe("setColor");
 
-  // Build vertex shader graph
-  material.vertex
-    .pipe('vertex', 'my', uniforms)
+      // Generate visualization of graph
+      visualize = shadergraph.visualize(material);
 
-  // Build fragment shader graph
-  material.fragment
-    .pipe('getColor', 'my')
-    .pipe('setColor')
+      // Link both shaders and combine into a three.js style material
+      program = material.link();
 
-  // Generate visualization of graph
-  visualize = shadergraph.visualize(material);
+      // Show in document body
+      pre = document.querySelectorAll("pre");
+      pre[0].innerText = program.vertexShader;
+      pre[1].innerText = program.fragmentShader;
 
-  // Link both shaders and combine into a three.js style material
-  program = material.link()
+      // Insert and refresh graph visualization
+      document.querySelector(".graph").appendChild(visualize);
+      visualize.update();
 
-  // Show in document body
-  pre = document.querySelectorAll('pre');
-  pre[0].innerText = program.vertexShader;
-  pre[1].innerText = program.fragmentShader;
-
-  // Insert and refresh graph visualization
-  document.querySelector('.graph').appendChild(visualize);
-  visualize.update();
-
-  console.log('material.link() = ', program);
-
-  </script>
-
-</body>
+      console.log("material.link() = ", program);
+    </script>
+  </body>
 </html>

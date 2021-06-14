@@ -1,11 +1,11 @@
 /* global ShaderGraph */
 
-describe("parser", function() {
+describe("parser", function () {
   const { GLSL } = ShaderGraph.ShaderGraph;
 
   let program = null;
 
-  beforeEach(function() {
+  beforeEach(function () {
     const code = `\
 // Comment
 uniform float uf, ufv1[3];
@@ -51,107 +51,107 @@ void snippetTest(
 `;
 
     const { parse } = GLSL;
-    program = parse('test', code);
+    program = parse("test", code);
   });
 
-  it('parses GLSL and signatures', function () {
+  it("parses GLSL and signatures", function () {
     expect(program).toBeTruthy();
   });
 
-  it('builds an AST tree', function() {
+  it("builds an AST tree", function () {
     expect(program.ast).toBeTruthy();
     expect(program.ast.children.length).toBeTruthy();
     expect(program.ast.children[0].children.length).toBeTruthy();
 
-    expect(program.ast.type).toBe('stmtlist');
-    expect(program.ast.children[0].type).toBe('stmt');
-    expect(program.ast.children[0].children[0].type).toBe('decl');
+    expect(program.ast.type).toBe("stmtlist");
+    expect(program.ast.children[0].type).toBe("stmt");
+    expect(program.ast.children[0].children[0].type).toBe("decl");
   });
 
-  it('parses uniforms', function() {
+  it("parses uniforms", function () {
     expect(program.signatures).toBeTruthy();
     const s = program.signatures;
 
     expect(s.uniform.length).toBe(10);
 
-    expect(s.uniform[0].name).toBe('uf');
-    expect(s.uniform[0].type).toBe('f');
+    expect(s.uniform[0].name).toBe("uf");
+    expect(s.uniform[0].type).toBe("f");
 
-    expect(s.uniform[1].name).toBe('ufv1');
-    expect(s.uniform[1].type).toBe('fv');
+    expect(s.uniform[1].name).toBe("ufv1");
+    expect(s.uniform[1].type).toBe("fv");
 
-    expect(s.uniform[2].name).toBe('uv2');
-    expect(s.uniform[2].type).toBe('v2');
+    expect(s.uniform[2].name).toBe("uv2");
+    expect(s.uniform[2].type).toBe("v2");
   });
 
-  it('parses varyings', function() {
+  it("parses varyings", function () {
     expect(program.signatures).toBeTruthy();
     const s = program.signatures;
 
     expect(s.varying.length).toBe(6);
 
-    expect(s.varying[0].name).toBe('vf');
-    expect(s.varying[0].type).toBe('f');
+    expect(s.varying[0].name).toBe("vf");
+    expect(s.varying[0].type).toBe("f");
 
-    expect(s.varying[1].name).toBe('vfv1');
-    expect(s.varying[1].type).toBe('fv');
+    expect(s.varying[1].name).toBe("vfv1");
+    expect(s.varying[1].type).toBe("fv");
 
-    expect(s.varying[2].name).toBe('vm3');
-    expect(s.varying[2].type).toBe('m3');
+    expect(s.varying[2].name).toBe("vm3");
+    expect(s.varying[2].type).toBe("m3");
   });
 
-  it('parses attributes', function() {
+  it("parses attributes", function () {
     expect(program.signatures).toBeTruthy();
     const s = program.signatures;
 
     expect(s.attribute.length).toBe(6);
 
-    expect(s.attribute[0].name).toBe('af');
-    expect(s.attribute[0].type).toBe('f');
+    expect(s.attribute[0].name).toBe("af");
+    expect(s.attribute[0].type).toBe("f");
 
-    expect(s.attribute[1].name).toBe('afv1');
-    expect(s.attribute[1].type).toBe('fv');
+    expect(s.attribute[1].name).toBe("afv1");
+    expect(s.attribute[1].type).toBe("fv");
 
-    expect(s.attribute[2].name).toBe('av3');
-    expect(s.attribute[2].type).toBe('v3');
+    expect(s.attribute[2].name).toBe("av3");
+    expect(s.attribute[2].type).toBe("v3");
   });
 
   // ...
 
-  it('parses internals', function() {
+  it("parses internals", function () {
     expect(program.signatures).toBeTruthy();
     const s = program.signatures;
 
     expect(s.internal.length).toBe(4);
 
-    expect(s.internal[0].name).toBe('fc');
-    expect(s.internal[1].name).toBe('fg');
-    expect(s.internal[2].name).toBe('internal');
-    expect(s.internal[3].name).toBe('snippetTest');
+    expect(s.internal[0].name).toBe("fc");
+    expect(s.internal[1].name).toBe("fg");
+    expect(s.internal[2].name).toBe("internal");
+    expect(s.internal[3].name).toBe("snippetTest");
   });
 
-  it('parses externals', function() {
+  it("parses externals", function () {
     expect(program.signatures).toBeTruthy();
 
     const s = program.signatures;
 
-    expect(s.external[0].name).toBe('callback1');
-    expect(s.external[0].type).toBe('(v4)()');
+    expect(s.external[0].name).toBe("callback1");
+    expect(s.external[0].type).toBe("(v4)()");
 
-    expect(s.external[1].name).toBe('callback2');
-    expect(s.external[1].type).toBe('(v3)(v4)');
+    expect(s.external[1].name).toBe("callback2");
+    expect(s.external[1].type).toBe("(v3)(v4)");
 
-    expect(s.external[2].name).toBe('callback3');
-    expect(s.external[2].type).toBe('(v3,v4)(v4)');
+    expect(s.external[2].name).toBe("callback3");
+    expect(s.external[2].type).toBe("(v3,v4)(v4)");
   });
 
-  return it('parses main', function() {
+  return it("parses main", function () {
     expect(program.signatures).toBeTruthy();
 
     const s = program.signatures;
 
     expect(s.main).toBeTruthy();
-    expect(s.main.name).toBe('snippetTest');
-    expect(s.main.type).toBe('(v4,m3v,v3)(v4,v4v,m4,m4v,v3)');
+    expect(s.main.name).toBe("snippetTest");
+    expect(s.main.type).toBe("(v4,m3v,v3)(v4,v4v,m4,m4v,v3)");
   });
 });

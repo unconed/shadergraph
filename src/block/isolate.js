@@ -5,8 +5,8 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import { Graph } from '../graph';
-import { Block } from './block';
+import { Graph } from "../graph";
+import { Block } from "./block";
 
 /*
   Isolate a subgraph as a single node
@@ -34,21 +34,31 @@ export class Isolate extends Block {
 
     const seen = {};
     const done = {};
-    for (let set of ['inputs', 'outputs']) {
+    for (let set of ["inputs", "outputs"]) {
       for (let outlet of Array.from(this.graph[set]())) {
         // Preserve name of 'return' and 'callback' outlets
         let name = undefined;
-        if (['return', 'callback'].includes(outlet.hint) &&
-                              (outlet.inout === Graph.OUT)) { name = outlet.hint; }
+        if (
+          ["return", "callback"].includes(outlet.hint) &&
+          outlet.inout === Graph.OUT
+        ) {
+          name = outlet.hint;
+        }
 
         // Unless it already exists
-        if (seen[name] != null) { name = undefined; }
+        if (seen[name] != null) {
+          name = undefined;
+        }
 
         // Dupe outlet and remember link to original
         const dupe = outlet.dupe(name);
-        if (dupe  .meta.child == null) { dupe.meta.child = outlet; }
+        if (dupe.meta.child == null) {
+          dupe.meta.child = outlet;
+        }
         outlet.meta.parent = dupe;
-        if (name != null) { seen[name] = true; }
+        if (name != null) {
+          seen[name] = true;
+        }
         done[outlet.name] = dupe;
 
         outlets.push(dupe);
@@ -59,7 +69,7 @@ export class Isolate extends Block {
   }
 
   make() {
-    return this.subroutine = this.graph.compile(this.namespace);
+    return (this.subroutine = this.graph.compile(this.namespace));
   }
 
   call(program, depth) {
@@ -68,7 +78,9 @@ export class Isolate extends Block {
   }
 
   export(layout, depth) {
-    if (!layout.visit(this.namespace, depth)) { return; }
+    if (!layout.visit(this.namespace, depth)) {
+      return;
+    }
 
     // Link up with normal inputs
     this._link(this.subroutine, layout, depth);

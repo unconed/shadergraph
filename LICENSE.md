@@ -1,4 +1,4 @@
-*Copyright (C) 2014+ Steven Wittens and contributors*
+_Copyright (C) 2014+ Steven Wittens and contributors_
 See `git blame` for details.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of

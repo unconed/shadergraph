@@ -5,7 +5,7 @@
  * DS205: Consider reworking code to avoid use of IIFEs
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import { Block } from './block';
+import { Block } from "./block";
 
 /*
   Join multiple disconnected nodes
@@ -21,7 +21,9 @@ export class Join extends Block {
     return new Join(this.nodes);
   }
 
-  makeOutlets() { return []; }
+  makeOutlets() {
+    return [];
+  }
 
   call(program, depth) {
     return (() => {

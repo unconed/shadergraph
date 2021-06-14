@@ -1,21 +1,30 @@
 /* global ShaderGraph */
 
-describe("program", function() {
-  const ns = name => (name.match(/_sn_([0-9]+)_/))[0];
+describe("program", function () {
+  const ns = (name) => name.match(/_sn_([0-9]+)_/)[0];
 
-  const normalize = function(code, _ignore) {
+  const normalize = function (code, _ignore) {
     // renumber generated outputs
     let p = 0;
     let s = 0;
     let o = 0;
     const map = {};
     return code
-      .replace(/\b_io_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] ||= `_io_${++o}${name}`)
-      .replace(/\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g, (match, name) => map[match] ||= `_sn_${++s}${name}`)
-      .replace(/\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g, (match, name) => map[match] ||= `_pg_${++p}_${name || ''}`);
+      .replace(
+        /\b_io_[0-9]+([A-Za-z0-9_]+)\b/g,
+        (match, name) => (map[match] ||= `_io_${++o}${name}`)
+      )
+      .replace(
+        /\b_sn_[0-9]+([A-Za-z0-9_]+)\b/g,
+        (match, name) => (map[match] ||= `_sn_${++s}${name}`)
+      )
+      .replace(
+        /\b_pg_[0-9]+_([A-Za-z0-9_]+)?\b/g,
+        (match, name) => (map[match] ||= `_pg_${++p}_${name || ""}`)
+      );
   };
 
-  it('links snippets with return values (call)', function() {
+  it("links snippets with return values (call)", function () {
     const code1 = `\
 vec3 first() {
   return vec3(1.0, 1.0, 1.0);
@@ -35,9 +44,9 @@ void third(vec3 color) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     const result = `\
@@ -62,12 +71,8 @@ void main() {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .pipe('code1')
-              .pipe('code2')
-              .pipe('code3')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader.pipe("code1").pipe("code2").pipe("code3").graph();
 
     const snippet = graph.compile();
     const code = normalize(snippet.code);
@@ -75,9 +80,7 @@ void main() {
     expect(code).toBe(result);
   });
 
-
-  it('links snippets out/inout/in (call)', function() {
-
+  it("links snippets out/inout/in (call)", function () {
     const code1 = `\
 void first(out vec3 color) {
   color = vec3(1.0, 1.0, 1.0);
@@ -96,9 +99,9 @@ void third(in vec3 color) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     const result = `\
@@ -123,12 +126,8 @@ void main() {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .pipe('code1')
-              .pipe('code2')
-              .pipe('code3')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader.pipe("code1").pipe("code2").pipe("code3").graph();
 
     const snippet = graph.compile();
     const code = normalize(snippet.code);
@@ -136,11 +135,7 @@ void main() {
     expect(code).toBe(result);
   });
 
-
-
-
-  it('links diamond split/join graph (split/next/end)', function() {
-
+  it("links diamond split/join graph (split/next/end)", function () {
     const code1 = `\
 void split(out vec3 color1, out vec3 color2) {
   color = vec3(1.0, 1.0, 1.0);
@@ -159,9 +154,9 @@ void join(in vec3 color1, in vec3 color2) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     const result = `\
@@ -192,16 +187,16 @@ void main() {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .pipe('code1')
-              .split()
-                .pipe('code2')
-              .next()
-                .pipe('code2')
-              .end()
-              .pipe('code3')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .pipe("code1")
+      .split()
+      .pipe("code2")
+      .next()
+      .pipe("code2")
+      .end()
+      .pipe("code3")
+      .graph();
 
     const snippet = graph.compile();
     const code = normalize(snippet.code);
@@ -209,11 +204,7 @@ void main() {
     expect(code).toBe(result);
   });
 
-
-
-
-  it('links diamond split/join graph with pass (split/next/pass)', function() {
-
+  it("links diamond split/join graph with pass (split/next/pass)", function () {
     const code1 = `\
 void split(out vec3 color1, out vec3 color2, out mat4 passthrough) {
   color = vec3(1.0, 1.0, 1.0);
@@ -232,9 +223,9 @@ void join(in vec3 color1, in vec3 color2, in mat4 passthrough) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     const result = `\
@@ -266,16 +257,16 @@ void main() {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .pipe('code1')
-              .split()
-                .pipe('code2')
-              .next()
-                .pipe('code2')
-              .pass()
-              .pipe('code3')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .pipe("code1")
+      .split()
+      .pipe("code2")
+      .next()
+      .pipe("code2")
+      .pass()
+      .pipe("code3")
+      .graph();
 
     const snippet = graph.compile();
     const code = normalize(snippet.code);
@@ -283,10 +274,7 @@ void main() {
     expect(code).toBe(result);
   });
 
-
-
-  it('links fanned diamond split/join graph (fan/next/end)', function() {
-
+  it("links fanned diamond split/join graph (fan/next/end)", function () {
     const code1 = `\
 void split(out vec3 color) {
   color = vec3(1.0, 1.0, 1.0);
@@ -306,9 +294,9 @@ void join(in vec3 color1, in vec3 color2) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     const result = `\
@@ -338,16 +326,16 @@ void main() {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .pipe('code1')
-              .fan()
-                .pipe('code2')
-              .next()
-                .pipe('code2')
-              .end()
-              .pipe('code3')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .pipe("code1")
+      .fan()
+      .pipe("code2")
+      .next()
+      .pipe("code2")
+      .end()
+      .pipe("code3")
+      .graph();
 
     const snippet = graph.compile();
     const code = normalize(snippet.code);
@@ -355,11 +343,7 @@ void main() {
     expect(code).toBe(result);
   });
 
-
-
-
-  it('exports dangling callbacks (call)', function() {
-
+  it("exports dangling callbacks (call)", function () {
     const code1 = `\
 vec2 callback1(float value);
 void split(out vec3 color1, out vec3 color2, in vec4 colorIn) {
@@ -375,8 +359,8 @@ void join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
 `;
 
     let snippets = {
-      'code1': code1,
-      'code2': code2
+      code1: code1,
+      code2: code2,
     };
 
     // note: normalized numbering is wrong for callbacks, is verified later
@@ -400,11 +384,8 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .pipe('code1')
-              .pipe('code2')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader.pipe("code1").pipe("code2").graph();
 
     const snippet = graph.compile();
 
@@ -414,13 +395,15 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
 
     // verify if externals were exported correctly
     let n = 0;
-    const names = ['_io_1_callback1', '_io_1_callback2'];
-    snippets = ['split', 'join'];
-    const types = ['(f)(v2)', '(v3)(v3)'];
+    const names = ["_io_1_callback1", "_io_1_callback2"];
+    snippets = ["split", "join"];
+    const types = ["(f)(v2)", "(v3)(v3)"];
     for (let name in snippet.externals) {
       const ext = snippet.externals[name];
       const namespace = ns(name);
-      expect(snippet.code.indexOf('void '+ namespace + snippets[n] + '(')).not.toBe(-1);
+      expect(
+        snippet.code.indexOf("void " + namespace + snippets[n] + "(")
+      ).not.toBe(-1);
       expect(normalize(ext.name)).toBe(names[n]);
       expect(ext.type).toBe(types[n]);
       n++;
@@ -428,10 +411,7 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
     expect(n).toBe(2);
   });
 
-
-
-  it('exports dangling inputs/outputs (split/next/end)', function() {
-
+  it("exports dangling inputs/outputs (split/next/end)", function () {
     let name;
     const code1 = `\
 attribute vec2 att1;
@@ -454,9 +434,9 @@ void join(in vec3 color1, in vec3 color2, out vec4 colorOut) {
 `;
 
     const snippets = {
-      'code1': code1,
-      'code2': code2,
-      'code3': code3
+      code1: code1,
+      code2: code2,
+      code3: code3,
     };
 
     // note: normalized numbering is wrong for uniforms, is verified later
@@ -492,16 +472,16 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
 
     const shadergraph = ShaderGraph.load(snippets);
 
-    const shader  = shadergraph.shader();
-    const graph   = shader
-              .pipe('code1')
-              .split()
-                .pipe('code2')
-              .next()
-                .pipe('code2')
-              .end()
-              .pipe('code3')
-              .graph();
+    const shader = shadergraph.shader();
+    const graph = shader
+      .pipe("code1")
+      .split()
+      .pipe("code2")
+      .next()
+      .pipe("code2")
+      .end()
+      .pipe("code3")
+      .graph();
 
     const snippet = graph.compile();
 
@@ -514,27 +494,27 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
     for (name in snippet.uniforms) {
       const uni = snippet.uniforms[name];
       const namespace = ns(name);
-      expect(snippet.code.indexOf('void '+ namespace + 'map(')).not.toBe(-1);
-      expect(uni.name).toBe('uni');
-      expect(uni.type).toBe('f');
+      expect(snippet.code.indexOf("void " + namespace + "map(")).not.toBe(-1);
+      expect(uni.name).toBe("uni");
+      expect(uni.type).toBe("f");
       n++;
     }
     expect(n).toBe(2);
 
     // verify attribute
     expect(snippet.attributes.att1).toBeTruthy();
-    expect(snippet.attributes.att1.name).toBe('att1');
-    expect(snippet.attributes.att1.type).toBe('v2');
+    expect(snippet.attributes.att1.name).toBe("att1");
+    expect(snippet.attributes.att1.type).toBe("v2");
 
     expect(snippet.attributes.att2).toBeTruthy();
-    expect(snippet.attributes.att2.name).toBe('att2');
-    expect(snippet.attributes.att2.type).toBe('v3');
+    expect(snippet.attributes.att2.name).toBe("att2");
+    expect(snippet.attributes.att2.type).toBe("v3");
 
     // verify signature
     expect(snippet.main.signature.length).toBe(2);
-    expect(snippet.main.signature[0].type).toBe('v4');
+    expect(snippet.main.signature[0].type).toBe("v4");
     expect(snippet.main.signature[0].inout).toBe(0);
-    expect(snippet.main.signature[1].type).toBe('v4');
+    expect(snippet.main.signature[1].type).toBe("v4");
     expect(snippet.main.signature[1].inout).toBe(1);
   });
 });

@@ -1,4 +1,5 @@
 const gulp        = require('gulp');
+const eslint      = require('gulp-eslint');
 const concat      = require('gulp-concat');
 const compiler    = require('webpack');
 const webpack     = require('webpack-stream');
@@ -15,10 +16,6 @@ const builds = {
   css:    'build/shadergraph.css',
 };
 
-const products = [
-  builds.bundle
-];
-
 const css = [
   'src/**/*.css',
 ];
@@ -27,13 +24,9 @@ const files = [
   'src/**/*.js',
 ];
 
-const bundle = [
-  '.tmp/index.js'
-];
-
 const test = [
-  'node_modules/three/three.js',
-].concat(bundle).concat([
+//   'node_modules/three/three.js',
+].concat(builds.bundle).concat([
   'test/**/*.spec.js',
 ]);
 
@@ -41,7 +34,7 @@ gulp.task('pack', function() {
   return gulp
     .src('src/index.js')
     .pipe(
-      webpack(webpackConfig,compiler, function(err, stats) {
+      webpack(webpackConfig,compiler, function(_err, _stats) {
       /* Use stats to do more things if needed */
       })
     ).pipe(gulp.dest('build/'));
@@ -53,6 +46,15 @@ gulp.task('css', function () {
     .pipe(gulp.dest('./'));
 });
 
+gulp.task('lint', function() {
+  return gulp
+  // Define the source files
+    .src('src/**/*.js').pipe(eslint({}))
+  // Output the results in the console
+    .pipe(eslint.format());
+});
+
+
 gulp.task('karma', function (done) {
   parseConfig(
     __dirname + '/karma.conf.js',
@@ -62,7 +64,7 @@ gulp.task('karma', function (done) {
     (karmaConfig) => {
       new KarmaServer(karmaConfig, done).start();
     },
-    (rejectReason) => {}
+    (_rejectReason) => {}
   );
 });
 

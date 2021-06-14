@@ -1,7 +1,11 @@
+/* global ShaderGraph */
+
 describe("compiler", function() {
-  const { GLSL } = ShaderGraph;
+  const { GLSL } = ShaderGraph.ShaderGraph;
 
   let program    = null;
+
+  // eslint-disable-next-line no-unused-vars
   let signatures = null;
   let assembler  = null;
 
@@ -64,13 +68,7 @@ void _t_main() {
 `;
 
   beforeEach(function() {
-    let ref;
-    const {
-      parse
-    } = GLSL;
-    const {
-      compile
-    } = GLSL;
+    const { compile, parse } = GLSL;
 
     program = parse('test', code);
     [signatures, assembler] = compile(program);

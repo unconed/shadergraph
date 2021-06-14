@@ -43,7 +43,7 @@ export const queue = function(limit) {
   // Push key to top of list
   return function(key) {
     let dead, item;
-    if (item = map[key] && (item !== head)) {
+    if ((item = map[key]) && (item !== head)) {
       // Already in queue
       remove(item);
       add(item);

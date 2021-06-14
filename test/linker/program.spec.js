@@ -1,9 +1,9 @@
-describe("program", function() {
-  const { Linker, Graph } = ShaderGraph;
+/* global ShaderGraph */
 
+describe("program", function() {
   const ns = name => (name.match(/_sn_([0-9]+)_/))[0];
 
-  const normalize = function(code, ignore) {
+  const normalize = function(code, _ignore) {
     // renumber generated outputs
     let p = 0;
     let s = 0;
@@ -60,7 +60,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -121,7 +121,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -190,7 +190,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -264,7 +264,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -336,7 +336,7 @@ void main() {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -398,7 +398,7 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader
@@ -490,7 +490,7 @@ void main(in vec4 _io_1_color, out vec4 _io_2_color) {
 }\
 `;
 
-    const shadergraph = new ShaderGraph(snippets);
+    const shadergraph = ShaderGraph.load(snippets);
 
     const shader  = shadergraph.shader();
     const graph   = shader

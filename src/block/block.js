@@ -57,9 +57,9 @@ export class Block {
   }
 
   // Subclassed methods
-  call(program, depth) {}
-  callback(layout, depth, name, external, outlet) {}
-  export(layout, depth) {}
+  call(_program, _depth) {}
+  callback(_layout, _depth, _name, _external, _outlet) {}
+  export(_layout, _depth) {}
 
   // Info string for debugging
   _info(suffix) {
@@ -118,7 +118,8 @@ export class Block {
 
         if (outlet.meta.child != null) { continue; }
 
-        let [orig, parent, block] = Array.from([outlet, outlet, null]);
+        let parent = outlet;
+        let block;
         while (!block && parent) {
           [parent, outlet] = Array.from([outlet.meta.parent, parent]);
         }

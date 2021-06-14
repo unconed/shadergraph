@@ -21,8 +21,10 @@
   },
   "devDependencies": {
     "eslint": "^7.28.0",
+    "eslint-plugin-jasmine": "^4.1.2",
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
+    "gulp-eslint": "^6.0.0",
     "gulp-watch": "^5.0.1",
     "jasmine-core": "^3.7.1",
     "karma": "^6.3.3",

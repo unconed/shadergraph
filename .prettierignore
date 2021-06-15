@@ -1,4 +1,4 @@
 .*
-**/webpack.config.js
 docs
-karma.conf.js
+node_modules
+build

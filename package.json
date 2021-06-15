@@ -12,6 +12,7 @@
     "dev": "webpack --mode development --progress --colors --watch",
     "test": "gulp test"
   },
+  "prettier": {},
   "dependencies": {
     "glsl-parser": "^2.0.1",
     "glsl-tokenizer": "^2.1.5"

@@ -30,6 +30,7 @@ export class Material {
   build(options) {
     return this.link(options);
   }
+
   link(options) {
     if (options == null) {
       options = {};

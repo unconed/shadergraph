@@ -12,7 +12,7 @@ import * as Linker from "./linker";
 import * as Visualize from "./visualize";
 
 const { library, cache } = Factory;
-const { visualize, inspect } = Visualize;
+export const { visualize, inspect } = Visualize;
 const { Snippet } = Linker;
 
 const merge = function (a, b = {}) {

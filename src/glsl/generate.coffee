@@ -287,14 +287,21 @@ module.exports = _ =
   # Move definitions to top so they compile properly
   hoist: (code) ->
 
+    filter = (lines, re) ->
+      defs = []
+      out = []
+      for line in lines
+        list = if line.match re then defs else out
+        list.push line
+
+      defs.concat(out)
+
+    lines = code.split("\n")
+
     # Hoist symbol defines to the top so (re)definitions use the right alias
-    re = /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/
+    lines = filter lines, /^#define ([^ ]+ _pg_[0-9]+_|_pg_[0-9]+_ [^ ]+)$/
 
-    lines = code.split /\n/g
-    defs = []
-    out = []
-    for line in lines
-      list = if line.match re then defs else out
-      list.push line
+    # Hoist extensions
+    lines = filter lines, /^#extension/
 
-    defs.concat(out).join "\n"
+    lines.join("\n")

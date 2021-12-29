@@ -1,6 +1,6 @@
 {
   "name": "shadergraph",
-  "version": "2.0.7",
+  "version": "2.0.7-dev",
   "homepage": "https://github.com/unconed/shadergraph",
   "description": "Functional GLSL Linker",
   "main": "build/shadergraph.js",

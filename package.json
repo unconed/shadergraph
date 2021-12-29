@@ -1,5 +1,5 @@
 {
-  "name": "@mentat/shadergraph",
+  "name": "shadergraph",
   "version": "2.0.7-dev",
   "description": "GLSL linker",
   "repository": {

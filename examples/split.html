@@ -1,102 +1,98 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>ShaderGraph - Split Outputs</title>
-  <link rel="stylesheet" href="../build/shadergraph.css" />
-  <script type="text/javascript" src="../build/shadergraph.js"></script>
+  <head>
+    <meta charset="utf-8" />
+    <title>ShaderGraph - Split Outputs</title>
+    <link rel="stylesheet" href="../build/shadergraph.css" />
+    <script type="text/javascript" src="../build/shadergraph.js"></script>
 
-<script type="application/x-glsl" id="getColors">
-uniform vec4 diffuseColor;
-void getColors(out vec4 color1, out vec4 color2) {
-  color1 = diffuseColor;
-  color2 = diffuseColor.zyxw;
-}
-</script>
+    <script type="application/x-glsl" id="getColors">
+      uniform vec4 diffuseColor;
+      void getColors(out vec4 color1, out vec4 color2) {
+        color1 = diffuseColor;
+        color2 = diffuseColor.zyxw;
+      }
+    </script>
 
-<script type="application/x-glsl" id="applyFilter">
-uniform float intensity;
-vec4 applyFilter(vec4 ramp) {
-  return mix(ramp, ramp * (1.0 - ramp) * 2.0, intensity);
-}
-</script>
+    <script type="application/x-glsl" id="applyFilter">
+      uniform float intensity;
+      vec4 applyFilter(vec4 ramp) {
+        return mix(ramp, ramp * (1.0 - ramp) * 2.0, intensity);
+      }
+    </script>
 
-<script type="application/x-glsl" id="combine">
-vec4 combineColor(vec4 a, vec4 b) {
-  return a * b;
-}
-</script>
+    <script type="application/x-glsl" id="combine">
+      vec4 combineColor(vec4 a, vec4 b) {
+        return a * b;
+      }
+    </script>
 
-<script type="application/x-glsl" id="setColor">
-void setColor(vec4 color) {
-  gl_FragColor = color;
-}
-</script>
+    <script type="application/x-glsl" id="setColor">
+      void setColor(vec4 color) {
+        gl_FragColor = color;
+      }
+    </script>
+  </head>
+  <body>
+    <h4>Split Outputs</h4>
+    <p>A node's outputs are spread across multiple blocks.</p>
 
-</head>
-<body>
-  <h4>Split Outputs</h4>
-  <p>A node's outputs are spread across multiple blocks.</p>
+    <div class="graph"></div>
+    <h5>View Source for Code</h5>
 
-  <div class="graph"></div>
-  <h5>View Source for Code</h5>
+    <pre></pre>
 
-  <pre></pre>
+    <script>
+      // Fetch snippets above
+      var fetch = function (key) {
+        element = document.getElementById(key);
+        return element.textContent || element.innerText;
+      };
 
-  <script>
+      // Load ShaderGraph with given fetch function
+      // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
+      shadergraph = ShaderGraph.load(fetch, { autoInspect: true });
 
-  // Fetch snippets above
-  var fetch = function (key) {
-    element = document.getElementById(key);
-    return element.textContent || element.innerText;
-  }
+      // Prepare new shader
+      shader = shadergraph.shader();
 
-  // Load ShaderGraph with given fetch function
-  // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  shadergraph = ShaderGraph(fetch, { autoInspect: true });
+      // Prepare uniform (three.js style)
+      uniforms1 = {
+        diffuseColor: { type: "v3", value: { x: 0.5, y: 0.75, z: 1.0 } },
+      };
+      uniforms2 = {
+        intensity: { type: "f", value: 0.5 },
+      };
+      uniforms3 = {
+        intensity: { type: "f", value: 0.25 },
+      };
 
-  // Prepare new shader
-  shader = shadergraph.shader()
+      // Build shader graph
+      shader
+        .pipe("getColors", uniforms1)
+        .split()
+        .pipe("applyFilter", uniforms2)
+        .next()
+        .pipe("applyFilter", uniforms3)
+        .end()
+        .pipe("combine")
+        .pipe("setColor");
 
-  // Prepare uniform (three.js style)
-  uniforms1 = {
-    diffuseColor: { type: 'v3', value: { x: 0.5, y: 0.75, z: 1.0 }}
-  };
-  uniforms2 = {
-    intensity: { type: 'f', value: .5 }
-  };
-  uniforms3 = {
-    intensity: { type: 'f', value: .25 }
-  };
+      // Finalize graph (optional, can call shader.link())
+      graph = shader.graph();
 
-  // Build shader graph
-  shader
-    .pipe('getColors', uniforms1)
-    .split()
-      .pipe('applyFilter', uniforms2)
-    .next()
-      .pipe('applyFilter', uniforms3)
-    .end()
-    .pipe('combine')
-    .pipe('setColor')
+      // Link entire shader into a main() function
+      snippet = graph.link();
 
-  // Finalize graph (optional, can call shader.link())
-  graph   = shader.graph();
+      // Show in document body
+      document.querySelector("pre").innerText = snippet.code;
 
-  // Link entire shader into a main() function
-  snippet = graph.link();
+      // Generate visualization of graph
+      visualize = shadergraph.visualize(graph);
+      document.querySelector(".graph").appendChild(visualize);
+      visualize.update();
 
-  // Show in document body
-  document.querySelector('pre').innerText = snippet.code;
-
-  // Generate visualization of graph
-  visualize = shadergraph.visualize(graph);
-  document.querySelector('.graph').appendChild(visualize);
-  visualize.update();
-
-  console.log("shader.link() = ", snippet);
-
-  </script>
-  
-</body>
+      console.log("shader.link() = ", snippet);
+    </script>
+  </body>
 </html>

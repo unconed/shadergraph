@@ -1,128 +1,93 @@
-var gulp = require('gulp');
-var uglify = require('gulp-uglify');
-var concat = require('gulp-concat');
-var rename = require("gulp-rename");
-var runSequence = require('run-sequence');
-var browserify = require('gulp-browserify');
-var watch = require('gulp-watch');
-var KarmaServer = require('karma').Server;
+const gulp = require("gulp");
+const eslint = require("gulp-eslint");
+const concat = require("gulp-concat");
+const compiler = require("webpack");
+const webpack = require("webpack-stream");
+const watch = require("gulp-watch");
+const karma = require("karma");
 
-var builds = {
-  core:   'build/shadergraph-core.js',
-  bundle: 'build/shadergraph.js',
-  css:    'build/shadergraph.css',
+const parseConfig = karma.config.parseConfig;
+const KarmaServer = karma.Server;
+
+const webpackConfig = require("./webpack.config.js");
+
+const builds = {
+  bundle: "build/shadergraph.js",
+  css: "build/shadergraph.css",
 };
 
-var products = [
-  builds.core,
-  builds.bundle,
-];
+const css = ["src/**/*.css"];
 
-var vendor = [
-];
+const files = ["src/**/*.js"];
 
-var css = [
-  'src/**/*.css',
-];
-
-var core = [
-  '.tmp/index.js'
-];
-
-var coffees = [
-  'src/**/*.coffee',
+const test = [
+  //   'node_modules/three/three.js',
 ]
+  .concat(builds.bundle)
+  .concat(["test/**/*.spec.js"]);
 
-var bundle = vendor.concat(core);
-
-var test = [
-  'node_modules/three/three.js',
-].concat(bundle).concat([
-  'test/**/*.spec.coffee',
-]);
-
-gulp.task('browserify', function () {
-  return gulp.src('src/index.coffee', { read: false })
-      .pipe(browserify({
-        debug: false,
-        //detectGlobals: false,
-        //bare: true,
-        transform: ['coffeeify'],
-        extensions: ['.coffee'],
-      }))
-      .pipe(rename({
-        extname: ".js"
-      }))
-      .pipe(gulp.dest('.tmp/'))
+gulp.task("pack", function () {
+  return gulp
+    .src("src/index.js")
+    .pipe(
+      webpack(webpackConfig, compiler, function (_err, _stats) {
+        /* Use stats to do more things if needed */
+      })
+    )
+    .pipe(gulp.dest("build/"));
 });
 
-gulp.task('css', function () {
-  return gulp.src(css)
-    .pipe(concat(builds.css))
-    .pipe(gulp.dest(''));
+gulp.task("css", function () {
+  return gulp.src(css).pipe(concat(builds.css)).pipe(gulp.dest("./"));
 });
 
-gulp.task('core', function () {
-  return gulp.src(core)
-    .pipe(concat(builds.core))
-    .pipe(gulp.dest(''));
+gulp.task("lint", function () {
+  return (
+    gulp
+      // Define the source files
+      .src("src/**/*.js")
+      .pipe(eslint({}))
+      // Output the results in the console
+      .pipe(eslint.format())
+  );
 });
 
-gulp.task('bundle', function () {
-  return gulp.src(bundle)
-    .pipe(concat(builds.bundle))
-    .pipe(gulp.dest(''));
+gulp.task("karma", function (done) {
+  parseConfig(
+    __dirname + "/karma.conf.js",
+    { files: test, singleRun: true },
+    { promiseConfig: true, throwErrors: true }
+  ).then(
+    (karmaConfig) => {
+      new KarmaServer(karmaConfig, done).start();
+    },
+    (_rejectReason) => {}
+  );
 });
 
-gulp.task('uglify', function () {
-  return gulp.src(products)
-    .pipe(uglify())
-    .pipe(rename({
-      extname: ".min.js"
-    }))
-    .pipe(gulp.dest('build'));
+gulp.task("watch-karma", function () {
+  return gulp.src(test).pipe(
+    karma({
+      configFile: "karma.conf.js",
+      action: "watch",
+    })
+  );
 });
 
-gulp.task('karma', function (done) {
-  new KarmaServer({
-    configFile: __dirname + '/karma.conf.js',
-    files: test,
-    singleRun: true,
-  }, done).start();
-});
-
-gulp.task('watch-karma', function() {
-  return gulp.src(test)
-    .pipe(karma({
-      configFile: 'karma.conf.js',
-      action: 'watch',
-    }));
-});
-
-gulp.task('watch-build-watch', function () {
-  watch(coffees.concat(css), function () {
-    return gulp.start('build');
-  });
+gulp.task("watch-build-watch", function () {
+  watch(files.concat(css), gulp.series("build"));
 });
 
 // Main tasks
 
-gulp.task('build', function (callback) {
-  runSequence('browserify', ['css', 'core', 'bundle'], callback);
-})
+const buildTask = gulp.series("pack", "css");
 
-gulp.task('default', function (callback) {
-  runSequence('build', 'uglify', callback);
-});
+gulp.task("default", buildTask);
 
-gulp.task('test', function (callback) {
-  runSequence('build', 'karma', callback);
-});
+gulp.task("build", buildTask);
 
-gulp.task('watch-build', function (callback) {
-  runSequence('build', 'watch-build-watch', callback);
-})
+gulp.task("test", gulp.series("build", "karma"));
 
-gulp.task('watch', function (callback) {
-  runSequence('watch-build', 'watch-karma', callback);
-});
+gulp.task("watch-build", gulp.series("build", "watch-build-watch"));
+
+gulp.task("watch", gulp.series("watch-build", "watch-karma"));

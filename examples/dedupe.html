@@ -1,100 +1,92 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>ShaderGraph - Dedupe Externals</title>
-  <link rel="stylesheet" href="../build/shadergraph.css" />
-  <script type="text/javascript" src="../build/shadergraph.js"></script>
+  <head>
+    <meta charset="utf-8" />
+    <title>ShaderGraph - Dedupe Externals</title>
+    <link rel="stylesheet" href="../build/shadergraph.css" />
+    <script type="text/javascript" src="../build/shadergraph.js"></script>
 
-<script type="application/x-glsl" id="vertex1">
-attribute vec3 color;
-varying vec3 vColor1;
+    <script type="application/x-glsl" id="vertex1">
+      attribute vec3 color;
+      varying vec3 vColor1;
 
-void main() {
-  vColor1 = color;
-}
-</script>
+      void main() {
+        vColor1 = color;
+      }
+    </script>
 
-<script type="application/x-glsl" id="vertex2">
-attribute vec3 color;
-varying vec3 vColor2;
+    <script type="application/x-glsl" id="vertex2">
+      attribute vec3 color;
+      varying vec3 vColor2;
 
-void main() {
-  vColor2 = color * color;
-}
-</script>
+      void main() {
+        vColor2 = color * color;
+      }
+    </script>
 
-<script type="application/x-glsl" id="getColor">
-varying vec3 vColor1;
-varying vec3 vColor2;
-vec3 getColor() {
-  return vColor1 * vColor2 * 2.0;
-}
-</script>
+    <script type="application/x-glsl" id="getColor">
+      varying vec3 vColor1;
+      varying vec3 vColor2;
+      vec3 getColor() {
+        return vColor1 * vColor2 * 2.0;
+      }
+    </script>
 
-<script type="application/x-glsl" id="setColor">
-void setColor(vec3 color) {
-  gl_FragColor = vec4(color, 1.0);
-}
-</script>
+    <script type="application/x-glsl" id="setColor">
+      void setColor(vec3 color) {
+        gl_FragColor = vec4(color, 1.0);
+      }
+    </script>
+  </head>
+  <body>
+    <h4>Dedupe Externals</h4>
+    <p>Combined vertex/fragment shader with repeated attributes removed.</p>
 
-</head>
-<body>
-  <h4>Dedupe Externals</h4>
-  <p>Combined vertex/fragment shader with repeated attributes removed.</p>
+    <div class="graph"></div>
+    <h5>View Source for Code</h5>
 
-  <div class="graph"></div>
-  <h5>View Source for Code</h5>
-  
-  <h4>Vertex Shader</h4>
-  <pre></pre>
+    <h4>Vertex Shader</h4>
+    <pre></pre>
 
-  <h4>Fragment Shader</h4>
-  <pre></pre>
+    <h4>Fragment Shader</h4>
+    <pre></pre>
 
-  <script>
+    <script>
+      // Fetch snippets above
+      var fetch = function (key) {
+        element = document.getElementById(key);
+        return element.textContent || element.innerText;
+      };
 
-  // Fetch snippets above
-  var fetch = function (key) {
-    element = document.getElementById(key);
-    return element.textContent || element.innerText;
-  }
+      // Load ShaderGraph with given fetch function
+      // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
+      shadergraph = ShaderGraph.load(fetch, { autoInspect: true });
 
-  // Load ShaderGraph with given fetch function
-  // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  shadergraph = ShaderGraph(fetch, { autoInspect: true });
+      // Prepare new material (vertex + fragment shader)
+      material = shadergraph.material();
 
-  // Prepare new material (vertex + fragment shader)
-  material = shadergraph.material()
+      // Build vertex shader graph
+      material.vertex.pipe("vertex1").pipe("vertex2");
 
-  // Build vertex shader graph
-  material.vertex
-    .pipe('vertex1')
-    .pipe('vertex2')
+      // Build fragment shader graph
+      material.fragment.pipe("getColor").pipe("setColor");
 
-  // Build fragment shader graph
-  material.fragment
-    .pipe('getColor')
-    .pipe('setColor')
+      // Generate visualization of graph
+      visualize = shadergraph.visualize(material);
 
-  // Generate visualization of graph
-  visualize = shadergraph.visualize(material);
+      // Link both shaders and combine into a three.js style material
+      program = material.link();
 
-  // Link both shaders and combine into a three.js style material
-  program = material.link()
+      // Show in document body
+      pre = document.querySelectorAll("pre");
+      pre[0].innerText = program.vertexShader;
+      pre[1].innerText = program.fragmentShader;
 
-  // Show in document body
-  pre = document.querySelectorAll('pre');
-  pre[0].innerText = program.vertexShader;
-  pre[1].innerText = program.fragmentShader;
+      // Insert and refresh graph visualization
+      document.querySelector(".graph").appendChild(visualize);
+      visualize.update();
 
-  // Insert and refresh graph visualization
-  document.querySelector('.graph').appendChild(visualize);
-  visualize.update();
-
-  console.log('material.link() = ', program);
-
-  </script>
-  
-</body>
+      console.log("material.link() = ", program);
+    </script>
+  </body>
 </html>

@@ -1,0 +1,6 @@
+.*
+**/webpack.config.js
+node_modules
+docs
+examples
+karma.conf.js

@@ -1,93 +1,89 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>ShaderGraph - Fragment Shader with Uniform</title>
-  <link rel="stylesheet" href="../build/shadergraph.css" />
-  <script type="text/javascript" src="../build/shadergraph.js"></script>
+  <head>
+    <meta charset="utf-8" />
+    <title>ShaderGraph - Fragment Shader with Uniform</title>
+    <link rel="stylesheet" href="../build/shadergraph.css" />
+    <script type="text/javascript" src="../build/shadergraph.js"></script>
 
-<script type="application/x-glsl" id="getRampColor">
-vec3 getRampColor(float ramp) {
-  return vec3(ramp, ramp * ramp, ramp * ramp * ramp);
-}
-</script>
+    <script type="application/x-glsl" id="getRampColor">
+      vec3 getRampColor(float ramp) {
+        return vec3(ramp, ramp * ramp, ramp * ramp * ramp);
+      }
+    </script>
 
-<script type="application/x-glsl" id="getColor">
-uniform vec3 diffuseColor;
-vec3 getRampColor(float ramp);
+    <script type="application/x-glsl" id="getColor">
+      uniform vec3 diffuseColor;
+      vec3 getRampColor(float ramp);
 
-vec3 getColor() {
-  return diffuseColor * getRampColor(length(diffuseColor));
-}
-</script>
+      vec3 getColor() {
+        return diffuseColor * getRampColor(length(diffuseColor));
+      }
+    </script>
 
-<script type="application/x-glsl" id="setColor">
-void setColor(vec3 color) {
-  gl_FragColor = vec4(color, 1.0);
-}
-</script>
+    <script type="application/x-glsl" id="setColor">
+      void setColor(vec3 color) {
+        gl_FragColor = vec4(color, 1.0);
+      }
+    </script>
+  </head>
+  <body>
+    <h4>Fragment Shader with Uniform</h4>
+    <p>One callback linked to a chain of two snippets, with a uniform.</p>
 
-</head>
-<body>
-  <h4>Fragment Shader with Uniform</h4>
-  <p>One callback linked to a chain of two snippets, with a uniform.</p>
+    <div class="graph"></div>
+    <h5>View Source for Code</h5>
 
-  <div class="graph"></div>
-  <h5>View Source for Code</h5>
+    <pre></pre>
 
-  <pre></pre>
+    <script>
+      // Fetch snippets above
+      var fetch = function (key) {
+        element = document.getElementById(key);
+        return element.textContent || element.innerText;
+      };
 
-  <script>
+      // Load ShaderGraph with given fetch function
+      // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
+      shadergraph = ShaderGraph.load(fetch, { autoInspect: true });
 
-  // Fetch snippets above
-  var fetch = function (key) {
-    element = document.getElementById(key);
-    return element.textContent || element.innerText;
-  }
+      // Prepare new shader
+      shader = shadergraph.shader();
 
-  // Load ShaderGraph with given fetch function
-  // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  shadergraph = ShaderGraph(fetch, { autoInspect: true });
+      // Prepare uniform (three.js style)
+      uniforms = {
+        diffuseColor: { type: "v3", value: { x: 0.5, y: 0.75, z: 1.0 } },
+      };
 
-  // Prepare new shader
-  shader = shadergraph.shader()
+      // Build shader graph
+      shader
+        // Require a callback
+        .require("getRampColor")
 
-  // Prepare uniform (three.js style)
-  uniforms = {
-    diffuseColor: { type: 'v3', value: { x: 0.5, y: 0.75, z: 1.0 }}
-  };
+        // Equivalent to
+        //.callback()
+        //  .pipe('getRampColor')
+        //.end()
 
-  // Build shader graph
-  shader
-    // Require a callback
-    .require('getRampColor')
+        // Build two-step chain that uses the callback and the uniform
+        .pipe("getColor")
+        .pipe("setColor");
 
-    // Equivalent to
-    //.callback()
-    //  .pipe('getRampColor')
-    //.end()
+      // Finalize graph (optional, can call shader.link())
+      graph = shader.graph();
 
-    // Build two-step chain that uses the callback and the uniform
-    .pipe('getColor')
-    .pipe('setColor')
+      // Link entire shader into a main() function
+      snippet = graph.link();
 
-  // Finalize graph (optional, can call shader.link())
-  graph   = shader.graph();
+      // Show in document body
+      document.querySelector("pre").innerText = snippet.code;
 
-  // Link entire shader into a main() function
-  snippet = graph.link();
+      // Generate visualization of graph
+      visualize = shadergraph.visualize(graph);
+      document.querySelector(".graph").appendChild(visualize);
+      visualize.update();
 
-  // Show in document body
-  document.querySelector('pre').innerText = snippet.code;
-
-  // Generate visualization of graph
-  visualize = shadergraph.visualize(graph);
-  document.querySelector('.graph').appendChild(visualize);
-  visualize.update();
-
-  console.log("shader.link() = ", snippet);
-
-  </script>
-  
-</body>
+      console.log("shader.link() = ", snippet);
+    </script>
+  </body>
 </html>

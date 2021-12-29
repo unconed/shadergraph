@@ -1,83 +1,82 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>ShaderGraph - Deep Callback</title>
-  <link rel="stylesheet" href="../build/shadergraph.css" />
-  <script type="text/javascript" src="../build/shadergraph.js"></script>
-    
-<script type="application/x-glsl" id="getColor">
-vec3 getColor() {
-  return vec3(0.2, 0.3, 0.4);
-}
-</script>
+  <head>
+    <meta charset="utf-8" />
+    <title>ShaderGraph - Deep Callback</title>
+    <link rel="stylesheet" href="../build/shadergraph.css" />
+    <script type="text/javascript" src="../build/shadergraph.js"></script>
 
-<script type="application/x-glsl" id="getColorSum">
-vec3 getColor1();
-vec3 getColor2();
-vec3 getColorSum() {
-  return getColor1() + getColor2();
-}
-</script>
+    <script type="application/x-glsl" id="getColor">
+      vec3 getColor() {
+        return vec3(0.2, 0.3, 0.4);
+      }
+    </script>
 
-<script type="application/x-glsl" id="setColor">
-vec3 getColor();
-void main() {
-  gl_FragColor = vec4(getColor(), 1.0);
-}
-</script>
+    <script type="application/x-glsl" id="getColorSum">
+      vec3 getColor1();
+      vec3 getColor2();
+      vec3 getColorSum() {
+        return getColor1() + getColor2();
+      }
+    </script>
 
-</head>
-<body>
-  <h4>Deep Callback</h4>
-  <p>Callbacks defined deep inside a graph can be connected at higher levels.</p>
+    <script type="application/x-glsl" id="setColor">
+      vec3 getColor();
+      void main() {
+        gl_FragColor = vec4(getColor(), 1.0);
+      }
+    </script>
+  </head>
+  <body>
+    <h4>Deep Callback</h4>
+    <p>
+      Callbacks defined deep inside a graph can be connected at higher levels.
+    </p>
 
-  <div class="graph"></div>
-  <h5>View Source for Code</h5>
+    <div class="graph"></div>
+    <h5>View Source for Code</h5>
 
-  <pre></pre>
+    <pre></pre>
 
-  <script>
+    <script>
+      // Fetch snippets above
+      var fetch = function (key) {
+        element = document.getElementById(key);
+        return element.textContent || element.innerText;
+      };
 
-  // Fetch snippets above
-  var fetch = function (key) {
-    element = document.getElementById(key);
-    return element.textContent || element.innerText;
-  }
+      // Load ShaderGraph with given fetch function
+      // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
+      var shadergraph = ShaderGraph.load(fetch, { autoInspect: true });
 
-  // Load ShaderGraph with given fetch function
-  // (can also pass in dictionary of snippets, or pass literal code to .pipe() below)
-  var shadergraph = ShaderGraph(fetch, { autoInspect: true });
+      var shader = shadergraph
+        .shader()
+        .isolate()
+        .require("getColor")
+        .require("getColor")
+        .end()
+        .isolate()
+        .isolate()
+        .require("getColorSum")
+        .end()
+        .end()
+        .pipe("setColor");
 
-  var shader = shadergraph.shader()
-                 .isolate()
-                   .require('getColor')
-                   .require('getColor')
-                 .end()
-                 .isolate()
-                   .isolate()
-                     .require('getColorSum')
-                   .end()
-                 .end()
-                 .pipe('setColor')
+      // Finalize graph (optional, can call shader.link())
+      graph = shader.graph();
 
-  // Finalize graph (optional, can call shader.link())
-  graph   = shader.graph();
+      // Link entire shader into a main() function
+      snippet = graph.link();
 
-  // Link entire shader into a main() function
-  snippet = graph.link();
+      // Show in document body
+      document.querySelector("pre").innerText = snippet.code;
 
-  // Show in document body
-  document.querySelector('pre').innerText = snippet.code;
+      // Generate visualization of graph
+      visualize = shadergraph.visualize(graph);
+      document.querySelector(".graph").appendChild(visualize);
+      visualize.update();
 
-  // Generate visualization of graph
-  visualize = shadergraph.visualize(graph);
-  document.querySelector('.graph').appendChild(visualize);
-  visualize.update();
-
-  console.log("shader.link() = ", snippet);
-
-  </script>
-  
-</body>
+      console.log("shader.link() = ", snippet);
+    </script>
+  </body>
 </html>

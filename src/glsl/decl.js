@@ -7,6 +7,8 @@
  */
 // AST node parsers
 
+import * as THREE from "three";
+
 export let decl = {};
 
 decl.in = 0;

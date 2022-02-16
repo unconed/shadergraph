@@ -7,7 +7,11 @@
  */
 // AST node parsers
 
-import * as THREE from "three";
+import { Vector2 } from "three/src/math/Vector2.js";
+import { Vector3 } from "three/src/math/Vector3.js";
+import { Vector4 } from "three/src/math/Vector3.js";
+import { Matrix3 } from "three/src/math/Matrix3.js";
+import { Matrix4 } from "three/src/math/Matrix4.js";
 
 export let decl = {};
 
@@ -145,12 +149,12 @@ const threejs = win && !!window.THREE;
 const defaults = {
   int: 0,
   float: 0,
-  vec2: threejs ? THREE.Vector2 : null,
-  vec3: threejs ? THREE.Vector3 : null,
-  vec4: threejs ? THREE.Vector4 : null,
+  vec2: threejs ? Vector2 : null,
+  vec3: threejs ? Vector3 : null,
+  vec4: threejs ? Vector4 : null,
   mat2: null,
-  mat3: threejs ? THREE.Matrix3 : null,
-  mat4: threejs ? THREE.Matrix4 : null,
+  mat3: threejs ? Matrix3 : null,
+  mat4: threejs ? Matrix4 : null,
   sampler2D: 0,
   samplerCube: 0,
 };

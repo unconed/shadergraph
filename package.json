@@ -1,6 +1,6 @@
 {
   "name": "shadergraph",
-  "version": "2.0.7-dev",
+  "version": "2.1.0",
   "description": "GLSL linker",
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
     "glsl-tokenizer": "^2.1.5"
   },
   "peerDependencies": {
-    "three": ">= 0.72.0 < 0.130.0"
+    "three": ">= 0.72.0"
   },
   "devDependencies": {
     "eslint": "^7.28.0",

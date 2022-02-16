@@ -63,10 +63,10 @@ You can also use ShaderGraph's graph visualizer directly for other purposes:
 
 ## Basic Use
 
-Install via bower:
+Install via npm:
 
 ```
-bower install shadergraph
+npm install shadergraph
 ```
 
 Include `build/shadergraph.js`.

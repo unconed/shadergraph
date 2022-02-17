@@ -10040,10 +10040,6 @@ const src_merge = function (a, b = {}) {
 
 class ShaderGraph {
   constructor(snippets, config) {
-    if (!(this instanceof ShaderGraph)) {
-      return new ShaderGraph(snippets, config);
-    }
-
     const defaults = {
       globalUniforms: false,
       globalVaryings: true,

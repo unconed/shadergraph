@@ -25,10 +25,6 @@ const merge = function (a, b = {}) {
 
 export class ShaderGraph {
   constructor(snippets, config) {
-    if (!(this instanceof ShaderGraph)) {
-      return new ShaderGraph(snippets, config);
-    }
-
     const defaults = {
       globalUniforms: false,
       globalVaryings: true,

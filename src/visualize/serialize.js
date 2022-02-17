@@ -8,8 +8,6 @@
 // Dump graph for debug/visualization purposes
 import * as Block from "../block";
 
-const isCallback = (outlet) => outlet.type[0] === "(";
-
 export var serialize = function (graph) {
   const nodes = [];
   const links = [];

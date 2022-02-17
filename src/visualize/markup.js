@@ -60,7 +60,7 @@ var _activate = function (el) {
       popup.parentNode.classList.add("shadergraph-has-code");
       return popup.parentNode.addEventListener(
         "click",
-        (event) =>
+        (_event) =>
           (popup.style.display = {
             block: "none",
             none: "block",

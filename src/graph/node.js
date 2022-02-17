@@ -16,7 +16,7 @@ export class Node {
   static initClass() {
     this.index = 0;
   }
-  static id(name) {
+  static id(_name) {
     return ++Node.index;
   }
 
@@ -176,7 +176,7 @@ export class Node {
   }
 
   // Disconnect entire node
-  disconnect(node) {
+  disconnect(_node) {
     let outlet;
     for (outlet of Array.from(this.inputs)) {
       outlet.disconnect();
@@ -233,7 +233,6 @@ export class Node {
   // Remove outlet object from node.
   _remove(outlet) {
     const key = this._key(outlet);
-    const { inout } = outlet;
 
     // Sanity checks
     if (outlet.node !== this) {

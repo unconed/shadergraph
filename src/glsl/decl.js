@@ -9,7 +9,7 @@
 
 import { Vector2 } from "three/src/math/Vector2.js";
 import { Vector3 } from "three/src/math/Vector3.js";
-import { Vector4 } from "three/src/math/Vector3.js";
+import { Vector4 } from "three/src/math/Vector4.js";
 import { Matrix3 } from "three/src/math/Matrix3.js";
 import { Matrix4 } from "three/src/math/Matrix4.js";
 
@@ -37,7 +37,6 @@ decl.external = function (node) {
   let c = node.children;
 
   let storage = get(c[1]);
-  const struct = get(c[3]);
   const type = get(c[4]);
   const list = c[5];
 
@@ -74,7 +73,6 @@ decl.function = function (node) {
   //    console.log 'function', node
 
   const storage = get(c[1]);
-  const struct = get(c[3]);
   const type = get(c[4]);
   const func = c[5];
   const ident = get(func.children[0]);
@@ -229,8 +227,7 @@ class Definition {
   }
 
   copy(name, meta) {
-    let def;
-    return (def = new Definition(
+    return new Definition(
       name != null ? name : this.name,
       this.type,
       this.spec,
@@ -238,6 +235,6 @@ class Definition {
       this.value,
       this.inout,
       meta
-    ));
+    );
   }
 }

@@ -10,7 +10,7 @@
 */
 
 export const compile = function (program) {
-  const { ast, code, signatures } = program;
+  const { code, signatures } = program;
 
   // Prepare list of placeholders
   const placeholders = replaced(signatures);
@@ -19,17 +19,6 @@ export const compile = function (program) {
   const assembler = string_compiler(code, placeholders);
 
   return [signatures, assembler];
-};
-
-// #####
-
-const tick = function () {
-  const now = +new Date();
-  return function (label) {
-    const delta = +new Date() - now;
-    console.log(label, delta + " ms");
-    return delta;
-  };
 };
 
 var replaced = function (signatures) {
@@ -70,7 +59,7 @@ var string_compiler = function (code, placeholders) {
 
   // Strip comments
   code = code.replace(/\/\/[^\n]*/g, "");
-  code = code.replace(/\/\*([^*]|\*[^\/])*\*\//g, "");
+  code = code.replace(/\/\*([^*]|\*[^/])*\*\//g, "");
 
   // Strip all preprocessor commands (lazy)
   //code = code.replace /^#[^\n]*/mg, ''

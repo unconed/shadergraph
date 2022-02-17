@@ -208,8 +208,8 @@ export class Factory {
 
   // Connect parallel branches to tail
   _combine(sub, main) {
-    for (let to of Array.from(sub.start)) {
-      for (let from of Array.from(main.end)) {
+    for (const to of Array.from(sub.start)) {
+      for (const from of Array.from(main.end)) {
         from.connect(to, sub.multi);
       }
     }

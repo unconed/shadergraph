@@ -116,7 +116,7 @@ export class Snippet {
 
     // Apply config
     if (config.globals) {
-      for (let key of Array.from(config.globals)) {
+      for (const key of Array.from(config.globals)) {
         global(key);
       }
     }
@@ -165,7 +165,7 @@ export class Snippet {
     for (def of Array.from(this._signatures.attribute)) {
       a(redef(def));
     }
-    for (let name in uniforms) {
+    for (const name in uniforms) {
       def = uniforms[name];
       if (exist[name]) {
         u(def, name);
@@ -178,7 +178,7 @@ export class Snippet {
     if (defines) {
       const defs = (() => {
         const result = [];
-        for (let k in defines) {
+        for (const k in defines) {
           v = defines[k];
           result.push(`#define ${k} ${v}`);
         }

@@ -52,7 +52,7 @@ export const process = function (data) {
   return el;
 };
 
-var _activate = function (el) {
+const _activate = function (el) {
   const codes = el.querySelectorAll(".shadergraph-code");
   return Array.from(codes).map((code) =>
     (function () {
@@ -85,7 +85,7 @@ const _order = function (data) {
     linkMap[link.from].push(link);
   }
 
-  var recurse = function (node, depth) {
+  const recurse = function (node, depth) {
     let next;
     if (depth == null) {
       depth = 0;
@@ -108,7 +108,7 @@ const _order = function (data) {
   return null;
 };
 
-var _markup = function (data, links) {
+const _markup = function (data, links) {
   let column;
   _order(data);
 
@@ -118,9 +118,9 @@ var _markup = function (data, links) {
   const columns = [];
   const outlets = {};
 
-  for (let node of Array.from(data.nodes)) {
-    var outlet;
-    var block = document.createElement("div");
+  for (const node of Array.from(data.nodes)) {
+    let outlet;
+    const block = document.createElement("div");
     block.classList.add("shadergraph-node");
     block.classList.add(`shadergraph-node-${node.type}`);
 
@@ -183,7 +183,7 @@ var _markup = function (data, links) {
     }
   }
 
-  for (let link of Array.from(data.links)) {
+  for (const link of Array.from(data.links)) {
     const color = hashColor(link.type);
 
     links.push({
@@ -247,7 +247,7 @@ const makeSVG = function (tag) {
   return document.createElementNS("http://www.w3.org/2000/svg", tag);
 };
 
-var connect = function (element, links) {
+const connect = function (element, links) {
   let link;
   if (element.parentNode == null) {
     return;

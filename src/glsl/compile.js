@@ -21,15 +21,21 @@ export const compile = function (program) {
   return [signatures, assembler];
 };
 
-var replaced = function (signatures) {
+const replaced = function (signatures) {
   const out = {};
   const s = (sig) => (out[sig.name] = true);
 
   s(signatures.main);
 
   // Prefix all global symbols
-  for (let key of ["external", "internal", "varying", "uniform", "attribute"]) {
-    for (let sig of signatures[key]) {
+  for (const key of [
+    "external",
+    "internal",
+    "varying",
+    "uniform",
+    "attribute",
+  ]) {
+    for (const sig of signatures[key]) {
       s(sig);
     }
   }
@@ -40,7 +46,7 @@ var replaced = function (signatures) {
 /*
 String-replacement based compiler
 */
-var string_compiler = function (code, placeholders) {
+const string_compiler = function (code, placeholders) {
   // Make regexp for finding placeholders
   // Replace on word boundaries
   let key;

@@ -69,11 +69,11 @@ export const assemble = function (language, namespace, calls, requires) {
   };
 
   // Sort and process calls
-  var handle = (calls) => {
+  const handle = (calls) => {
     let c;
     calls = (() => {
       const result = [];
-      for (let ns in calls) {
+      for (const ns in calls) {
         c = calls[ns];
         result.push(c);
       }
@@ -92,7 +92,7 @@ export const assemble = function (language, namespace, calls, requires) {
       return generate.call(_lookup, _dangling, entry, main.signature, body);
     };
 
-    var body = generate.body();
+    const body = generate.body();
     for (c of Array.from(calls)) {
       call(c.node, c.module, c.priority);
     }
@@ -111,12 +111,12 @@ export const assemble = function (language, namespace, calls, requires) {
   };
 
   // Include snippet for a call
-  var include = function (node, module, priority) {
+  const include = function (node, module, priority) {
     let def, key;
     priority = Priority.make(priority);
 
     // Adopt snippet's libraries
-    for (let ns in module.library) {
+    for (const ns in module.library) {
       const lib = module.library[ns];
       adopt(ns, lib.code, Priority.nest(priority, lib.priority));
     }
@@ -141,17 +141,17 @@ export const assemble = function (language, namespace, calls, requires) {
     return required(node, module);
   };
 
-  var required = (
+  const required = (
     node,
     module // Adopt external symbols
   ) =>
     (() => {
       const result = [];
-      for (let key of Array.from(module.symbols)) {
+      for (const key of Array.from(module.symbols)) {
         const ext = module.externals[key];
         if (isDangling(node, ext.name)) {
           const copy = {};
-          for (let k in ext) {
+          for (const k in ext) {
             const v = ext[k];
             copy[k] = v;
           }
@@ -166,7 +166,7 @@ export const assemble = function (language, namespace, calls, requires) {
     })();
 
   // Check for dangling input/output
-  var isDangling = function (node, name) {
+  const isDangling = function (node, name) {
     const outlet = node.get(name);
 
     if (outlet.inout === Graph.IN) {
@@ -177,7 +177,7 @@ export const assemble = function (language, namespace, calls, requires) {
   };
 
   // Look up unique name for outlet
-  var lookup = function (node, name) {
+  const lookup = function (node, name) {
     // Traverse graph edge
     let outlet = node.get(name);
     if (!outlet) {

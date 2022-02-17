@@ -24,7 +24,7 @@ const _visualize = function (graph) {
   return markup.process(data);
 };
 
-var resolve = function (arg) {
+const resolve = function (arg) {
   if (arg == null) {
     return arg;
   }
@@ -43,9 +43,9 @@ var resolve = function (arg) {
   return arg;
 };
 
-var merge = function (args) {
+const merge = function (args) {
   let out = [];
-  for (let arg of Array.from(args)) {
+  for (const arg of Array.from(args)) {
     if (arg instanceof Array) {
       out = out.concat(merge(arg));
     } else if (arg != null) {
@@ -68,7 +68,7 @@ export const inspect = function () {
   const contents = visualize.apply(null, arguments);
   const element = markup.overlay(contents);
 
-  for (let el of Array.from(
+  for (const el of Array.from(
     document.querySelectorAll(".shadergraph-overlay")
   )) {
     el.remove();

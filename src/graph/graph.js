@@ -29,8 +29,8 @@ export class Graph {
 
   inputs() {
     const inputs = [];
-    for (let node of Array.from(this.nodes)) {
-      for (let outlet of Array.from(node.inputs)) {
+    for (const node of Array.from(this.nodes)) {
+      for (const outlet of Array.from(node.inputs)) {
         if (outlet.input === null) {
           inputs.push(outlet);
         }
@@ -41,8 +41,8 @@ export class Graph {
 
   outputs() {
     const outputs = [];
-    for (let node of Array.from(this.nodes)) {
-      for (let outlet of Array.from(node.outputs)) {
+    for (const node of Array.from(this.nodes)) {
+      for (const outlet of Array.from(node.outputs)) {
         if (outlet.output.length === 0) {
           outputs.push(outlet);
         }
@@ -64,7 +64,7 @@ export class Graph {
 
   add(node, ignore) {
     if (node.length) {
-      for (let _node of Array.from(node)) {
+      for (const _node of Array.from(node)) {
         this.add(_node);
       }
       return;
@@ -80,7 +80,7 @@ export class Graph {
 
   remove(node, ignore) {
     if (node.length) {
-      for (let _node of Array.from(node)) {
+      for (const _node of Array.from(node)) {
         this.remove(_node);
       }
       return;
@@ -98,7 +98,7 @@ export class Graph {
 
   adopt(node) {
     if (node.length) {
-      for (let _node of Array.from(node)) {
+      for (const _node of Array.from(node)) {
         this.adopt(_node);
       }
       return;

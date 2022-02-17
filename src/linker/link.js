@@ -39,12 +39,12 @@ export const link = function (language, links, modules, exported) {
       header.push(exports.bodies);
     }
 
-    for (let m of Array.from(modules)) {
+    for (const m of Array.from(modules)) {
       include(m.node, m.module, m.priority);
     }
     const sorted = (() => {
       const result = [];
-      for (let ns in library) {
+      for (const ns in library) {
         const lib = library[ns];
         result.push(lib);
       }
@@ -85,12 +85,12 @@ export const link = function (language, links, modules, exported) {
   };
 
   // Include piece of code
-  var include = function (node, module, priority) {
+  const include = function (node, module, priority) {
     let def, key;
     priority = Priority.make(priority);
 
     // Adopt snippet's libraries
-    for (let ns in module.library) {
+    for (const ns in module.library) {
       const lib = module.library[ns];
       adopt(ns, lib.code, Priority.nest(priority, lib.priority));
     }
@@ -128,7 +128,7 @@ export const link = function (language, links, modules, exported) {
   };
 
   // Check for dangling input/output
-  var isDangling = function (node, name) {
+  const isDangling = function (node, name) {
     const outlet = node.get(name);
 
     if (!outlet) {

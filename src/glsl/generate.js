@@ -91,7 +91,7 @@ export function call(lookup, dangling, entry, signature, body) {
   let ret = "";
 
   for (let arg of Array.from(signature)) {
-    var id, shadow;
+    let id, shadow;
     const { name } = arg;
 
     let copy = (id = lookup(name));
@@ -187,7 +187,7 @@ export function build(body, calls) {
   if (code == null) {
     let vars = (() => {
       const result = [];
-      for (let v in body.vars) {
+      for (const v in body.vars) {
         const decl = body.vars[v];
         result.push(decl);
       }
@@ -232,7 +232,7 @@ export function links(links) {
     bodies: [],
   };
 
-  for (let l of Array.from(links)) {
+  for (const l of Array.from(links)) {
     link(l, out);
   }
 
@@ -378,7 +378,7 @@ export function hoist(code) {
   const filter = function (lines, re) {
     const defs = [];
     const out = [];
-    for (let line of Array.from(lines)) {
+    for (const line of Array.from(lines)) {
       const list = line.match(re) ? defs : out;
       list.push(line);
     }

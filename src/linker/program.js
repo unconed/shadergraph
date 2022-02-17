@@ -68,7 +68,7 @@ export class Program {
       this.requires
     );
     const snippet = new Snippet();
-    for (let key in data) {
+    for (const key in data) {
       snippet[key] = data[key];
     }
     snippet.graph = this.graph;

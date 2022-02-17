@@ -34,8 +34,8 @@ export class Isolate extends Block {
 
     const seen = {};
     const done = {};
-    for (let set of ["inputs", "outputs"]) {
-      for (let outlet of Array.from(this.graph[set]())) {
+    for (const set of ["inputs", "outputs"]) {
+      for (const outlet of Array.from(this.graph[set]())) {
         // Preserve name of 'return' and 'callback' outlets
         let name = undefined;
         if (

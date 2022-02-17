@@ -55,7 +55,7 @@ export class Layout {
   link(module) {
     const data = link(this.language, this.links, this.includes, module);
     const snippet = new Snippet();
-    for (let key in data) {
+    for (const key in data) {
       snippet[key] = data[key];
     }
     snippet.graph = this.graph;

@@ -89,7 +89,6 @@ export function same(a, b) {
 export function call(lookup, dangling, entry, signature, body) {
   const args = [];
   let ret = "";
-  const rets = 1;
 
   for (let arg of Array.from(signature)) {
     var id, shadow;
@@ -99,7 +98,6 @@ export function call(lookup, dangling, entry, signature, body) {
     let other = null;
     let meta = null;
     let omit = false;
-    const { inout } = arg;
 
     const isReturn = name === $.RETURN_ARG;
 
@@ -178,7 +176,6 @@ export function build(body, calls) {
   // Check if we're only calling one snippet with identical signature
   // and not building void main();
   if (calls && calls.length === 1 && entry !== "main") {
-    const a = body;
     const b = calls[0].module;
 
     if (same(body.signature, b.main.signature)) {
@@ -304,7 +301,8 @@ export const link = (link, out) => {
 
   // Build wrapper function for the calling side
   const outer = body();
-  const wrapper = call(_lookup, _dangling, entry, external.signature, outer);
+  call(_lookup, _dangling, entry, external.signature, outer);
+
   outer.calls = inner.calls;
   outer.entry = name;
 
@@ -317,7 +315,7 @@ export function defuse(code) {
   // Don't try this at home kids
   const re =
     /([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/gm;
-  const strip = (code) => code.replace(re, (m) => "");
+  const strip = (code) => code.replace(re, (_m) => "");
 
   // Split into scopes by braces
   const blocks = code.split(/(?=[{}])/g);
@@ -366,7 +364,7 @@ export function dedupe(code) {
   const map = {};
   const re =
     /((attribute|uniform|varying)\s+)[A-Za-z0-9_]+\s+([A-Za-z0-9_]+)\s*(\[[^\]]*\]\s*)?;\s*/gm;
-  return code.replace(re, function (m, qual, type, name, struct) {
+  return code.replace(re, function (m, qual, type, name, _struct) {
     if (map[name]) {
       return "";
     }

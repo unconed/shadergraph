@@ -219,7 +219,7 @@ export class Factory {
   }
 
   // Make subgraph and connect to tail
-  _isolate(sub, main) {
+  _isolate(sub, _main) {
     if (sub.nodes.length) {
       let block;
       const subgraph = this._subgraph(sub);
@@ -239,7 +239,7 @@ export class Factory {
   }
 
   // Convert to callback and connect to tail
-  _callback(sub, main) {
+  _callback(sub, _main) {
     if (sub.nodes.length) {
       let block;
       const subgraph = this._subgraph(sub);

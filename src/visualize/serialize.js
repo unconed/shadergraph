@@ -8,12 +8,12 @@
 // Dump graph for debug/visualization purposes
 import * as Block from "../block";
 
-export var serialize = function (graph) {
+export const serialize = function (graph) {
   const nodes = [];
   const links = [];
 
-  for (let node of Array.from(graph.nodes)) {
-    var outlet;
+  for (const node of Array.from(graph.nodes)) {
+    let outlet;
     const record = {
       // Data
       id: node.id,
@@ -84,7 +84,7 @@ export var serialize = function (graph) {
         open: !outlet.output.length,
       });
 
-      for (let other of Array.from(outlet.output)) {
+      for (const other of Array.from(outlet.output)) {
         links.push({
           from: node.id,
           out: outlet.id,

@@ -117,7 +117,7 @@ export class Node {
     // Hash the types/hints of available target outlets.
     for (dest of Array.from(node.inputs)) {
       // Only autoconnect if not already connected
-      var list;
+      let list;
       if (!force && dest.input) {
         continue;
       }

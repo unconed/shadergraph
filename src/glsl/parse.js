@@ -8,7 +8,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import tokenize from "glsl-tokenizer/string";
-import parser from "glsl-parser/direct";
+import parser from "@sicmutils/glsl-parser/direct";
 import { decl } from "./decl";
 import { SHADOW_ARG, RETURN_ARG } from "./constants";
 
@@ -25,7 +25,7 @@ export const parse = function (name, code) {
 };
 
 // Parse GLSL language into AST
-var parseGLSL = function (name, code) {
+const parseGLSL = function (name, code) {
   let ast, tock;
   let errors = [];
   if (debug) {
@@ -61,7 +61,7 @@ var parseGLSL = function (name, code) {
       name = "(inline code)";
     }
     console.warn(fmt(code));
-    for (let error of errors) {
+    for (const error of errors) {
       console.error(`${name} -`, error.message);
     }
     throw new Error("GLSL parse error");
@@ -71,7 +71,7 @@ var parseGLSL = function (name, code) {
 };
 
 // Process AST for compilation
-var processAST = function (ast, code) {
+const processAST = function (ast, code) {
   let tock;
   if (debug) {
     tock = tick();
@@ -95,7 +95,7 @@ var processAST = function (ast, code) {
 };
 
 // Extract functions and external symbols from AST
-var mapSymbols = function (node, collect) {
+const mapSymbols = function (node, collect) {
   switch (node.type) {
     case "decl":
       collect(decl.node(node));
@@ -112,14 +112,14 @@ const collect = (out) =>
   };
 
 // Identify internals, externals and main function
-var sortSymbols = function (symbols) {
+const sortSymbols = function (symbols) {
   let main = null;
   const internals = [];
   let externals = [];
   const maybe = {};
   let found = false;
 
-  for (var s of Array.from(symbols)) {
+  for (const s of Array.from(symbols)) {
     if (!s.body) {
       // Unmarked globals are definitely internal
       if (s.storage === "global") {
@@ -155,7 +155,7 @@ var sortSymbols = function (symbols) {
 };
 
 // Generate type signatures and appropriate ins/outs
-var extractSignatures = function (main, internals, externals) {
+const extractSignatures = function (main, internals, externals) {
   let symbol;
   const sigs = {
     uniform: [],
@@ -244,10 +244,11 @@ var extractSignatures = function (main, internals, externals) {
 
   // Externals
   for (symbol of Array.from(externals)) {
+    let def;
     switch (symbol.decl) {
       // Uniforms/attributes/varyings
       case "external":
-        var def = defn(symbol);
+        def = defn(symbol);
         sigs[symbol.storage].push(def);
         break;
 
@@ -265,7 +266,7 @@ var extractSignatures = function (main, internals, externals) {
 // Walk AST, apply map and collect values
 debug = false;
 
-export var walk = function (map, collect, node, indent) {
+export const walk = function (map, collect, node, indent) {
   debug &&
     console.log(
       indent,
@@ -288,7 +289,7 @@ export var walk = function (map, collect, node, indent) {
 
 // #####
 
-var tick = function () {
+const tick = function () {
   const now = +new Date();
   return function (label) {
     const delta = +new Date() - now;

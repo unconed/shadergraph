@@ -21,7 +21,7 @@ export class Outlet {
     }
     const meta = extra;
     if (outlet.meta != null) {
-      for (let key in outlet.meta) {
+      for (const key in outlet.meta) {
         const value = outlet.meta[key];
         meta[key] = value;
       }

@@ -7,7 +7,7 @@
 
 import * as Visualize from "../visualize";
 
-let debug = false;
+const debug = false;
 
 const tick = function () {
   const now = +new Date();
@@ -42,18 +42,17 @@ export class Material {
     const vertex = this.vertex.link("main");
     const fragment = this.fragment.link("main");
 
-    for (let shader of [vertex, fragment]) {
-      var key, value;
-      for (key in shader.uniforms) {
-        value = shader.uniforms[key];
+    for (const shader of [vertex, fragment]) {
+      for (const key in shader.uniforms) {
+        const value = shader.uniforms[key];
         uniforms[key] = value;
       }
-      for (key in shader.varyings) {
-        value = shader.varyings[key];
+      for (const key in shader.varyings) {
+        const value = shader.varyings[key];
         varyings[key] = value;
       }
-      for (key in shader.attributes) {
-        value = shader.attributes[key];
+      for (const key in shader.attributes) {
+        const value = shader.attributes[key];
         attributes[key] = value;
       }
     }

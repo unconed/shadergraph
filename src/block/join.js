@@ -28,7 +28,7 @@ export class Join extends Block {
   call(program, depth) {
     return (() => {
       const result = [];
-      for (let node of Array.from(this.nodes)) {
+      for (const node of Array.from(this.nodes)) {
         const block = node.owner;
         result.push(block.call(program, depth));
       }
@@ -39,7 +39,7 @@ export class Join extends Block {
   export(layout, depth) {
     return (() => {
       const result = [];
-      for (let node of Array.from(this.nodes)) {
+      for (const node of Array.from(this.nodes)) {
         const block = node.owner;
         result.push(block.export(layout, depth));
       }

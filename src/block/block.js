@@ -12,7 +12,7 @@
 import * as Graph from "../graph";
 import { Program, Layout } from "../linker";
 
-let debug = false;
+const debug = false;
 
 export class Block {
   static previous(outlet) {
@@ -124,7 +124,7 @@ export class Block {
   _inputs(module, program, depth) {
     return (() => {
       const result = [];
-      for (let arg of Array.from(module.main.signature)) {
+      for (const arg of Array.from(module.main.signature)) {
         const outlet = this.node.get(arg.name);
         result.push(
           __guard__(Block.previous(outlet), (x) => x.call(program, depth + 1))
@@ -149,7 +149,7 @@ export class Block {
     debug && console.log("block::_link", this.toString(), module.namespace);
     return (() => {
       const result = [];
-      for (let key of Array.from(module.symbols)) {
+      for (const key of Array.from(module.symbols)) {
         const ext = module.externals[key];
         let outlet = this.node.get(ext.name);
         if (!outlet) {
@@ -163,6 +163,8 @@ export class Block {
         }
 
         let parent = outlet;
+
+        // eslint-disable-next-line prefer-const
         let block;
         while (!block && parent) {
           [parent, outlet] = Array.from([outlet.meta.parent, parent]);
@@ -190,7 +192,7 @@ export class Block {
     debug && console.log("block::_trace", this.toString(), module.namespace);
     return (() => {
       const result = [];
-      for (let arg of Array.from(module.main.signature)) {
+      for (const arg of Array.from(module.main.signature)) {
         const outlet = this.node.get(arg.name);
         result.push(
           __guard__(Block.previous(outlet), (x) => x.export(layout, depth + 1))
@@ -201,7 +203,7 @@ export class Block {
   }
 }
 
-var OutletError = function (message) {
+const OutletError = function (message) {
   const e = new Error(message);
   e.name = "OutletError";
   return e;

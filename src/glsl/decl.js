@@ -13,7 +13,7 @@ import { Vector4 } from "three/src/math/Vector4.js";
 import { Matrix3 } from "three/src/math/Matrix3.js";
 import { Matrix4 } from "three/src/math/Matrix4.js";
 
-export let decl = {};
+export const decl = {};
 
 decl.in = 0;
 decl.out = 1;

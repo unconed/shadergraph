@@ -8,7 +8,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import tokenize from "glsl-tokenizer/string";
-import parser from "glsl-parser/direct";
+import parser from "@sicmutils/glsl-parser/direct";
 import { decl } from "./decl";
 import { SHADOW_ARG, RETURN_ARG } from "./constants";
 

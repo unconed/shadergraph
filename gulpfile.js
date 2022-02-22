@@ -60,6 +60,7 @@ gulp.task("karma", function (done) {
   ).then(
     (karmaConfig) => {
       new KarmaServer(karmaConfig, done).start();
+      done();
     },
     (_rejectReason) => {}
   );

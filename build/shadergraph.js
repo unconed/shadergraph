@@ -11,584 +11,647 @@
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 706:
+/***/ 960:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var parse = __webpack_require__(324)
+var parse = __webpack_require__(565);
 
-module.exports = parseArray
+module.exports = parseArray;
 
 function parseArray(tokens) {
-  var parser = parse()
+  var parser = parse();
 
   for (var i = 0; i < tokens.length; i++) {
-    parser(tokens[i])
+    parser(tokens[i]);
   }
 
-  return parser(null)
+  return parser(null);
 }
 
 
 /***/ }),
 
-/***/ 268:
+/***/ 559:
 /***/ ((module) => {
 
-var state
-  , token
-  , tokens
-  , idx
+let state, token, tokens, idx;
 
-var original_symbol = {
-    nud: function() { return this.children && this.children.length ? this : fail('unexpected')() }
-  , led: fail('missing operator')
-}
+const original_symbol = {
+  nud: function () {
+    return this.children && this.children.length ? this : fail("unexpected")();
+  },
+  led: fail("missing operator"),
+};
 
-var symbol_table = {}
+const symbol_table = {};
 
 function itself() {
-  return this
+  return this;
 }
 
-symbol('(ident)').nud = itself
-symbol('(keyword)').nud = itself
-symbol('(builtin)').nud = itself
-symbol('(literal)').nud = itself
-symbol('(end)')
+symbol("(ident)").nud = itself;
+symbol("(keyword)").nud = itself;
+symbol("(builtin)").nud = itself;
+symbol("(literal)").nud = itself;
+symbol("(end)");
 
-symbol(':')
-symbol(';')
-symbol(',')
-symbol(')')
-symbol(']')
-symbol('}')
+symbol(":");
+symbol(";");
+symbol(",");
+symbol(")");
+symbol("]");
+symbol("}");
 
-infixr('&&', 30)
-infixr('||', 30)
-infix('|', 43)
-infix('^', 44)
-infix('&', 45)
-infix('==', 46)
-infix('!=', 46)
-infix('<', 47)
-infix('<=', 47)
-infix('>', 47)
-infix('>=', 47)
-infix('>>', 48)
-infix('<<', 48)
-infix('+', 50)
-infix('-', 50)
-infix('*', 60)
-infix('/', 60)
-infix('%', 60)
-infix('?', 20, function(left) {
-  this.children = [left, expression(0), (advance(':'), expression(0))]
-  this.type = 'ternary'
-  return this
-})
-infix('.', 80, function(left) {
-  token.type = 'literal'
-  state.fake(token)
-  this.children = [left, token]
-  advance()
-  return this
-})
-infix('[', 80, function(left) {
-  this.children = [left, expression(0)]
-  this.type = 'binary'
-  advance(']')
-  return this
-})
-infix('(', 80, function(left) {
-  this.children = [left]
-  this.type = 'call'
+infixr("&&", 30);
+infixr("||", 30);
+infix("|", 43);
+infix("^", 44);
+infix("&", 45);
+infix("==", 46);
+infix("!=", 46);
+infix("<", 47);
+infix("<=", 47);
+infix(">", 47);
+infix(">=", 47);
+infix(">>", 48);
+infix("<<", 48);
+infix("+", 50);
+infix("-", 50);
+infix("*", 60);
+infix("/", 60);
+infix("%", 60);
+infix("?", 20, function (left) {
+  this.children = [left, expression(0), (advance(":"), expression(0))];
+  this.type = "ternary";
+  return this;
+});
+infix(".", 80, function (left) {
+  token.type = "literal";
+  state.fake(token);
+  this.children = [left, token];
+  advance();
+  return this;
+});
+infix("[", 80, function (left) {
+  this.children = [left, expression(0)];
+  this.type = "binary";
+  advance("]");
+  return this;
+});
+infix("(", 80, function (left) {
+  this.children = [left];
+  this.type = "call";
 
-  if(token.data !== ')') while(1) {
-    this.children.push(expression(0))
-    if(token.data !== ',') break
-    advance(',')
+  if (token.data !== ")")
+    while (1) {
+      this.children.push(expression(0));
+      if (token.data !== ",") break;
+      advance(",");
+    }
+  advance(")");
+  return this;
+});
+
+prefix("-");
+prefix("+");
+prefix("!");
+prefix("~");
+prefix("defined");
+prefix("(", function () {
+  this.type = "group";
+  this.children = [expression(0)];
+  advance(")");
+  return this;
+});
+prefix("++");
+prefix("--");
+suffix("++");
+suffix("--");
+
+assignment("=");
+assignment("+=");
+assignment("-=");
+assignment("*=");
+assignment("/=");
+assignment("%=");
+assignment("&=");
+assignment("|=");
+assignment("^=");
+assignment(">>=");
+assignment("<<=");
+
+module.exports = function (incoming_state, incoming_tokens) {
+  state = incoming_state;
+  tokens = incoming_tokens;
+  idx = 0;
+  let result;
+
+  if (!tokens.length) return;
+
+  advance();
+  result = expression(0);
+  result.parent = state[0];
+  emit(result);
+
+  if (idx < tokens.length) {
+    throw new Error("did not use all tokens");
   }
-  advance(')')
-  return this
-})
 
-prefix('-')
-prefix('+')
-prefix('!')
-prefix('~')
-prefix('defined')
-prefix('(', function() {
-  this.type = 'group'
-  this.children = [expression(0)]
-  advance(')')
-  return this
-})
-prefix('++')
-prefix('--')
-suffix('++')
-suffix('--')
-
-assignment('=')
-assignment('+=')
-assignment('-=')
-assignment('*=')
-assignment('/=')
-assignment('%=')
-assignment('&=')
-assignment('|=')
-assignment('^=')
-assignment('>>=')
-assignment('<<=')
-
-module.exports = function(incoming_state, incoming_tokens) {
-  state = incoming_state
-  tokens = incoming_tokens
-  idx = 0
-  var result
-
-  if(!tokens.length) return
-
-  advance()
-  result = expression(0)
-  result.parent = state[0]
-  emit(result)
-
-  if(idx < tokens.length) {
-    throw new Error('did not use all tokens')
-  }
-
-  result.parent.children = [result]
+  result.parent.children = [result];
 
   function emit(node) {
-    state.unshift(node, false)
-    for(var i = 0, len = node.children.length; i < len; ++i) {
-      emit(node.children[i])
+    state.unshift(node, false);
+    for (let i = 0, len = node.children.length; i < len; ++i) {
+      emit(node.children[i]);
     }
-    state.shift()
+    state.shift();
   }
-
-}
+};
 
 function symbol(id, binding_power) {
-  var sym = symbol_table[id]
-  binding_power = binding_power || 0
-  if(sym) {
-    if(binding_power > sym.lbp) {
-      sym.lbp = binding_power
+  let sym = symbol_table[id];
+  binding_power = binding_power || 0;
+  if (sym) {
+    if (binding_power > sym.lbp) {
+      sym.lbp = binding_power;
     }
   } else {
-    sym = Object.create(original_symbol)
-    sym.id = id
-    sym.lbp = binding_power
-    symbol_table[id] = sym
+    sym = Object.create(original_symbol);
+    sym.id = id;
+    sym.lbp = binding_power;
+    symbol_table[id] = sym;
   }
-  return sym
+  return sym;
 }
 
 function expression(rbp) {
-  var left, t = token
-  advance()
+  let left,
+    t = token;
+  advance();
 
-  left = t.nud()
-  while(rbp < token.lbp) {
-    t = token
-    advance()
-    left = t.led(left)
+  left = t.nud();
+  while (rbp < token.lbp) {
+    t = token;
+    advance();
+    left = t.led(left);
   }
-  return left
+  return left;
 }
 
 function infix(id, bp, led) {
-  var sym = symbol(id, bp)
-  sym.led = led || function(left) {
-    this.children = [left, expression(bp)]
-    this.type = 'binary'
-    return this
-  }
+  const sym = symbol(id, bp);
+  sym.led =
+    led ||
+    function (left) {
+      this.children = [left, expression(bp)];
+      this.type = "binary";
+      return this;
+    };
 }
 
 function infixr(id, bp, led) {
-  var sym = symbol(id, bp)
-  sym.led = led || function(left) {
-    this.children = [left, expression(bp - 1)]
-    this.type = 'binary'
-    return this
-  }
-  return sym
+  const sym = symbol(id, bp);
+  sym.led =
+    led ||
+    function (left) {
+      this.children = [left, expression(bp - 1)];
+      this.type = "binary";
+      return this;
+    };
+  return sym;
 }
 
 function prefix(id, nud) {
-  var sym = symbol(id)
-  sym.nud = nud || function() {
-    this.children = [expression(70)]
-    this.type = 'unary'
-    return this
-  }
-  return sym
+  const sym = symbol(id);
+  sym.nud =
+    nud ||
+    function () {
+      this.children = [expression(70)];
+      this.type = "unary";
+      return this;
+    };
+  return sym;
 }
 
 function suffix(id) {
-  var sym = symbol(id, 150)
-  sym.led = function(left) {
-    this.children = [left]
-    this.type = 'suffix'
-    return this
-  }
+  const sym = symbol(id, 150);
+  sym.led = function (left) {
+    this.children = [left];
+    this.type = "suffix";
+    return this;
+  };
 }
 
 function assignment(id) {
-  return infixr(id, 10, function(left) {
-    this.children = [left, expression(9)]
-    this.assignment = true
-    this.type = 'assign'
-    return this
-  })
+  return infixr(id, 10, function (left) {
+    this.children = [left, expression(9)];
+    this.assignment = true;
+    this.type = "assign";
+    return this;
+  });
 }
 
 function advance(id) {
-  var next
-    , value
-    , type
-    , output
+  let next, value, type, output;
 
-  if(id && token.data !== id) {
-    return state.unexpected('expected `'+ id + '`, got `'+token.data+'`')
+  if (id && token.data !== id) {
+    return state.unexpected("expected `" + id + "`, got `" + token.data + "`");
   }
 
-  if(idx >= tokens.length) {
-    token = symbol_table['(end)']
-    return
+  if (idx >= tokens.length) {
+    token = symbol_table["(end)"];
+    return;
   }
 
-  next = tokens[idx++]
-  value = next.data
-  type = next.type
+  next = tokens[idx++];
+  value = next.data;
+  type = next.type;
 
-  if(type === 'ident') {
-    output = state.scope.find(value) || state.create_node()
-    type = output.type
-  } else if(type === 'builtin') {
-    output = symbol_table['(builtin)']
-  } else if(type === 'keyword') {
-    output = symbol_table['(keyword)']
-  } else if(type === 'operator') {
-    output = symbol_table[value]
-    if(!output) {
-      return state.unexpected('unknown operator `'+value+'`')
+  if (type === "ident") {
+    output = state.scope.find(value) || state.create_node();
+    type = output.type;
+  } else if (type === "builtin") {
+    output = symbol_table["(builtin)"];
+  } else if (type === "keyword") {
+    output = symbol_table["(keyword)"];
+  } else if (type === "operator") {
+    output = symbol_table[value];
+    if (!output) {
+      return state.unexpected("unknown operator `" + value + "`");
     }
-  } else if(type === 'float' || type === 'integer') {
-    type = 'literal'
-    output = symbol_table['(literal)']
+  } else if (type === "float" || type === "integer") {
+    type = "literal";
+    output = symbol_table["(literal)"];
   } else {
-    return state.unexpected('unexpected token.')
+    return state.unexpected("unexpected token.");
   }
 
-  if(output) {
-    if(!output.nud) { output.nud = itself }
-    if(!output.children) { output.children = [] }
+  if (output) {
+    if (!output.nud) {
+      output.nud = itself;
+    }
+    if (!output.children) {
+      output.children = [];
+    }
   }
 
-  output = Object.create(output)
-  output.token = next
-  output.type = type
-  if(!output.data) output.data = value
+  output = Object.create(output);
+  output.token = next;
+  output.type = type;
+  if (!output.data) output.data = value;
 
-  return token = output
+  return (token = output);
 }
 
 function fail(message) {
-  return function() { return state.unexpected(message) }
+  return function () {
+    return state.unexpected(message);
+  };
 }
 
 
 /***/ }),
 
-/***/ 324:
+/***/ 565:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-module.exports = parser
+module.exports = parser;
 
-var full_parse_expr = __webpack_require__(268)
-  , Scope = __webpack_require__(745)
+const full_parse_expr = __webpack_require__(559),
+  Scope = __webpack_require__(669);
 
 // singleton!
-var Advance = new Object
+const Advance = new Object();
 
-var DEBUG = false
+const DEBUG = false;
 
-var _ = 0
-  , IDENT = _++
-  , STMT = _++
-  , STMTLIST = _++
-  , STRUCT = _++
-  , FUNCTION = _++
-  , FUNCTIONARGS = _++
-  , DECL = _++
-  , DECLLIST = _++
-  , FORLOOP = _++
-  , WHILELOOP = _++
-  , IF = _++
-  , EXPR = _++
-  , PRECISION = _++
-  , COMMENT = _++
-  , PREPROCESSOR = _++
-  , KEYWORD = _++
-  , KEYWORD_OR_IDENT = _++
-  , RETURN = _++
-  , BREAK = _++
-  , CONTINUE = _++
-  , DISCARD = _++
-  , DOWHILELOOP = _++
-  , PLACEHOLDER = _++
-  , QUANTIFIER = _++
+let _ = 0,
+  IDENT = _++,
+  STMT = _++,
+  STMTLIST = _++,
+  STRUCT = _++,
+  FUNCTION = _++,
+  FUNCTIONARGS = _++,
+  DECL = _++,
+  DECLLIST = _++,
+  FORLOOP = _++,
+  WHILELOOP = _++,
+  IF = _++,
+  EXPR = _++,
+  PRECISION = _++,
+  COMMENT = _++,
+  PREPROCESSOR = _++,
+  KEYWORD = _++,
+  KEYWORD_OR_IDENT = _++,
+  RETURN = _++,
+  BREAK = _++,
+  CONTINUE = _++,
+  DISCARD = _++,
+  DOWHILELOOP = _++,
+  PLACEHOLDER = _++,
+  QUANTIFIER = _++;
 
-var DECL_ALLOW_ASSIGN = 0x1
-  , DECL_ALLOW_COMMA = 0x2
-  , DECL_REQUIRE_NAME = 0x4
-  , DECL_ALLOW_INVARIANT = 0x8
-  , DECL_ALLOW_STORAGE = 0x10
-  , DECL_NO_INOUT = 0x20
-  , DECL_ALLOW_STRUCT = 0x40
-  , DECL_STATEMENT = 0xFF
-  , DECL_FUNCTION = DECL_STATEMENT & ~(DECL_ALLOW_ASSIGN | DECL_ALLOW_COMMA | DECL_NO_INOUT | DECL_ALLOW_INVARIANT | DECL_REQUIRE_NAME)
-  , DECL_STRUCT = DECL_STATEMENT & ~(DECL_ALLOW_ASSIGN | DECL_ALLOW_INVARIANT | DECL_ALLOW_STORAGE | DECL_ALLOW_STRUCT)
+const DECL_ALLOW_ASSIGN = 0x1,
+  DECL_ALLOW_COMMA = 0x2,
+  DECL_REQUIRE_NAME = 0x4,
+  DECL_ALLOW_INVARIANT = 0x8,
+  DECL_ALLOW_STORAGE = 0x10,
+  DECL_NO_INOUT = 0x20,
+  DECL_ALLOW_STRUCT = 0x40,
+  DECL_STATEMENT = 0xff,
+  DECL_FUNCTION =
+    DECL_STATEMENT &
+    ~(
+      DECL_ALLOW_ASSIGN |
+      DECL_ALLOW_COMMA |
+      DECL_NO_INOUT |
+      DECL_ALLOW_INVARIANT |
+      DECL_REQUIRE_NAME
+    ),
+  DECL_STRUCT =
+    DECL_STATEMENT &
+    ~(
+      DECL_ALLOW_ASSIGN |
+      DECL_ALLOW_INVARIANT |
+      DECL_ALLOW_STORAGE |
+      DECL_ALLOW_STRUCT
+    );
 
-var QUALIFIERS = (/* unused pure expression or super */ null && (['const', 'attribute', 'uniform', 'varying']))
+const QUALIFIERS = (/* unused pure expression or super */ null && (["const", "attribute", "uniform", "varying"]));
 
-var NO_ASSIGN_ALLOWED = false
-  , NO_COMMA_ALLOWED = false
+const NO_ASSIGN_ALLOWED = false,
+  NO_COMMA_ALLOWED = false;
 
 // map of tokens to stmt types
-var token_map = {
-    'block-comment': COMMENT
-  , 'line-comment': COMMENT
-  , 'preprocessor': PREPROCESSOR
-}
+const token_map = {
+  "block-comment": COMMENT,
+  "line-comment": COMMENT,
+  preprocessor: PREPROCESSOR,
+};
 
 // map of stmt types to human
-var stmt_type = _ = [
-    'ident'
-  , 'stmt'
-  , 'stmtlist'
-  , 'struct'
-  , 'function'
-  , 'functionargs'
-  , 'decl'
-  , 'decllist'
-  , 'forloop'
-  , 'whileloop'
-  , 'if'
-  , 'expr'
-  , 'precision'
-  , 'comment'
-  , 'preprocessor'
-  , 'keyword'
-  , 'keyword_or_ident'
-  , 'return'
-  , 'break'
-  , 'continue'
-  , 'discard'
-  , 'do-while'
-  , 'placeholder'
-  , 'quantifier'
-]
+const stmt_type = (_ = [
+  "ident",
+  "stmt",
+  "stmtlist",
+  "struct",
+  "function",
+  "functionargs",
+  "decl",
+  "decllist",
+  "forloop",
+  "whileloop",
+  "if",
+  "expr",
+  "precision",
+  "comment",
+  "preprocessor",
+  "keyword",
+  "keyword_or_ident",
+  "return",
+  "break",
+  "continue",
+  "discard",
+  "do-while",
+  "placeholder",
+  "quantifier",
+]);
 
 function parser() {
-  var stmtlist = n(STMTLIST)
-    , stmt = n(STMT)
-    , decllist = n(DECLLIST)
-    , precision = n(PRECISION)
-    , ident = n(IDENT)
-    , keyword_or_ident = n(KEYWORD_OR_IDENT)
-    , fn = n(FUNCTION)
-    , fnargs = n(FUNCTIONARGS)
-    , forstmt = n(FORLOOP)
-    , ifstmt = n(IF)
-    , whilestmt = n(WHILELOOP)
-    , returnstmt = n(RETURN)
-    , dowhilestmt = n(DOWHILELOOP)
-    , quantifier = n(QUANTIFIER)
+  const stmtlist = n(STMTLIST),
+    stmt = n(STMT),
+    decllist = n(DECLLIST),
+    precision = n(PRECISION),
+    ident = n(IDENT),
+    keyword_or_ident = n(KEYWORD_OR_IDENT),
+    fn = n(FUNCTION),
+    fnargs = n(FUNCTIONARGS),
+    forstmt = n(FORLOOP),
+    ifstmt = n(IF),
+    whilestmt = n(WHILELOOP),
+    returnstmt = n(RETURN),
+    dowhilestmt = n(DOWHILELOOP),
+    quantifier = n(QUANTIFIER);
 
-  var parse_struct
-    , parse_precision
-    , parse_quantifier
-    , parse_forloop
-    , parse_if
-    , parse_return
-    , parse_whileloop
-    , parse_dowhileloop
-    , parse_function
-    , parse_function_args
+  let parse_struct,
+    parse_precision,
+    parse_quantifier,
+    parse_forloop,
+    parse_if,
+    parse_return,
+    parse_whileloop,
+    parse_dowhileloop,
+    parse_function,
+    parse_function_args;
 
-  var check = arguments.length ? [].slice.call(arguments) : []
-    , complete = false
-    , ended = false
-    , depth = 0
-    , state = []
-    , nodes = []
-    , tokens = []
-    , whitespace = []
-    , errored = false
-    , program
-    , token
-    , node
+  let check = arguments.length ? [].slice.call(arguments) : [],
+    complete = false,
+    ended = false,
+    depth = 0,
+    state = [],
+    nodes = [],
+    tokens = [],
+    whitespace = [],
+    errored = false,
+    program,
+    token,
+    node;
 
   // setup state
-  state.shift = special_shift
-  state.unshift = special_unshift
-  state.fake = special_fake
-  state.unexpected = unexpected
-  state.scope = new Scope(state)
-  state.create_node = function() {
-    var n = mknode(IDENT, token)
-    n.parent = reader.program
-    return n
-  }
+  state.shift = special_shift;
+  state.unshift = special_unshift;
+  state.fake = special_fake;
+  state.unexpected = unexpected;
+  state.scope = new Scope(state);
+  state.create_node = function () {
+    const n = mknode(IDENT, token);
+    n.parent = reader.program;
+    return n;
+  };
 
-  setup_stative_parsers()
+  setup_stative_parsers();
 
   // setup root node
-  node = stmtlist()
-  node.expecting = '(eof)'
-  node.mode = STMTLIST
-  node.token = {type: '(program)', data: '(program)'}
-  program = node
+  node = stmtlist();
+  node.expecting = "(eof)";
+  node.mode = STMTLIST;
+  node.token = { type: "(program)", data: "(program)" };
+  program = node;
 
-  reader.program = program
-  reader.scope = function(scope) {
-    if(arguments.length === 1) {
-      state.scope = scope
+  reader.program = program;
+  reader.scope = function (scope) {
+    if (arguments.length === 1) {
+      state.scope = scope;
     }
-    return state.scope
-  }
+    return state.scope;
+  };
 
-  state.unshift(node)
-  return reader
+  state.unshift(node);
+  return reader;
 
   function reader(data) {
     if (data === null) {
-      return end(), program
+      return end(), program;
     }
 
-    nodes = []
-    write(data)
-    return nodes
+    nodes = [];
+    write(data);
+    return nodes;
   }
 
   // stream functions ---------------------------------------------
 
   function write(input) {
-    if(input.type === 'whitespace' || input.type === 'line-comment' || input.type === 'block-comment') {
-
-      whitespace.push(input)
-      return
+    if (
+      input.type === "whitespace" ||
+      input.type === "line-comment" ||
+      input.type === "block-comment"
+    ) {
+      whitespace.push(input);
+      return;
     }
-    tokens.push(input)
-    token = token || tokens[0]
+    tokens.push(input);
+    token = token || tokens[0];
 
-    if(token && whitespace.length) {
-      token.preceding = token.preceding || []
-      token.preceding = token.preceding.concat(whitespace)
-      whitespace = []
+    if (token && whitespace.length) {
+      token.preceding = token.preceding || [];
+      token.preceding = token.preceding.concat(whitespace);
+      whitespace = [];
     }
 
-    while(take()) switch(state[0].mode) {
-      case STMT: parse_stmt(); break
-      case STMTLIST: parse_stmtlist(); break
-      case DECL: parse_decl(); break
-      case DECLLIST: parse_decllist(); break
-      case EXPR: parse_expr(); break
-      case STRUCT: parse_struct(true, true); break
-      case PRECISION: parse_precision(); break
-      case IDENT: parse_ident(); break
-      case KEYWORD: parse_keyword(); break
-      case KEYWORD_OR_IDENT: parse_keyword_or_ident(); break
-      case FUNCTION: parse_function(); break
-      case FUNCTIONARGS: parse_function_args(); break
-      case FORLOOP: parse_forloop(); break
-      case WHILELOOP: parse_whileloop(); break
-      case DOWHILELOOP: parse_dowhileloop(); break
-      case RETURN: parse_return(); break
-      case IF: parse_if(); break
-      case QUANTIFIER: parse_quantifier(); break
-    }
+    while (take())
+      switch (state[0].mode) {
+        case STMT:
+          parse_stmt();
+          break;
+        case STMTLIST:
+          parse_stmtlist();
+          break;
+        case DECL:
+          parse_decl();
+          break;
+        case DECLLIST:
+          parse_decllist();
+          break;
+        case EXPR:
+          parse_expr();
+          break;
+        case STRUCT:
+          parse_struct(true, true);
+          break;
+        case PRECISION:
+          parse_precision();
+          break;
+        case IDENT:
+          parse_ident();
+          break;
+        case KEYWORD:
+          parse_keyword();
+          break;
+        case KEYWORD_OR_IDENT:
+          parse_keyword_or_ident();
+          break;
+        case FUNCTION:
+          parse_function();
+          break;
+        case FUNCTIONARGS:
+          parse_function_args();
+          break;
+        case FORLOOP:
+          parse_forloop();
+          break;
+        case WHILELOOP:
+          parse_whileloop();
+          break;
+        case DOWHILELOOP:
+          parse_dowhileloop();
+          break;
+        case RETURN:
+          parse_return();
+          break;
+        case IF:
+          parse_if();
+          break;
+        case QUANTIFIER:
+          parse_quantifier();
+          break;
+      }
   }
 
   function end(tokens) {
-    if(arguments.length) {
-      write(tokens)
+    if (arguments.length) {
+      write(tokens);
     }
 
-    if(state.length > 1) {
-      unexpected('unexpected EOF')
-      return
+    if (state.length > 1) {
+      unexpected("unexpected EOF");
+      return;
     }
 
-    complete = true
+    complete = true;
   }
 
   function take() {
-    if(errored || !state.length)
-      return false
+    if (errored || !state.length) return false;
 
-    return (token = tokens[0])
+    return (token = tokens[0]);
   }
 
   // ----- state manipulation --------
 
   function special_fake(x) {
-    state.unshift(x)
-    state.shift()
+    state.unshift(x);
+    state.shift();
   }
 
   function special_unshift(_node, add_child) {
-    _node.parent = state[0]
+    _node.parent = state[0];
 
-    var ret = [].unshift.call(this, _node)
+    const ret = [].unshift.call(this, _node);
 
-    add_child = add_child === undefined ? true : add_child
+    add_child = add_child === undefined ? true : add_child;
 
-    if(DEBUG) {
-      var pad = ''
-      for(var i = 0, len = this.length - 1; i < len; ++i) {
-        pad += ' |'
+    if (DEBUG) {
+      let pad = "";
+      for (let i = 0, len = this.length - 1; i < len; ++i) {
+        pad += " |";
       }
-      console.log(pad, '\\'+_node.type, _node.token.data)
+      console.log(pad, "\\" + _node.type, _node.token.data);
     }
 
-    if(add_child && node !== _node) node.children.push(_node)
-    node = _node
+    if (add_child && node !== _node) node.children.push(_node);
+    node = _node;
 
-    return ret
+    return ret;
   }
 
   function special_shift() {
-    var _node = [].shift.call(this)
-      , okay = check[this.length]
-      , emit = false
+    let _node = [].shift.call(this),
+      okay = check[this.length],
+      emit = false;
 
-    if(DEBUG) {
-      var pad = ''
-      for(var i = 0, len = this.length; i < len; ++i) {
-        pad += ' |'
+    if (DEBUG) {
+      let pad = "";
+      for (let i = 0, len = this.length; i < len; ++i) {
+        pad += " |";
       }
-      console.log(pad, '/'+_node.type)
+      console.log(pad, "/" + _node.type);
     }
 
-    if(check.length) {
-      if(typeof check[0] === 'function') {
-        emit = check[0](_node)
-      } else if(okay !== undefined) {
-        emit = okay.test ? okay.test(_node.type) : okay === _node.type
+    if (check.length) {
+      if (typeof check[0] === "function") {
+        emit = check[0](_node);
+      } else if (okay !== undefined) {
+        emit = okay.test ? okay.test(_node.type) : okay === _node.type;
       }
     } else {
-      emit = true
+      emit = true;
     }
 
-    if(emit && !errored) nodes.push(_node)
+    if (emit && !errored) nodes.push(_node);
 
-    node = _node.parent
-    return _node
+    node = _node.parent;
+    return _node;
   }
 
   // parse states ---------------
@@ -596,83 +659,94 @@ function parser() {
   function parse_stmtlist() {
     // determine the type of the statement
     // and then start parsing
-    return stative(
-      function() { state.scope.enter(); return Advance }
-    , normal_mode
-    )()
+    return stative(function () {
+      state.scope.enter();
+      return Advance;
+    }, normal_mode)();
 
     function normal_mode() {
-      if(token.data === state[0].expecting) {
-        return state.scope.exit(), state.shift()
+      if (token.data === state[0].expecting) {
+        return state.scope.exit(), state.shift();
       }
-      switch(token.type) {
-        case 'preprocessor':
-          state.fake(adhoc())
-          tokens.shift()
-        return
+      switch (token.type) {
+        case "preprocessor":
+          state.fake(adhoc());
+          tokens.shift();
+          return;
         default:
-          state.unshift(stmt())
-        return
+          state.unshift(stmt());
+          return;
       }
     }
   }
 
   function parse_stmt() {
-    if(state[0].brace) {
-      if(token.data !== '}') {
-        return unexpected('expected `}`, got '+token.data)
+    if (state[0].brace) {
+      if (token.data !== "}") {
+        return unexpected("expected `}`, got " + token.data);
       }
-      state[0].brace = false
-      return tokens.shift(), state.shift()
+      state[0].brace = false;
+      return tokens.shift(), state.shift();
     }
-    switch(token.type) {
-      case 'eof': return got_eof()
-      case 'keyword':
-        switch(token.data) {
-          case 'for': return state.unshift(forstmt());
-          case 'if': return state.unshift(ifstmt());
-          case 'while': return state.unshift(whilestmt());
-          case 'do': return state.unshift(dowhilestmt());
-          case 'break': return state.fake(mknode(BREAK, token)), tokens.shift()
-          case 'continue': return state.fake(mknode(CONTINUE, token)), tokens.shift()
-          case 'discard': return state.fake(mknode(DISCARD, token)), tokens.shift()
-          case 'return': return state.unshift(returnstmt());
-          case 'precision': return state.unshift(precision());
+    switch (token.type) {
+      case "eof":
+        return got_eof();
+      case "keyword":
+        switch (token.data) {
+          case "for":
+            return state.unshift(forstmt());
+          case "if":
+            return state.unshift(ifstmt());
+          case "while":
+            return state.unshift(whilestmt());
+          case "do":
+            return state.unshift(dowhilestmt());
+          case "break":
+            return state.fake(mknode(BREAK, token)), tokens.shift();
+          case "continue":
+            return state.fake(mknode(CONTINUE, token)), tokens.shift();
+          case "discard":
+            return state.fake(mknode(DISCARD, token)), tokens.shift();
+          case "return":
+            return state.unshift(returnstmt());
+          case "precision":
+            return state.unshift(precision());
         }
-        return state.unshift(decl(DECL_STATEMENT))
-      case 'ident':
-        var lookup
-        if(lookup = state.scope.find(token.data)) {
-          if(lookup.parent.type === 'struct') {
+        return state.unshift(decl(DECL_STATEMENT));
+      case "ident":
+        var lookup;
+        if ((lookup = state.scope.find(token.data))) {
+          if (lookup.parent.type === "struct") {
             // this is strictly untrue, you could have an
             // expr that starts with a struct constructor.
             //      ... sigh
-            return state.unshift(decl(DECL_STATEMENT))
+            return state.unshift(decl(DECL_STATEMENT));
           }
-          return state.unshift(expr(';'))
+          return state.unshift(expr(";"));
         }
-      case 'operator':
-        if(token.data === '{') {
-          state[0].brace = true
-          var n = stmtlist()
-          n.expecting = '}'
-          return tokens.shift(), state.unshift(n)
+      case "operator":
+        if (token.data === "{") {
+          state[0].brace = true;
+          const n = stmtlist();
+          n.expecting = "}";
+          return tokens.shift(), state.unshift(n);
         }
-        if(token.data === ';') {
-          return tokens.shift(), state.shift()
+        if (token.data === ";") {
+          return tokens.shift(), state.shift();
         }
-      default: return state.unshift(expr(';'))
+      default:
+        return state.unshift(expr(";"));
     }
   }
 
   function got_eof() {
-    if (ended) errored = true
-    ended = true
-    return state.shift()
+    if (ended) errored = true;
+    ended = true;
+    return state.shift();
   }
 
   function parse_decl() {
-    var stmt = state[0]
+    const stmt = state[0];
 
     return stative(
       invariant_or_not,
@@ -681,242 +755,253 @@ function parser() {
       precision_or_not,
       struct_or_type,
       maybe_name,
-      maybe_lparen,     // lparen means we're a function
+      maybe_lparen, // lparen means we're a function
       is_decllist,
       done
-    )()
+    )();
 
     function invariant_or_not() {
-      if(token.data === 'invariant') {
-        if(stmt.flags & DECL_ALLOW_INVARIANT) {
-          state.unshift(keyword())
-          return Advance
+      if (token.data === "invariant") {
+        if (stmt.flags & DECL_ALLOW_INVARIANT) {
+          state.unshift(keyword());
+          return Advance;
         } else {
-          return unexpected('`invariant` is not allowed here')
+          return unexpected("`invariant` is not allowed here");
         }
       } else {
-        state.fake(mknode(PLACEHOLDER, {data: '', position: token.position}))
-        return Advance
+        state.fake(mknode(PLACEHOLDER, { data: "", position: token.position }));
+        return Advance;
       }
     }
 
     function storage_or_not() {
-      if(is_storage(token)) {
-        if(stmt.flags & DECL_ALLOW_STORAGE) {
-          state.unshift(keyword())
-          return Advance
+      if (is_storage(token)) {
+        if (stmt.flags & DECL_ALLOW_STORAGE) {
+          state.unshift(keyword());
+          return Advance;
         } else {
-          return unexpected('storage is not allowed here')
+          return unexpected("storage is not allowed here");
         }
       } else {
-        state.fake(mknode(PLACEHOLDER, {data: '', position: token.position}))
-        return Advance
+        state.fake(mknode(PLACEHOLDER, { data: "", position: token.position }));
+        return Advance;
       }
     }
 
     function parameter_or_not() {
-      if(is_parameter(token)) {
-        if(!(stmt.flags & DECL_NO_INOUT)) {
-          state.unshift(keyword())
-          return Advance
+      if (is_parameter(token)) {
+        if (!(stmt.flags & DECL_NO_INOUT)) {
+          state.unshift(keyword());
+          return Advance;
         } else {
-          return unexpected('parameter is not allowed here')
+          return unexpected("parameter is not allowed here");
         }
       } else {
-        state.fake(mknode(PLACEHOLDER, {data: '', position: token.position}))
-        return Advance
+        state.fake(mknode(PLACEHOLDER, { data: "", position: token.position }));
+        return Advance;
       }
     }
 
     function precision_or_not() {
-      if(is_precision(token)) {
-        state.unshift(keyword())
-        return Advance
+      if (is_precision(token)) {
+        state.unshift(keyword());
+        return Advance;
       } else {
-        state.fake(mknode(PLACEHOLDER, {data: '', position: token.position}))
-        return Advance
+        state.fake(mknode(PLACEHOLDER, { data: "", position: token.position }));
+        return Advance;
       }
     }
 
     function struct_or_type() {
-      if(token.data === 'struct') {
-        if(!(stmt.flags & DECL_ALLOW_STRUCT)) {
-          return unexpected('cannot nest structs')
+      if (token.data === "struct") {
+        if (!(stmt.flags & DECL_ALLOW_STRUCT)) {
+          return unexpected("cannot nest structs");
         }
-        state.unshift(struct())
-        return Advance
+        state.unshift(struct());
+        return Advance;
       }
 
-      if(token.type === 'keyword') {
-        state.unshift(keyword())
-        return Advance
+      if (token.type === "keyword") {
+        state.unshift(keyword());
+        return Advance;
       }
 
-      var lookup = state.scope.find(token.data)
+      const lookup = state.scope.find(token.data);
 
-      if(lookup) {
-        state.fake(Object.create(lookup))
-        tokens.shift()
-        return Advance
+      if (lookup) {
+        state.fake(Object.create(lookup));
+        tokens.shift();
+        return Advance;
       }
-      return unexpected('expected user defined type, struct or keyword, got '+token.data)
+      return unexpected(
+        "expected user defined type, struct or keyword, got " + token.data
+      );
     }
 
     function maybe_name() {
-      if(token.data === ',' && !(stmt.flags & DECL_ALLOW_COMMA)) {
-        return state.shift()
+      if (token.data === "," && !(stmt.flags & DECL_ALLOW_COMMA)) {
+        return state.shift();
       }
 
-      if(token.data === '[') {
+      if (token.data === "[") {
         // oh lord.
-        state.unshift(quantifier())
-        return
+        state.unshift(quantifier());
+        return;
       }
 
-      if(token.data === ')') return state.shift()
+      if (token.data === ")") return state.shift();
 
-      if(token.data === ';') {
-        return stmt.stage + 3
+      if (token.data === ";") {
+        return stmt.stage + 3;
       }
 
-      if(token.type !== 'ident' && token.type !== 'builtin') {
-        return unexpected('expected identifier, got '+token.data)
+      if (token.type !== "ident" && token.type !== "builtin") {
+        return unexpected("expected identifier, got " + token.data);
       }
 
-      stmt.collected_name = tokens.shift()
-      return Advance
+      stmt.collected_name = tokens.shift();
+      return Advance;
     }
 
     function maybe_lparen() {
-      if(token.data === '(') {
-        tokens.unshift(stmt.collected_name)
-        delete stmt.collected_name
-        state.unshift(fn())
-        return stmt.stage + 2
+      if (token.data === "(") {
+        tokens.unshift(stmt.collected_name);
+        delete stmt.collected_name;
+        state.unshift(fn());
+        return stmt.stage + 2;
       }
-      return Advance
+      return Advance;
     }
 
     function is_decllist() {
-      tokens.unshift(stmt.collected_name)
-      delete stmt.collected_name
-      state.unshift(decllist())
-      return Advance
+      tokens.unshift(stmt.collected_name);
+      delete stmt.collected_name;
+      state.unshift(decllist());
+      return Advance;
     }
 
     function done() {
-      return state.shift()
+      return state.shift();
     }
   }
 
   function parse_decllist() {
     // grab ident
 
-    if(token.type === 'ident' || token.type === 'builtin') {
-      var name = token.data
-      state.unshift(ident())
-      state.scope.define(name)
-      return
+    if (token.type === "ident" || token.type === "builtin") {
+      const name = token.data;
+      state.unshift(ident());
+      state.scope.define(name);
+      return;
     }
 
-    if(token.type === 'operator') {
-
-      if(token.data === ',') {
+    if (token.type === "operator") {
+      if (token.data === ",") {
         // multi-decl!
-        if(!(state[1].flags & DECL_ALLOW_COMMA)) {
-          return state.shift()
+        if (!(state[1].flags & DECL_ALLOW_COMMA)) {
+          return state.shift();
         }
 
-        return tokens.shift()
-      } else if(token.data === '=') {
-        if(!(state[1].flags & DECL_ALLOW_ASSIGN)) return unexpected('`=` is not allowed here.')
+        return tokens.shift();
+      } else if (token.data === "=") {
+        if (!(state[1].flags & DECL_ALLOW_ASSIGN))
+          return unexpected("`=` is not allowed here.");
 
-        tokens.shift()
+        tokens.shift();
 
-        state.unshift(expr(',', ';'))
-        return
-      } else if(token.data === '[') {
-        state.unshift(quantifier())
-        return
+        state.unshift(expr(",", ";"));
+        return;
+      } else if (token.data === "[") {
+        state.unshift(quantifier());
+        return;
       }
     }
-    return state.shift()
+    return state.shift();
   }
 
   function parse_keyword_or_ident() {
-    if(token.type === 'keyword') {
-      state[0].type = 'keyword'
-      state[0].mode = KEYWORD
-      return
+    if (token.type === "keyword") {
+      state[0].type = "keyword";
+      state[0].mode = KEYWORD;
+      return;
     }
 
-    if(token.type === 'ident') {
-      state[0].type = 'ident'
-      state[0].mode = IDENT
-      return
+    if (token.type === "ident") {
+      state[0].type = "ident";
+      state[0].mode = IDENT;
+      return;
     }
 
-    return unexpected('expected keyword or user-defined name, got '+token.data)
+    return unexpected(
+      "expected keyword or user-defined name, got " + token.data
+    );
   }
 
   function parse_keyword() {
-    if(token.type !== 'keyword') {
-      return unexpected('expected keyword, got '+token.data)
+    if (token.type !== "keyword") {
+      return unexpected("expected keyword, got " + token.data);
     }
 
-    return state.shift(), tokens.shift()
+    return state.shift(), tokens.shift();
   }
 
   function parse_ident() {
-    if(token.type !== 'ident' && token.type !== 'builtin') {
-      return unexpected('expected user-defined name, got '+token.data)
+    if (token.type !== "ident" && token.type !== "builtin") {
+      return unexpected("expected user-defined name, got " + token.data);
     }
 
-    state[0].data = token.data
-    return state.shift(), tokens.shift()
+    state[0].data = token.data;
+    return state.shift(), tokens.shift();
   }
 
-
   function parse_expr() {
-    var expecting = state[0].expecting
+    const expecting = state[0].expecting;
 
-    state[0].tokens = state[0].tokens || []
+    state[0].tokens = state[0].tokens || [];
 
-    if(state[0].parenlevel === undefined) {
-      state[0].parenlevel = 0
-      state[0].bracelevel = 0
+    if (state[0].parenlevel === undefined) {
+      state[0].parenlevel = 0;
+      state[0].bracelevel = 0;
     }
-    if(state[0].parenlevel < 1 && expecting.indexOf(token.data) > -1) {
-      return parseexpr(state[0].tokens)
+    if (state[0].parenlevel < 1 && expecting.indexOf(token.data) > -1) {
+      return parseexpr(state[0].tokens);
     }
-    if(token.data === '(') {
-      ++state[0].parenlevel
-    } else if(token.data === ')') {
-      --state[0].parenlevel
-    }
-
-    switch(token.data) {
-      case '{': ++state[0].bracelevel; break
-      case '}': --state[0].bracelevel; break
-      case '(': ++state[0].parenlevel; break
-      case ')': --state[0].parenlevel; break
+    if (token.data === "(") {
+      ++state[0].parenlevel;
+    } else if (token.data === ")") {
+      --state[0].parenlevel;
     }
 
-    if(state[0].parenlevel < 0) return unexpected('unexpected `)`')
-    if(state[0].bracelevel < 0) return unexpected('unexpected `}`')
+    switch (token.data) {
+      case "{":
+        ++state[0].bracelevel;
+        break;
+      case "}":
+        --state[0].bracelevel;
+        break;
+      case "(":
+        ++state[0].parenlevel;
+        break;
+      case ")":
+        --state[0].parenlevel;
+        break;
+    }
 
-    state[0].tokens.push(tokens.shift())
-    return
+    if (state[0].parenlevel < 0) return unexpected("unexpected `)`");
+    if (state[0].bracelevel < 0) return unexpected("unexpected `}`");
+
+    state[0].tokens.push(tokens.shift());
+    return;
 
     function parseexpr(tokens) {
       try {
-        full_parse_expr(state, tokens)
-      } catch(err) {
-        errored = true
-        throw err
+        full_parse_expr(state, tokens);
+      } catch (err) {
+        errored = true;
+        throw err;
       }
 
-      return state.shift()
+      return state.shift();
     }
   }
 
@@ -924,423 +1009,466 @@ function parser() {
 
   function n(type) {
     // this is a function factory that suffices for most kinds of expressions and statements
-    return function() {
-      return mknode(type, token)
-    }
+    return function () {
+      return mknode(type, token);
+    };
   }
 
   function adhoc() {
-    return mknode(token_map[token.type], token, node)
+    return mknode(token_map[token.type], token, node);
   }
 
   function decl(flags) {
-    var _ = mknode(DECL, token, node)
-    _.flags = flags
+    const _ = mknode(DECL, token, node);
+    _.flags = flags;
 
-    return _
+    return _;
   }
 
   function struct(allow_assign, allow_comma) {
-    var _ = mknode(STRUCT, token, node)
-    _.allow_assign = allow_assign === undefined ? true : allow_assign
-    _.allow_comma = allow_comma === undefined ? true : allow_comma
-    return _
+    const _ = mknode(STRUCT, token, node);
+    _.allow_assign = allow_assign === undefined ? true : allow_assign;
+    _.allow_comma = allow_comma === undefined ? true : allow_comma;
+    return _;
   }
 
   function expr() {
-    var n = mknode(EXPR, token, node)
+    const n = mknode(EXPR, token, node);
 
-    n.expecting = [].slice.call(arguments)
-    return n
+    n.expecting = [].slice.call(arguments);
+    return n;
   }
 
   function keyword(default_value) {
-    var t = token
-    if(default_value) {
-      t = {'type': '(implied)', data: '(default)', position: t.position}
+    let t = token;
+    if (default_value) {
+      t = { type: "(implied)", data: "(default)", position: t.position };
     }
-    return mknode(KEYWORD, t, node)
+    return mknode(KEYWORD, t, node);
   }
 
   // utils ----------------------------
 
   function unexpected(str) {
-    errored = true
+    errored = true;
     throw new Error(
-      (str || 'unexpected '+state) +
-      ' at line '+state[0].token.line
-    )
+      (str || "unexpected " + state) + " at line " + state[0].token.line
+    );
   }
 
   function assert(type, data) {
-    return 1,
+    return (
+      1,
       assert_null_string_or_array(type, token.type) &&
-      assert_null_string_or_array(data, token.data)
+        assert_null_string_or_array(data, token.data)
+    );
   }
 
   function assert_null_string_or_array(x, y) {
-    switch(typeof x) {
-      case 'string': if(y !== x) {
-        unexpected('expected `'+x+'`, got '+y+'\n'+token.data);
-      } return !errored
+    switch (typeof x) {
+      case "string":
+        if (y !== x) {
+          unexpected("expected `" + x + "`, got " + y + "\n" + token.data);
+        }
+        return !errored;
 
-      case 'object': if(x && x.indexOf(y) === -1) {
-        unexpected('expected one of `'+x.join('`, `')+'`, got '+y);
-      } return !errored
+      case "object":
+        if (x && x.indexOf(y) === -1) {
+          unexpected("expected one of `" + x.join("`, `") + "`, got " + y);
+        }
+        return !errored;
     }
-    return true
+    return true;
   }
 
   // stative ----------------------------
 
   function stative() {
-    var steps = [].slice.call(arguments)
-      , step
-      , result
+    let steps = [].slice.call(arguments),
+      step,
+      result;
 
-    return function() {
-      var current = state[0]
+    return function () {
+      const current = state[0];
 
-      current.stage || (current.stage = 0)
+      current.stage || (current.stage = 0);
 
-      step = steps[current.stage]
-      if(!step) return unexpected('parser in undefined state!')
+      step = steps[current.stage];
+      if (!step) return unexpected("parser in undefined state!");
 
-      result = step()
+      result = step();
 
-      if(result === Advance) return ++current.stage
-      if(result === undefined) return
-      current.stage = result
-    }
+      if (result === Advance) return ++current.stage;
+      if (result === undefined) return;
+      current.stage = result;
+    };
   }
 
   function advance(op, t) {
-    t = t || 'operator'
-    return function() {
-      if(!assert(t, op)) return
+    t = t || "operator";
+    return function () {
+      if (!assert(t, op)) return;
 
-      var last = tokens.shift()
-        , children = state[0].children
-        , last_node = children[children.length - 1]
+      const last = tokens.shift(),
+        children = state[0].children,
+        last_node = children[children.length - 1];
 
-      if(last_node && last_node.token && last.preceding) {
-        last_node.token.succeeding = last_node.token.succeeding || []
-        last_node.token.succeeding = last_node.token.succeeding.concat(last.preceding)
+      if (last_node && last_node.token && last.preceding) {
+        last_node.token.succeeding = last_node.token.succeeding || [];
+        last_node.token.succeeding = last_node.token.succeeding.concat(
+          last.preceding
+        );
       }
-      return Advance
-    }
+      return Advance;
+    };
   }
 
   function advance_expr(until) {
-    return function() {
-      state.unshift(expr(until))
-      return Advance
-    }
+    return function () {
+      state.unshift(expr(until));
+      return Advance;
+    };
   }
 
   function advance_ident(declare) {
-    return declare ? function() {
-      var name = token.data
-      return assert('ident') && (state.unshift(ident()), state.scope.define(name), Advance)
-    } :  function() {
-      if(!assert('ident')) return
+    return declare
+      ? function () {
+          const name = token.data;
+          return (
+            assert("ident") &&
+            (state.unshift(ident()), state.scope.define(name), Advance)
+          );
+        }
+      : function () {
+          if (!assert("ident")) return;
 
-      var s = Object.create(state.scope.find(token.data))
-      s.token = token
+          const s = Object.create(state.scope.find(token.data));
+          s.token = token;
 
-      return (tokens.shift(), Advance)
-    }
+          return tokens.shift(), Advance;
+        };
   }
 
   function advance_stmtlist() {
-    return function() {
-      var n = stmtlist()
-      n.expecting = '}'
-      return state.unshift(n), Advance
-    }
+    return function () {
+      const n = stmtlist();
+      n.expecting = "}";
+      return state.unshift(n), Advance;
+    };
   }
 
   function maybe_stmtlist(skip) {
-    return function() {
-      var current = state[0].stage
-      if(token.data !== '{') { return state.unshift(stmt()), current + skip }
-      return tokens.shift(), Advance
-    }
+    return function () {
+      const current = state[0].stage;
+      if (token.data !== "{") {
+        return state.unshift(stmt()), current + skip;
+      }
+      return tokens.shift(), Advance;
+    };
   }
 
   function popstmt() {
-    return function() { return state.shift(), state.shift() }
+    return function () {
+      return state.shift(), state.shift();
+    };
   }
 
-
   function setup_stative_parsers() {
-
     // could also be
     // struct { } decllist
-    parse_struct =
-        stative(
-          advance('struct', 'keyword')
-        , function() {
-            if(token.data === '{') {
-              state.fake(mknode(IDENT, {data:'', position: token.position, type:'ident'}))
-              return Advance
-            }
-
-            return advance_ident(true)()
-          }
-        , function() { state.scope.enter(); return Advance }
-        , advance('{')
-        , function() {
-            if(token.type === 'preprocessor') {
-              state.fake(adhoc())
-              tokens.shift()
-              return
-            }
-            if(token.data === '}') {
-              state.scope.exit()
-              tokens.shift()
-              return state.shift()
-            }
-            if(token.data === ';') { tokens.shift(); return }
-            state.unshift(decl(DECL_STRUCT))
-          }
-        )
-
-    parse_precision =
-        stative(
-          function() { return tokens.shift(), Advance }
-        , function() {
-            return assert(
-            'keyword', ['lowp', 'mediump', 'highp']
-            ) && (state.unshift(keyword()), Advance)
-          }
-        , function() { return (state.unshift(keyword()), Advance) }
-        , function() { return state.shift() }
-        )
-
-    parse_quantifier =
-        stative(
-          advance('[')
-        , advance_expr(']')
-        , advance(']')
-        , function() { return state.shift() }
-        )
-
-    parse_forloop =
-        stative(
-          advance('for', 'keyword')
-        , advance('(')
-        , function() {
-            var lookup
-            if(token.type === 'ident') {
-              if(!(lookup = state.scope.find(token.data))) {
-                lookup = state.create_node()
-              }
-
-              if(lookup.parent.type === 'struct') {
-                return state.unshift(decl(DECL_STATEMENT)), Advance
-              }
-            } else if(token.type === 'builtin' || token.type === 'keyword') {
-              return state.unshift(decl(DECL_STATEMENT)), Advance
-            }
-            return advance_expr(';')()
-          }
-        , advance(';')
-        , advance_expr(';')
-        , advance(';')
-        , advance_expr(')')
-        , advance(')')
-        , maybe_stmtlist(3)
-        , advance_stmtlist()
-        , advance('}')
-        , popstmt()
-        )
-
-    parse_if =
-        stative(
-          advance('if', 'keyword')
-        , advance('(')
-        , advance_expr(')')
-        , advance(')')
-        , maybe_stmtlist(3)
-        , advance_stmtlist()
-        , advance('}')
-        , function() {
-            if(token.data === 'else') {
-              return tokens.shift(), state.unshift(stmt()), Advance
-            }
-            return popstmt()()
-          }
-        , popstmt()
-        )
-
-    parse_return =
-        stative(
-          advance('return', 'keyword')
-        , function() {
-            if(token.data === ';') return Advance
-            return state.unshift(expr(';')), Advance
-          }
-        , function() { tokens.shift(), popstmt()() }
-        )
-
-    parse_whileloop =
-        stative(
-          advance('while', 'keyword')
-        , advance('(')
-        , advance_expr(')')
-        , advance(')')
-        , maybe_stmtlist(3)
-        , advance_stmtlist()
-        , advance('}')
-        , popstmt()
-        )
-
-    parse_dowhileloop =
-      stative(
-        advance('do', 'keyword')
-      , maybe_stmtlist(3)
-      , advance_stmtlist()
-      , advance('}')
-      , advance('while', 'keyword')
-      , advance('(')
-      , advance_expr(')')
-      , advance(')')
-      , popstmt()
-      )
-
-    parse_function =
-      stative(
-        function() {
-          for(var i = 1, len = state.length; i < len; ++i) if(state[i].mode === FUNCTION) {
-            return unexpected('function definition is not allowed within another function')
-          }
-
-          return Advance
+    parse_struct = stative(
+      advance("struct", "keyword"),
+      function () {
+        if (token.data === "{") {
+          state.fake(
+            mknode(IDENT, { data: "", position: token.position, type: "ident" })
+          );
+          return Advance;
         }
-      , function() {
-          if(!assert("ident")) return
 
-          var name = token.data
-            , lookup = state.scope.find(name)
-
-          state.unshift(ident())
-          state.scope.define(name)
-
-          state.scope.enter(lookup ? lookup.scope : null)
-          return Advance
+        return advance_ident(true)();
+      },
+      function () {
+        state.scope.enter();
+        return Advance;
+      },
+      advance("{"),
+      function () {
+        if (token.type === "preprocessor") {
+          state.fake(adhoc());
+          tokens.shift();
+          return;
         }
-      , advance('(')
-      , function() { return state.unshift(fnargs()), Advance }
-      , advance(')')
-      , function() {
-          // forward decl
-          if(token.data === ';') {
-            return state.scope.exit(), state.shift(), state.shift()
+        if (token.data === "}") {
+          state.scope.exit();
+          tokens.shift();
+          return state.shift();
+        }
+        if (token.data === ";") {
+          tokens.shift();
+          return;
+        }
+        state.unshift(decl(DECL_STRUCT));
+      }
+    );
+
+    parse_precision = stative(
+      function () {
+        return tokens.shift(), Advance;
+      },
+      function () {
+        return (
+          assert("keyword", ["lowp", "mediump", "highp"]) &&
+          (state.unshift(keyword()), Advance)
+        );
+      },
+      function () {
+        return state.unshift(keyword()), Advance;
+      },
+      function () {
+        return state.shift();
+      }
+    );
+
+    parse_quantifier = stative(
+      advance("["),
+      advance_expr("]"),
+      advance("]"),
+      function () {
+        return state.shift();
+      }
+    );
+
+    parse_forloop = stative(
+      advance("for", "keyword"),
+      advance("("),
+      function () {
+        let lookup;
+        if (token.type === "ident") {
+          if (!(lookup = state.scope.find(token.data))) {
+            lookup = state.create_node();
           }
-          return Advance
-        }
-      , advance('{')
-      , advance_stmtlist()
-      , advance('}')
-      , function() { state.scope.exit(); return Advance }
-      , function() { return state.shift(), state.shift(), state.shift() }
-      )
 
-    parse_function_args =
-      stative(
-        function() {
-          if(token.data === 'void') { state.fake(keyword()); tokens.shift(); return Advance }
-          if(token.data === ')') { state.shift(); return }
-          if(token.data === 'struct') {
-            state.unshift(struct(NO_ASSIGN_ALLOWED, NO_COMMA_ALLOWED))
-            return Advance
+          if (lookup.parent.type === "struct") {
+            return state.unshift(decl(DECL_STATEMENT)), Advance;
           }
-          state.unshift(decl(DECL_FUNCTION))
-          return Advance
+        } else if (token.type === "builtin" || token.type === "keyword") {
+          return state.unshift(decl(DECL_STATEMENT)), Advance;
         }
-      , function() {
-          if(token.data === ',') { tokens.shift(); return 0 }
-          if(token.data === ')') { state.shift(); return }
-          unexpected('expected one of `,` or `)`, got '+token.data)
+        return advance_expr(";")();
+      },
+      advance(";"),
+      advance_expr(";"),
+      advance(";"),
+      advance_expr(")"),
+      advance(")"),
+      maybe_stmtlist(3),
+      advance_stmtlist(),
+      advance("}"),
+      popstmt()
+    );
+
+    parse_if = stative(
+      advance("if", "keyword"),
+      advance("("),
+      advance_expr(")"),
+      advance(")"),
+      maybe_stmtlist(3),
+      advance_stmtlist(),
+      advance("}"),
+      function () {
+        if (token.data === "else") {
+          return tokens.shift(), state.unshift(stmt()), Advance;
         }
-      )
+        return popstmt()();
+      },
+      popstmt()
+    );
+
+    parse_return = stative(
+      advance("return", "keyword"),
+      function () {
+        if (token.data === ";") return Advance;
+        return state.unshift(expr(";")), Advance;
+      },
+      function () {
+        tokens.shift(), popstmt()();
+      }
+    );
+
+    parse_whileloop = stative(
+      advance("while", "keyword"),
+      advance("("),
+      advance_expr(")"),
+      advance(")"),
+      maybe_stmtlist(3),
+      advance_stmtlist(),
+      advance("}"),
+      popstmt()
+    );
+
+    parse_dowhileloop = stative(
+      advance("do", "keyword"),
+      maybe_stmtlist(3),
+      advance_stmtlist(),
+      advance("}"),
+      advance("while", "keyword"),
+      advance("("),
+      advance_expr(")"),
+      advance(")"),
+      popstmt()
+    );
+
+    parse_function = stative(
+      function () {
+        for (let i = 1, len = state.length; i < len; ++i)
+          if (state[i].mode === FUNCTION) {
+            return unexpected(
+              "function definition is not allowed within another function"
+            );
+          }
+
+        return Advance;
+      },
+      function () {
+        if (!assert("ident")) return;
+
+        const name = token.data,
+          lookup = state.scope.find(name);
+
+        state.unshift(ident());
+        state.scope.define(name);
+
+        state.scope.enter(lookup ? lookup.scope : null);
+        return Advance;
+      },
+      advance("("),
+      function () {
+        return state.unshift(fnargs()), Advance;
+      },
+      advance(")"),
+      function () {
+        // forward decl
+        if (token.data === ";") {
+          return state.scope.exit(), state.shift(), state.shift();
+        }
+        return Advance;
+      },
+      advance("{"),
+      advance_stmtlist(),
+      advance("}"),
+      function () {
+        state.scope.exit();
+        return Advance;
+      },
+      function () {
+        return state.shift(), state.shift(), state.shift();
+      }
+    );
+
+    parse_function_args = stative(
+      function () {
+        if (token.data === "void") {
+          state.fake(keyword());
+          tokens.shift();
+          return Advance;
+        }
+        if (token.data === ")") {
+          state.shift();
+          return;
+        }
+        if (token.data === "struct") {
+          state.unshift(struct(NO_ASSIGN_ALLOWED, NO_COMMA_ALLOWED));
+          return Advance;
+        }
+        state.unshift(decl(DECL_FUNCTION));
+        return Advance;
+      },
+      function () {
+        if (token.data === ",") {
+          tokens.shift();
+          return 0;
+        }
+        if (token.data === ")") {
+          state.shift();
+          return;
+        }
+        unexpected("expected one of `,` or `)`, got " + token.data);
+      }
+    );
   }
 }
 
 function mknode(mode, sourcetoken) {
   return {
-      mode: mode
-    , token: sourcetoken
-    , children: []
-    , type: stmt_type[mode]
-    , id: (Math.random() * 0xFFFFFFFF).toString(16)
-  }
+    mode: mode,
+    token: sourcetoken,
+    children: [],
+    type: stmt_type[mode],
+    id: (Math.random() * 0xffffffff).toString(16),
+  };
 }
 
 function is_storage(token) {
-  return token.data === 'const' ||
-         token.data === 'attribute' ||
-         token.data === 'uniform' ||
-         token.data === 'varying'
+  return (
+    token.data === "const" ||
+    token.data === "attribute" ||
+    token.data === "uniform" ||
+    token.data === "varying"
+  );
 }
 
 function is_parameter(token) {
-  return token.data === 'in' ||
-         token.data === 'inout' ||
-         token.data === 'out'
+  return token.data === "in" || token.data === "inout" || token.data === "out";
 }
 
 function is_precision(token) {
-  return token.data === 'highp' ||
-         token.data === 'mediump' ||
-         token.data === 'lowp'
+  return (
+    token.data === "highp" || token.data === "mediump" || token.data === "lowp"
+  );
 }
 
 
 /***/ }),
 
-/***/ 745:
+/***/ 669:
 /***/ ((module) => {
 
-module.exports = scope
+module.exports = scope;
 
 function scope(state) {
-  if(this.constructor !== scope)
-    return new scope(state)
+  if (this.constructor !== scope) return new scope(state);
 
-  this.state = state
-  this.scopes = []
-  this.current = null
+  this.state = state;
+  this.scopes = [];
+  this.current = null;
 }
 
-var cons = scope
-  , proto = cons.prototype
+const cons = scope,
+  proto = cons.prototype;
 
-proto.enter = function(s) {
-  this.scopes.push(
-    this.current = this.state[0].scope = s || {}
-  )
-}
+proto.enter = function (s) {
+  this.scopes.push((this.current = this.state[0].scope = s || {}));
+};
 
-proto.exit = function() {
-  this.scopes.pop()
-  this.current = this.scopes[this.scopes.length - 1]
-}
+proto.exit = function () {
+  this.scopes.pop();
+  this.current = this.scopes[this.scopes.length - 1];
+};
 
-proto.define = function(str) {
-  this.current[str] = this.state[0]
-}
+proto.define = function (str) {
+  this.current[str] = this.state[0];
+};
 
-proto.find = function(name, fail) {
-  for(var i = this.scopes.length - 1; i > -1; --i) {
-    if(this.scopes[i].hasOwnProperty(name)) {
-      return this.scopes[i][name]
+proto.find = function (name, fail) {
+  for (let i = this.scopes.length - 1; i > -1; --i) {
+    if (this.scopes[i].hasOwnProperty(name)) {
+      return this.scopes[i][name];
     }
   }
 
-  return null
-}
+  return null;
+};
 
 
 /***/ }),
@@ -2430,13 +2558,6 @@ __webpack_require__.d(src_factory_namespaceObject, {
   "queue": () => (queue)
 });
 
-// NAMESPACE OBJECT: ./node_modules/three/src/math/Vector3.js
-var Vector3_namespaceObject = {};
-__webpack_require__.r(Vector3_namespaceObject);
-__webpack_require__.d(Vector3_namespaceObject, {
-  "P": () => (Vector3)
-});
-
 // NAMESPACE OBJECT: ./src/glsl/index.js
 var glsl_namespaceObject = {};
 __webpack_require__.r(glsl_namespaceObject);
@@ -2496,8 +2617,8 @@ class Graph {
 
   inputs() {
     const inputs = [];
-    for (let node of Array.from(this.nodes)) {
-      for (let outlet of Array.from(node.inputs)) {
+    for (const node of Array.from(this.nodes)) {
+      for (const outlet of Array.from(node.inputs)) {
         if (outlet.input === null) {
           inputs.push(outlet);
         }
@@ -2508,8 +2629,8 @@ class Graph {
 
   outputs() {
     const outputs = [];
-    for (let node of Array.from(this.nodes)) {
-      for (let outlet of Array.from(node.outputs)) {
+    for (const node of Array.from(this.nodes)) {
+      for (const outlet of Array.from(node.outputs)) {
         if (outlet.output.length === 0) {
           outputs.push(outlet);
         }
@@ -2531,7 +2652,7 @@ class Graph {
 
   add(node, ignore) {
     if (node.length) {
-      for (let _node of Array.from(node)) {
+      for (const _node of Array.from(node)) {
         this.add(_node);
       }
       return;
@@ -2547,7 +2668,7 @@ class Graph {
 
   remove(node, ignore) {
     if (node.length) {
-      for (let _node of Array.from(node)) {
+      for (const _node of Array.from(node)) {
         this.remove(_node);
       }
       return;
@@ -2565,7 +2686,7 @@ class Graph {
 
   adopt(node) {
     if (node.length) {
-      for (let _node of Array.from(node)) {
+      for (const _node of Array.from(node)) {
         this.adopt(_node);
       }
       return;
@@ -2601,7 +2722,7 @@ class Outlet {
     }
     const meta = extra;
     if (outlet.meta != null) {
-      for (let key in outlet.meta) {
+      for (const key in outlet.meta) {
         const value = outlet.meta[key];
         meta[key] = value;
       }
@@ -2736,7 +2857,7 @@ class node_Node {
   static initClass() {
     this.index = 0;
   }
-  static id(name) {
+  static id(_name) {
     return ++node_Node.index;
   }
 
@@ -2837,7 +2958,7 @@ class node_Node {
     // Hash the types/hints of available target outlets.
     for (dest of Array.from(node.inputs)) {
       // Only autoconnect if not already connected
-      var list;
+      let list;
       if (!force && dest.input) {
         continue;
       }
@@ -2896,7 +3017,7 @@ class node_Node {
   }
 
   // Disconnect entire node
-  disconnect(node) {
+  disconnect(_node) {
     let outlet;
     for (outlet of Array.from(this.inputs)) {
       outlet.disconnect();
@@ -2953,7 +3074,6 @@ class node_Node {
   // Remove outlet object from node.
   _remove(outlet) {
     const key = this._key(outlet);
-    const { inout } = outlet;
 
     // Sanity checks
     if (outlet.node !== this) {
@@ -3107,7 +3227,7 @@ class Snippet {
 
     // Apply config
     if (config.globals) {
-      for (let key of Array.from(config.globals)) {
+      for (const key of Array.from(config.globals)) {
         global(key);
       }
     }
@@ -3156,7 +3276,7 @@ class Snippet {
     for (def of Array.from(this._signatures.attribute)) {
       a(redef(def));
     }
-    for (let name in uniforms) {
+    for (const name in uniforms) {
       def = uniforms[name];
       if (exist[name]) {
         u(def, name);
@@ -3169,7 +3289,7 @@ class Snippet {
     if (defines) {
       const defs = (() => {
         const result = [];
-        for (let k in defines) {
+        for (const k in defines) {
           v = defines[k];
           result.push(`#define ${k} ${v}`);
         }
@@ -3263,11 +3383,11 @@ const assemble = function (language, namespace, calls, requires) {
   };
 
   // Sort and process calls
-  var handle = (calls) => {
+  const handle = (calls) => {
     let c;
     calls = (() => {
       const result = [];
-      for (let ns in calls) {
+      for (const ns in calls) {
         c = calls[ns];
         result.push(c);
       }
@@ -3286,7 +3406,7 @@ const assemble = function (language, namespace, calls, requires) {
       return generate.call(_lookup, _dangling, entry, main.signature, body);
     };
 
-    var body = generate.body();
+    const body = generate.body();
     for (c of Array.from(calls)) {
       call(c.node, c.module, c.priority);
     }
@@ -3305,12 +3425,12 @@ const assemble = function (language, namespace, calls, requires) {
   };
 
   // Include snippet for a call
-  var include = function (node, module, priority) {
+  const include = function (node, module, priority) {
     let def, key;
     priority = linker_priority.make(priority);
 
     // Adopt snippet's libraries
-    for (let ns in module.library) {
+    for (const ns in module.library) {
       const lib = module.library[ns];
       adopt(ns, lib.code, linker_priority.nest(priority, lib.priority));
     }
@@ -3335,17 +3455,17 @@ const assemble = function (language, namespace, calls, requires) {
     return required(node, module);
   };
 
-  var required = (
+  const required = (
     node,
     module // Adopt external symbols
   ) =>
     (() => {
       const result = [];
-      for (let key of Array.from(module.symbols)) {
+      for (const key of Array.from(module.symbols)) {
         const ext = module.externals[key];
         if (isDangling(node, ext.name)) {
           const copy = {};
-          for (let k in ext) {
+          for (const k in ext) {
             const v = ext[k];
             copy[k] = v;
           }
@@ -3360,7 +3480,7 @@ const assemble = function (language, namespace, calls, requires) {
     })();
 
   // Check for dangling input/output
-  var isDangling = function (node, name) {
+  const isDangling = function (node, name) {
     const outlet = node.get(name);
 
     if (outlet.inout === IN) {
@@ -3371,7 +3491,7 @@ const assemble = function (language, namespace, calls, requires) {
   };
 
   // Look up unique name for outlet
-  var lookup = function (node, name) {
+  const lookup = function (node, name) {
     // Traverse graph edge
     let outlet = node.get(name);
     if (!outlet) {
@@ -3460,7 +3580,7 @@ class Program {
       this.requires
     );
     const snippet = new Snippet();
-    for (let key in data) {
+    for (const key in data) {
       snippet[key] = data[key];
     }
     snippet.graph = this.graph;
@@ -3511,12 +3631,12 @@ const link_link = function (language, links, modules, exported) {
       header.push(exports.bodies);
     }
 
-    for (let m of Array.from(modules)) {
+    for (const m of Array.from(modules)) {
       include(m.node, m.module, m.priority);
     }
     const sorted = (() => {
       const result = [];
-      for (let ns in library) {
+      for (const ns in library) {
         const lib = library[ns];
         result.push(lib);
       }
@@ -3557,12 +3677,12 @@ const link_link = function (language, links, modules, exported) {
   };
 
   // Include piece of code
-  var include = function (node, module, priority) {
+  const include = function (node, module, priority) {
     let def, key;
     priority = linker_priority.make(priority);
 
     // Adopt snippet's libraries
-    for (let ns in module.library) {
+    for (const ns in module.library) {
       const lib = module.library[ns];
       adopt(ns, lib.code, linker_priority.nest(priority, lib.priority));
     }
@@ -3600,7 +3720,7 @@ const link_link = function (language, links, modules, exported) {
   };
 
   // Check for dangling input/output
-  var isDangling = function (node, name) {
+  const isDangling = function (node, name) {
     const outlet = node.get(name);
 
     if (!outlet) {
@@ -3684,7 +3804,7 @@ class Layout {
   link(module) {
     const data = link_link(this.language, this.links, this.includes, module);
     const snippet = new Snippet();
-    for (let key in data) {
+    for (const key in data) {
       snippet[key] = data[key];
     }
     snippet.graph = this.graph;
@@ -3719,7 +3839,7 @@ const { load } = Snippet;
 
 
 
-let block_debug = false;
+const block_debug = false;
 
 class Block {
   static previous(outlet) {
@@ -3831,7 +3951,7 @@ class Block {
   _inputs(module, program, depth) {
     return (() => {
       const result = [];
-      for (let arg of Array.from(module.main.signature)) {
+      for (const arg of Array.from(module.main.signature)) {
         const outlet = this.node.get(arg.name);
         result.push(
           __guard__(Block.previous(outlet), (x) => x.call(program, depth + 1))
@@ -3856,7 +3976,7 @@ class Block {
     block_debug && console.log("block::_link", this.toString(), module.namespace);
     return (() => {
       const result = [];
-      for (let key of Array.from(module.symbols)) {
+      for (const key of Array.from(module.symbols)) {
         const ext = module.externals[key];
         let outlet = this.node.get(ext.name);
         if (!outlet) {
@@ -3870,6 +3990,8 @@ class Block {
         }
 
         let parent = outlet;
+
+        // eslint-disable-next-line prefer-const
         let block;
         while (!block && parent) {
           [parent, outlet] = Array.from([outlet.meta.parent, parent]);
@@ -3897,7 +4019,7 @@ class Block {
     block_debug && console.log("block::_trace", this.toString(), module.namespace);
     return (() => {
       const result = [];
-      for (let arg of Array.from(module.main.signature)) {
+      for (const arg of Array.from(module.main.signature)) {
         const outlet = this.node.get(arg.name);
         result.push(
           __guard__(Block.previous(outlet), (x) => x.export(layout, depth + 1))
@@ -3908,7 +4030,7 @@ class Block {
   }
 }
 
-var OutletError = function (message) {
+const OutletError = function (message) {
   const e = new Error(message);
   e.name = "OutletError";
   return e;
@@ -4123,8 +4245,8 @@ class Isolate extends Block {
 
     const seen = {};
     const done = {};
-    for (let set of ["inputs", "outputs"]) {
-      for (let outlet of Array.from(this.graph[set]())) {
+    for (const set of ["inputs", "outputs"]) {
+      for (const outlet of Array.from(this.graph[set]())) {
         // Preserve name of 'return' and 'callback' outlets
         let name = undefined;
         if (
@@ -4216,7 +4338,7 @@ class Join extends Block {
   call(program, depth) {
     return (() => {
       const result = [];
-      for (let node of Array.from(this.nodes)) {
+      for (const node of Array.from(this.nodes)) {
         const block = node.owner;
         result.push(block.call(program, depth));
       }
@@ -4227,7 +4349,7 @@ class Join extends Block {
   export(layout, depth) {
     return (() => {
       const result = [];
-      for (let node of Array.from(this.nodes)) {
+      for (const node of Array.from(this.nodes)) {
         const block = node.owner;
         result.push(block.export(layout, depth));
       }
@@ -4254,14 +4376,12 @@ class Join extends Block {
 // Dump graph for debug/visualization purposes
 
 
-const isCallback = (outlet) => outlet.type[0] === "(";
-
-var serialize = function (graph) {
+const serialize = function (graph) {
   const nodes = [];
   const links = [];
 
-  for (let node of Array.from(graph.nodes)) {
-    var outlet;
+  for (const node of Array.from(graph.nodes)) {
+    let outlet;
     const record = {
       // Data
       id: node.id,
@@ -4332,7 +4452,7 @@ var serialize = function (graph) {
         open: !outlet.output.length,
       });
 
-      for (let other of Array.from(outlet.output)) {
+      for (const other of Array.from(outlet.output)) {
         links.push({
           from: node.id,
           out: outlet.id,
@@ -4470,7 +4590,7 @@ const process = function (data) {
   return el;
 };
 
-var _activate = function (el) {
+const _activate = function (el) {
   const codes = el.querySelectorAll(".shadergraph-code");
   return Array.from(codes).map((code) =>
     (function () {
@@ -4478,7 +4598,7 @@ var _activate = function (el) {
       popup.parentNode.classList.add("shadergraph-has-code");
       return popup.parentNode.addEventListener(
         "click",
-        (event) =>
+        (_event) =>
           (popup.style.display = {
             block: "none",
             none: "block",
@@ -4503,7 +4623,7 @@ const _order = function (data) {
     linkMap[link.from].push(link);
   }
 
-  var recurse = function (node, depth) {
+  const recurse = function (node, depth) {
     let next;
     if (depth == null) {
       depth = 0;
@@ -4526,7 +4646,7 @@ const _order = function (data) {
   return null;
 };
 
-var _markup = function (data, links) {
+const _markup = function (data, links) {
   let column;
   _order(data);
 
@@ -4536,9 +4656,9 @@ var _markup = function (data, links) {
   const columns = [];
   const outlets = {};
 
-  for (let node of Array.from(data.nodes)) {
-    var outlet;
-    var block = document.createElement("div");
+  for (const node of Array.from(data.nodes)) {
+    let outlet;
+    const block = document.createElement("div");
     block.classList.add("shadergraph-node");
     block.classList.add(`shadergraph-node-${node.type}`);
 
@@ -4601,7 +4721,7 @@ var _markup = function (data, links) {
     }
   }
 
-  for (let link of Array.from(data.links)) {
+  for (const link of Array.from(data.links)) {
     const color = hashColor(link.type);
 
     links.push({
@@ -4665,7 +4785,7 @@ const makeSVG = function (tag) {
   return document.createElementNS("http://www.w3.org/2000/svg", tag);
 };
 
-var connect = function (element, links) {
+const connect = function (element, links) {
   let link;
   if (element.parentNode == null) {
     return;
@@ -4796,7 +4916,7 @@ const _visualize = function (graph) {
   return markup.process(data);
 };
 
-var resolve = function (arg) {
+const resolve = function (arg) {
   if (arg == null) {
     return arg;
   }
@@ -4815,9 +4935,9 @@ var resolve = function (arg) {
   return arg;
 };
 
-var visualize_merge = function (args) {
+const visualize_merge = function (args) {
   let out = [];
-  for (let arg of Array.from(args)) {
+  for (const arg of Array.from(args)) {
     if (arg instanceof Array) {
       out = out.concat(visualize_merge(arg));
     } else if (arg != null) {
@@ -4840,7 +4960,7 @@ const inspect = function () {
   const contents = visualize.apply(null, arguments);
   const element = markup.overlay(contents);
 
-  for (let el of Array.from(
+  for (const el of Array.from(
     document.querySelectorAll(".shadergraph-overlay")
   )) {
     el.remove();
@@ -5062,8 +5182,8 @@ class Factory {
 
   // Connect parallel branches to tail
   _combine(sub, main) {
-    for (let to of Array.from(sub.start)) {
-      for (let from of Array.from(main.end)) {
+    for (const to of Array.from(sub.start)) {
+      for (const from of Array.from(main.end)) {
         from.connect(to, sub.multi);
       }
     }
@@ -5073,7 +5193,7 @@ class Factory {
   }
 
   // Make subgraph and connect to tail
-  _isolate(sub, main) {
+  _isolate(sub, _main) {
     if (sub.nodes.length) {
       let block;
       const subgraph = this._subgraph(sub);
@@ -5093,7 +5213,7 @@ class Factory {
   }
 
   // Convert to callback and connect to tail
-  _callback(sub, main) {
+  _callback(sub, _main) {
     if (sub.nodes.length) {
       let block;
       const subgraph = this._subgraph(sub);
@@ -5328,7 +5448,7 @@ class State {
 
 
 
-let material_debug = false;
+const material_debug = false;
 
 const tick = function () {
   const now = +new Date();
@@ -5363,18 +5483,17 @@ class Material {
     const vertex = this.vertex.link("main");
     const fragment = this.fragment.link("main");
 
-    for (let shader of [vertex, fragment]) {
-      var key, value;
-      for (key in shader.uniforms) {
-        value = shader.uniforms[key];
+    for (const shader of [vertex, fragment]) {
+      for (const key in shader.uniforms) {
+        const value = shader.uniforms[key];
         uniforms[key] = value;
       }
-      for (key in shader.varyings) {
-        value = shader.varyings[key];
+      for (const key in shader.varyings) {
+        const value = shader.varyings[key];
         varyings[key] = value;
       }
-      for (key in shader.attributes) {
-        value = shader.attributes[key];
+      for (const key in shader.attributes) {
+        const value = shader.attributes[key];
         attributes[key] = value;
       }
     }
@@ -5614,7 +5733,7 @@ const cache = function (fetch) {
 */
 
 const compile = function (program) {
-  const { ast, code, signatures } = program;
+  const { code, signatures } = program;
 
   // Prepare list of placeholders
   const placeholders = replaced(signatures);
@@ -5625,26 +5744,21 @@ const compile = function (program) {
   return [signatures, assembler];
 };
 
-// #####
-
-const compile_tick = function () {
-  const now = +new Date();
-  return function (label) {
-    const delta = +new Date() - now;
-    console.log(label, delta + " ms");
-    return delta;
-  };
-};
-
-var replaced = function (signatures) {
+const replaced = function (signatures) {
   const out = {};
   const s = (sig) => (out[sig.name] = true);
 
   s(signatures.main);
 
   // Prefix all global symbols
-  for (let key of ["external", "internal", "varying", "uniform", "attribute"]) {
-    for (let sig of signatures[key]) {
+  for (const key of [
+    "external",
+    "internal",
+    "varying",
+    "uniform",
+    "attribute",
+  ]) {
+    for (const sig of signatures[key]) {
       s(sig);
     }
   }
@@ -5655,7 +5769,7 @@ var replaced = function (signatures) {
 /*
 String-replacement based compiler
 */
-var string_compiler = function (code, placeholders) {
+const string_compiler = function (code, placeholders) {
   // Make regexp for finding placeholders
   // Replace on word boundaries
   let key;
@@ -5674,7 +5788,7 @@ var string_compiler = function (code, placeholders) {
 
   // Strip comments
   code = code.replace(/\/\/[^\n]*/g, "");
-  code = code.replace(/\/\*([^*]|\*[^\/])*\*\//g, "");
+  code = code.replace(/\/\*([^*]|\*[^/])*\*\//g, "");
 
   // Strip all preprocessor commands (lazy)
   //code = code.replace /^#[^\n]*/mg, ''
@@ -5717,8 +5831,8 @@ var string_compiler = function (code, placeholders) {
 // EXTERNAL MODULE: ./node_modules/glsl-tokenizer/string.js
 var string = __webpack_require__(932);
 var string_default = /*#__PURE__*/__webpack_require__.n(string);
-// EXTERNAL MODULE: ./node_modules/glsl-parser/direct.js
-var direct = __webpack_require__(706);
+// EXTERNAL MODULE: ../glsl-parser/direct.js
+var direct = __webpack_require__(960);
 var direct_default = /*#__PURE__*/__webpack_require__.n(direct);
 ;// CONCATENATED MODULE: ./node_modules/three/src/math/Vector2.js
 class Vector2 {
@@ -7827,6 +7941,663 @@ const _quaternion = /*@__PURE__*/ new Quaternion();
 
 
 
+;// CONCATENATED MODULE: ./node_modules/three/src/math/Vector4.js
+class Vector4 {
+
+	constructor( x = 0, y = 0, z = 0, w = 1 ) {
+
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = w;
+
+	}
+
+	get width() {
+
+		return this.z;
+
+	}
+
+	set width( value ) {
+
+		this.z = value;
+
+	}
+
+	get height() {
+
+		return this.w;
+
+	}
+
+	set height( value ) {
+
+		this.w = value;
+
+	}
+
+	set( x, y, z, w ) {
+
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = w;
+
+		return this;
+
+	}
+
+	setScalar( scalar ) {
+
+		this.x = scalar;
+		this.y = scalar;
+		this.z = scalar;
+		this.w = scalar;
+
+		return this;
+
+	}
+
+	setX( x ) {
+
+		this.x = x;
+
+		return this;
+
+	}
+
+	setY( y ) {
+
+		this.y = y;
+
+		return this;
+
+	}
+
+	setZ( z ) {
+
+		this.z = z;
+
+		return this;
+
+	}
+
+	setW( w ) {
+
+		this.w = w;
+
+		return this;
+
+	}
+
+	setComponent( index, value ) {
+
+		switch ( index ) {
+
+			case 0: this.x = value; break;
+			case 1: this.y = value; break;
+			case 2: this.z = value; break;
+			case 3: this.w = value; break;
+			default: throw new Error( 'index is out of range: ' + index );
+
+		}
+
+		return this;
+
+	}
+
+	getComponent( index ) {
+
+		switch ( index ) {
+
+			case 0: return this.x;
+			case 1: return this.y;
+			case 2: return this.z;
+			case 3: return this.w;
+			default: throw new Error( 'index is out of range: ' + index );
+
+		}
+
+	}
+
+	clone() {
+
+		return new this.constructor( this.x, this.y, this.z, this.w );
+
+	}
+
+	copy( v ) {
+
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+		this.w = ( v.w !== undefined ) ? v.w : 1;
+
+		return this;
+
+	}
+
+	add( v, w ) {
+
+		if ( w !== undefined ) {
+
+			console.warn( 'THREE.Vector4: .add() now only accepts one argument. Use .addVectors( a, b ) instead.' );
+			return this.addVectors( v, w );
+
+		}
+
+		this.x += v.x;
+		this.y += v.y;
+		this.z += v.z;
+		this.w += v.w;
+
+		return this;
+
+	}
+
+	addScalar( s ) {
+
+		this.x += s;
+		this.y += s;
+		this.z += s;
+		this.w += s;
+
+		return this;
+
+	}
+
+	addVectors( a, b ) {
+
+		this.x = a.x + b.x;
+		this.y = a.y + b.y;
+		this.z = a.z + b.z;
+		this.w = a.w + b.w;
+
+		return this;
+
+	}
+
+	addScaledVector( v, s ) {
+
+		this.x += v.x * s;
+		this.y += v.y * s;
+		this.z += v.z * s;
+		this.w += v.w * s;
+
+		return this;
+
+	}
+
+	sub( v, w ) {
+
+		if ( w !== undefined ) {
+
+			console.warn( 'THREE.Vector4: .sub() now only accepts one argument. Use .subVectors( a, b ) instead.' );
+			return this.subVectors( v, w );
+
+		}
+
+		this.x -= v.x;
+		this.y -= v.y;
+		this.z -= v.z;
+		this.w -= v.w;
+
+		return this;
+
+	}
+
+	subScalar( s ) {
+
+		this.x -= s;
+		this.y -= s;
+		this.z -= s;
+		this.w -= s;
+
+		return this;
+
+	}
+
+	subVectors( a, b ) {
+
+		this.x = a.x - b.x;
+		this.y = a.y - b.y;
+		this.z = a.z - b.z;
+		this.w = a.w - b.w;
+
+		return this;
+
+	}
+
+	multiply( v ) {
+
+		this.x *= v.x;
+		this.y *= v.y;
+		this.z *= v.z;
+		this.w *= v.w;
+
+		return this;
+
+	}
+
+	multiplyScalar( scalar ) {
+
+		this.x *= scalar;
+		this.y *= scalar;
+		this.z *= scalar;
+		this.w *= scalar;
+
+		return this;
+
+	}
+
+	applyMatrix4( m ) {
+
+		const x = this.x, y = this.y, z = this.z, w = this.w;
+		const e = m.elements;
+
+		this.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z + e[ 12 ] * w;
+		this.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z + e[ 13 ] * w;
+		this.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] * w;
+		this.w = e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] * w;
+
+		return this;
+
+	}
+
+	divideScalar( scalar ) {
+
+		return this.multiplyScalar( 1 / scalar );
+
+	}
+
+	setAxisAngleFromQuaternion( q ) {
+
+		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
+
+		// q is assumed to be normalized
+
+		this.w = 2 * Math.acos( q.w );
+
+		const s = Math.sqrt( 1 - q.w * q.w );
+
+		if ( s < 0.0001 ) {
+
+			this.x = 1;
+			this.y = 0;
+			this.z = 0;
+
+		} else {
+
+			this.x = q.x / s;
+			this.y = q.y / s;
+			this.z = q.z / s;
+
+		}
+
+		return this;
+
+	}
+
+	setAxisAngleFromRotationMatrix( m ) {
+
+		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToAngle/index.htm
+
+		// assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
+
+		let angle, x, y, z; // variables for result
+		const epsilon = 0.01,		// margin to allow for rounding errors
+			epsilon2 = 0.1,		// margin to distinguish between 0 and 180 degrees
+
+			te = m.elements,
+
+			m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ],
+			m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ],
+			m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ];
+
+		if ( ( Math.abs( m12 - m21 ) < epsilon ) &&
+		     ( Math.abs( m13 - m31 ) < epsilon ) &&
+		     ( Math.abs( m23 - m32 ) < epsilon ) ) {
+
+			// singularity found
+			// first check for identity matrix which must have +1 for all terms
+			// in leading diagonal and zero in other terms
+
+			if ( ( Math.abs( m12 + m21 ) < epsilon2 ) &&
+			     ( Math.abs( m13 + m31 ) < epsilon2 ) &&
+			     ( Math.abs( m23 + m32 ) < epsilon2 ) &&
+			     ( Math.abs( m11 + m22 + m33 - 3 ) < epsilon2 ) ) {
+
+				// this singularity is identity matrix so angle = 0
+
+				this.set( 1, 0, 0, 0 );
+
+				return this; // zero angle, arbitrary axis
+
+			}
+
+			// otherwise this singularity is angle = 180
+
+			angle = Math.PI;
+
+			const xx = ( m11 + 1 ) / 2;
+			const yy = ( m22 + 1 ) / 2;
+			const zz = ( m33 + 1 ) / 2;
+			const xy = ( m12 + m21 ) / 4;
+			const xz = ( m13 + m31 ) / 4;
+			const yz = ( m23 + m32 ) / 4;
+
+			if ( ( xx > yy ) && ( xx > zz ) ) {
+
+				// m11 is the largest diagonal term
+
+				if ( xx < epsilon ) {
+
+					x = 0;
+					y = 0.707106781;
+					z = 0.707106781;
+
+				} else {
+
+					x = Math.sqrt( xx );
+					y = xy / x;
+					z = xz / x;
+
+				}
+
+			} else if ( yy > zz ) {
+
+				// m22 is the largest diagonal term
+
+				if ( yy < epsilon ) {
+
+					x = 0.707106781;
+					y = 0;
+					z = 0.707106781;
+
+				} else {
+
+					y = Math.sqrt( yy );
+					x = xy / y;
+					z = yz / y;
+
+				}
+
+			} else {
+
+				// m33 is the largest diagonal term so base result on this
+
+				if ( zz < epsilon ) {
+
+					x = 0.707106781;
+					y = 0.707106781;
+					z = 0;
+
+				} else {
+
+					z = Math.sqrt( zz );
+					x = xz / z;
+					y = yz / z;
+
+				}
+
+			}
+
+			this.set( x, y, z, angle );
+
+			return this; // return 180 deg rotation
+
+		}
+
+		// as we have reached here there are no singularities so we can handle normally
+
+		let s = Math.sqrt( ( m32 - m23 ) * ( m32 - m23 ) +
+			( m13 - m31 ) * ( m13 - m31 ) +
+			( m21 - m12 ) * ( m21 - m12 ) ); // used to normalize
+
+		if ( Math.abs( s ) < 0.001 ) s = 1;
+
+		// prevent divide by zero, should not happen if matrix is orthogonal and should be
+		// caught by singularity test above, but I've left it in just in case
+
+		this.x = ( m32 - m23 ) / s;
+		this.y = ( m13 - m31 ) / s;
+		this.z = ( m21 - m12 ) / s;
+		this.w = Math.acos( ( m11 + m22 + m33 - 1 ) / 2 );
+
+		return this;
+
+	}
+
+	min( v ) {
+
+		this.x = Math.min( this.x, v.x );
+		this.y = Math.min( this.y, v.y );
+		this.z = Math.min( this.z, v.z );
+		this.w = Math.min( this.w, v.w );
+
+		return this;
+
+	}
+
+	max( v ) {
+
+		this.x = Math.max( this.x, v.x );
+		this.y = Math.max( this.y, v.y );
+		this.z = Math.max( this.z, v.z );
+		this.w = Math.max( this.w, v.w );
+
+		return this;
+
+	}
+
+	clamp( min, max ) {
+
+		// assumes min < max, componentwise
+
+		this.x = Math.max( min.x, Math.min( max.x, this.x ) );
+		this.y = Math.max( min.y, Math.min( max.y, this.y ) );
+		this.z = Math.max( min.z, Math.min( max.z, this.z ) );
+		this.w = Math.max( min.w, Math.min( max.w, this.w ) );
+
+		return this;
+
+	}
+
+	clampScalar( minVal, maxVal ) {
+
+		this.x = Math.max( minVal, Math.min( maxVal, this.x ) );
+		this.y = Math.max( minVal, Math.min( maxVal, this.y ) );
+		this.z = Math.max( minVal, Math.min( maxVal, this.z ) );
+		this.w = Math.max( minVal, Math.min( maxVal, this.w ) );
+
+		return this;
+
+	}
+
+	clampLength( min, max ) {
+
+		const length = this.length();
+
+		return this.divideScalar( length || 1 ).multiplyScalar( Math.max( min, Math.min( max, length ) ) );
+
+	}
+
+	floor() {
+
+		this.x = Math.floor( this.x );
+		this.y = Math.floor( this.y );
+		this.z = Math.floor( this.z );
+		this.w = Math.floor( this.w );
+
+		return this;
+
+	}
+
+	ceil() {
+
+		this.x = Math.ceil( this.x );
+		this.y = Math.ceil( this.y );
+		this.z = Math.ceil( this.z );
+		this.w = Math.ceil( this.w );
+
+		return this;
+
+	}
+
+	round() {
+
+		this.x = Math.round( this.x );
+		this.y = Math.round( this.y );
+		this.z = Math.round( this.z );
+		this.w = Math.round( this.w );
+
+		return this;
+
+	}
+
+	roundToZero() {
+
+		this.x = ( this.x < 0 ) ? Math.ceil( this.x ) : Math.floor( this.x );
+		this.y = ( this.y < 0 ) ? Math.ceil( this.y ) : Math.floor( this.y );
+		this.z = ( this.z < 0 ) ? Math.ceil( this.z ) : Math.floor( this.z );
+		this.w = ( this.w < 0 ) ? Math.ceil( this.w ) : Math.floor( this.w );
+
+		return this;
+
+	}
+
+	negate() {
+
+		this.x = - this.x;
+		this.y = - this.y;
+		this.z = - this.z;
+		this.w = - this.w;
+
+		return this;
+
+	}
+
+	dot( v ) {
+
+		return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
+
+	}
+
+	lengthSq() {
+
+		return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
+
+	}
+
+	length() {
+
+		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
+
+	}
+
+	manhattanLength() {
+
+		return Math.abs( this.x ) + Math.abs( this.y ) + Math.abs( this.z ) + Math.abs( this.w );
+
+	}
+
+	normalize() {
+
+		return this.divideScalar( this.length() || 1 );
+
+	}
+
+	setLength( length ) {
+
+		return this.normalize().multiplyScalar( length );
+
+	}
+
+	lerp( v, alpha ) {
+
+		this.x += ( v.x - this.x ) * alpha;
+		this.y += ( v.y - this.y ) * alpha;
+		this.z += ( v.z - this.z ) * alpha;
+		this.w += ( v.w - this.w ) * alpha;
+
+		return this;
+
+	}
+
+	lerpVectors( v1, v2, alpha ) {
+
+		this.x = v1.x + ( v2.x - v1.x ) * alpha;
+		this.y = v1.y + ( v2.y - v1.y ) * alpha;
+		this.z = v1.z + ( v2.z - v1.z ) * alpha;
+		this.w = v1.w + ( v2.w - v1.w ) * alpha;
+
+		return this;
+
+	}
+
+	equals( v ) {
+
+		return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ) );
+
+	}
+
+	fromArray( array, offset = 0 ) {
+
+		this.x = array[ offset ];
+		this.y = array[ offset + 1 ];
+		this.z = array[ offset + 2 ];
+		this.w = array[ offset + 3 ];
+
+		return this;
+
+	}
+
+	toArray( array = [], offset = 0 ) {
+
+		array[ offset ] = this.x;
+		array[ offset + 1 ] = this.y;
+		array[ offset + 2 ] = this.z;
+		array[ offset + 3 ] = this.w;
+
+		return array;
+
+	}
+
+	fromBufferAttribute( attribute, index, offset ) {
+
+		if ( offset !== undefined ) {
+
+			console.warn( 'THREE.Vector4: offset has been removed from .fromBufferAttribute().' );
+
+		}
+
+		this.x = attribute.getX( index );
+		this.y = attribute.getY( index );
+		this.z = attribute.getZ( index );
+		this.w = attribute.getW( index );
+
+		return this;
+
+	}
+
+	random() {
+
+		this.x = Math.random();
+		this.y = Math.random();
+		this.z = Math.random();
+		this.w = Math.random();
+
+		return this;
+
+	}
+
+}
+
+Vector4.prototype.isVector4 = true;
+
+
+
 ;// CONCATENATED MODULE: ./node_modules/three/src/math/Matrix3.js
 class Matrix3 {
 
@@ -9071,7 +9842,7 @@ const _z = /*@__PURE__*/ new Vector3();
 
 
 
-let decl = {};
+const decl = {};
 
 decl.in = 0;
 decl.out = 1;
@@ -9095,7 +9866,6 @@ decl.external = function (node) {
   let c = node.children;
 
   let storage = get(c[1]);
-  const struct = get(c[3]);
   const type = get(c[4]);
   const list = c[5];
 
@@ -9132,7 +9902,6 @@ decl.function = function (node) {
   //    console.log 'function', node
 
   const storage = get(c[1]);
-  const struct = get(c[3]);
   const type = get(c[4]);
   const func = c[5];
   const ident = get(func.children[0]);
@@ -9209,7 +9978,7 @@ const defaults = {
   float: 0,
   vec2: threejs ? Vector2 : null,
   vec3: threejs ? Vector3 : null,
-  vec4: threejs ? Vector3_namespaceObject.Vector4 : null,
+  vec4: threejs ? Vector4 : null,
   mat2: null,
   mat3: threejs ? Matrix3 : null,
   mat4: threejs ? Matrix4 : null,
@@ -9287,8 +10056,7 @@ class Definition {
   }
 
   copy(name, meta) {
-    let def;
-    return (def = new Definition(
+    return new Definition(
       name != null ? name : this.name,
       this.type,
       this.spec,
@@ -9296,7 +10064,7 @@ class Definition {
       this.value,
       this.inout,
       meta
-    ));
+    );
   }
 }
 
@@ -9332,7 +10100,7 @@ const parse = function (name, code) {
 };
 
 // Parse GLSL language into AST
-var parseGLSL = function (name, code) {
+const parseGLSL = function (name, code) {
   let ast, tock;
   let errors = [];
   if (parse_debug) {
@@ -9368,7 +10136,7 @@ var parseGLSL = function (name, code) {
       name = "(inline code)";
     }
     console.warn(fmt(code));
-    for (let error of errors) {
+    for (const error of errors) {
       console.error(`${name} -`, error.message);
     }
     throw new Error("GLSL parse error");
@@ -9378,7 +10146,7 @@ var parseGLSL = function (name, code) {
 };
 
 // Process AST for compilation
-var processAST = function (ast, code) {
+const processAST = function (ast, code) {
   let tock;
   if (parse_debug) {
     tock = parse_tick();
@@ -9402,7 +10170,7 @@ var processAST = function (ast, code) {
 };
 
 // Extract functions and external symbols from AST
-var mapSymbols = function (node, collect) {
+const mapSymbols = function (node, collect) {
   switch (node.type) {
     case "decl":
       collect(decl.node(node));
@@ -9419,14 +10187,14 @@ const collect = (out) =>
   };
 
 // Identify internals, externals and main function
-var sortSymbols = function (symbols) {
+const sortSymbols = function (symbols) {
   let main = null;
   const internals = [];
   let externals = [];
   const maybe = {};
   let found = false;
 
-  for (var s of Array.from(symbols)) {
+  for (const s of Array.from(symbols)) {
     if (!s.body) {
       // Unmarked globals are definitely internal
       if (s.storage === "global") {
@@ -9462,7 +10230,7 @@ var sortSymbols = function (symbols) {
 };
 
 // Generate type signatures and appropriate ins/outs
-var extractSignatures = function (main, internals, externals) {
+const extractSignatures = function (main, internals, externals) {
   let symbol;
   const sigs = {
     uniform: [],
@@ -9551,10 +10319,11 @@ var extractSignatures = function (main, internals, externals) {
 
   // Externals
   for (symbol of Array.from(externals)) {
+    let def;
     switch (symbol.decl) {
       // Uniforms/attributes/varyings
       case "external":
-        var def = defn(symbol);
+        def = defn(symbol);
         sigs[symbol.storage].push(def);
         break;
 
@@ -9572,7 +10341,7 @@ var extractSignatures = function (main, internals, externals) {
 // Walk AST, apply map and collect values
 parse_debug = false;
 
-var walk = function (map, collect, node, indent) {
+const walk = function (map, collect, node, indent) {
   parse_debug &&
     console.log(
       indent,
@@ -9595,7 +10364,7 @@ var walk = function (map, collect, node, indent) {
 
 // #####
 
-var parse_tick = function () {
+const parse_tick = function () {
   const now = +new Date();
   return function (label) {
     const delta = +new Date() - now;
@@ -9696,17 +10465,15 @@ function same(a, b) {
 function call(lookup, dangling, entry, signature, body) {
   const args = [];
   let ret = "";
-  const rets = 1;
 
   for (let arg of Array.from(signature)) {
-    var id, shadow;
+    let id, shadow;
     const { name } = arg;
 
     let copy = (id = lookup(name));
     let other = null;
     let meta = null;
     let omit = false;
-    const { inout } = arg;
 
     const isReturn = name === RETURN_ARG;
 
@@ -9785,7 +10552,6 @@ function build(body, calls) {
   // Check if we're only calling one snippet with identical signature
   // and not building void main();
   if (calls && calls.length === 1 && entry !== "main") {
-    const a = body;
     const b = calls[0].module;
 
     if (same(body.signature, b.main.signature)) {
@@ -9797,7 +10563,7 @@ function build(body, calls) {
   if (code == null) {
     let vars = (() => {
       const result = [];
-      for (let v in body.vars) {
+      for (const v in body.vars) {
         const decl = body.vars[v];
         result.push(decl);
       }
@@ -9842,7 +10608,7 @@ function links(links) {
     bodies: [],
   };
 
-  for (let l of Array.from(links)) {
+  for (const l of Array.from(links)) {
     generate_link(l, out);
   }
 
@@ -9911,7 +10677,8 @@ const generate_link = (link, out) => {
 
   // Build wrapper function for the calling side
   const outer = body();
-  const wrapper = call(_lookup, _dangling, entry, external.signature, outer);
+  call(_lookup, _dangling, entry, external.signature, outer);
+
   outer.calls = inner.calls;
   outer.entry = name;
 
@@ -9924,7 +10691,7 @@ function defuse(code) {
   // Don't try this at home kids
   const re =
     /([A-Za-z0-9_]+\s+)?[A-Za-z0-9_]+\s+[A-Za-z0-9_]+\s*\([^)]*\)\s*;\s*/gm;
-  const strip = (code) => code.replace(re, (m) => "");
+  const strip = (code) => code.replace(re, (_m) => "");
 
   // Split into scopes by braces
   const blocks = code.split(/(?=[{}])/g);
@@ -9973,7 +10740,7 @@ function dedupe(code) {
   const map = {};
   const re =
     /((attribute|uniform|varying)\s+)[A-Za-z0-9_]+\s+([A-Za-z0-9_]+)\s*(\[[^\]]*\]\s*)?;\s*/gm;
-  return code.replace(re, function (m, qual, type, name, struct) {
+  return code.replace(re, function (m, qual, type, name, _struct) {
     if (map[name]) {
       return "";
     }
@@ -9987,7 +10754,7 @@ function hoist(code) {
   const filter = function (lines, re) {
     const defs = [];
     const out = [];
-    for (let line of Array.from(lines)) {
+    for (const line of Array.from(lines)) {
       const list = line.match(re) ? defs : out;
       list.push(line);
     }

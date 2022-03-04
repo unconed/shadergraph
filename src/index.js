@@ -17,7 +17,7 @@ const { Snippet } = Linker;
 
 const merge = function (a, b = {}) {
   const out = {};
-  for (let key in a) {
+  for (const key in a) {
     out[key] = b[key] || a[key];
   }
   return out;

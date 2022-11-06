@@ -164,7 +164,7 @@ objects.
 
 ## Reference
 
-_Constructor_
+### Constructor
 
 ```javascript
 var fetch = function (name) { return … };
@@ -179,7 +179,7 @@ var config = {
 shadergraph = ShaderGraph.load(fetch, config);
 ```
 
-_ShaderGraph_
+### ShaderGraph
 
 - `.shader(config = {})`
   Returns an empty `shader` graph wrapped in a factory. Override global `config` options.
@@ -190,7 +190,7 @@ _ShaderGraph_
 - `.inspect(graph/factory/material)`
   Draw the graph and insert it into the body as a floating inspector.
 
-_Factory_
+### Factory
 
 - `.pipe(name/code, uniforms = {}, namespace = null, defines = {})`
   `.pipe(name/code, namespace = null, uniforms = {}, defines = {})`
@@ -235,7 +235,7 @@ _Factory_
 - `.link(name)`
   Finalize the graph and link it with its subgraphs immediately (with callbacks). The graph is discarded.
 
-_Graph_
+### Graph
 
 - `.compile(name)`
   Compile the graph (no callbacks). The graph is retained.
@@ -243,7 +243,7 @@ _Graph_
 - `.link(name)`
   Compile and link the graph and its subgraphs (with callbacks). The graph is retained.
 
-_Material_
+### Material
 
 - `.link(options = {})`
   Link the material's vertex and fragment shader. Returns Three.js style ShaderMaterial options, merged with any existing options passed in.

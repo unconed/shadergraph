@@ -164,7 +164,7 @@ objects.
 
 ## Reference
 
-_Constructor_
+### Constructor
 
 ```javascript
 var fetch = function (name) { return … };
@@ -179,73 +179,111 @@ var config = {
 shadergraph = ShaderGraph.load(fetch, config);
 ```
 
-_ShaderGraph_
+### ShaderGraph
 
 - `.shader(config = {})`
+
   Returns an empty `shader` graph wrapped in a factory. Override global `config` options.
 - `.material(config = {})`
+
   Returns an empty `material` wrapping two factories: `material.vertex` and `material.fragment`. Override global `config` options.
 - `.visualize(graph/factory/material)`
+
   Draw the given graph(s), returns an HTML `element`. Call `element.update()` after inserting.
 - `.inspect(graph/factory/material)`
+
   Draw the graph and insert it into the body as a floating inspector.
 
-_Factory_
+### Factory
 
-- `.pipe(name/code, uniforms = {}, namespace = null, defines = {})`
-  `.pipe(name/code, namespace = null, uniforms = {}, defines = {})`
-  `.pipe(name/code, uniforms = {}, defines = {})`
+- `.pipe(name/code, uniforms = {}, namespace = null, defines = {})`\
+  `.pipe(name/code, namespace = null, uniforms = {}, defines = {})`\
+  `.pipe(name/code, uniforms = {}, defines = {})`\
   `.pipe(factory)`
-  Include the given code/snippet/factory and connect it to what came before. Binds dictionary of `uniforms`. Set the `namespace`.
+
+  Add the given code/snippet/factory to the graph and connect it to what came before. Binds dictionary of `uniforms`. Set the `namespace`.
+
+  Connections are made first between connectors of the same type and name, and then between connectors of the same type (in the order specified in the shader). Any callbacks previously added to the graph are also connected, if possible.
+
   ![Pipe example](https://raw.github.com/unconed/shadergraph/master/docs/images/pipe.png)
 
-- `.require(name/code, uniforms = {}, namespace = null, defines = {})`
-  `.require(name/code, namespace = null, uniforms = {}, defines = {})`
-  `.require(name/code, uniforms = {}, defines = {})`
+- `.require(name/code, uniforms = {}, namespace = null, defines = {})`\
+  `.require(name/code, namespace = null, uniforms = {}, defines = {})`\
+  `.require(name/code, uniforms = {}, defines = {})`\
   `.require(factory)`
-  Include the given code/snippet/factory as a callback for what comes next. Binds dictionary of `uniforms`. Set the `namespace`.
+
+  Add the given code/snippet/factory to the graph as a callback for what comes next. Binds dictionary of `uniforms`. Set the `namespace`.
+
   ![Require example](https://raw.github.com/unconed/shadergraph/master/docs/images/require.png)
 
 - `.isolate().….end()`
-  Create an isolated subgraph and call it.
+
+  Create a finished, isolated subgraph and add it to the graph.
+
+  This is useful, for example, to force the attaching of callbacks to a subgraph:
+
+  ```js
+  var shader = shadergraph.shader();
+  shader.require("getColor"); // Require two instances of callback
+  shader.require("getColor");
+  shader.isolate();
+  shader.require("getColorSum"); // Define callback with two open callback inputs
+  shader.end(); // Hook up both callbacks
+  shader.pipe("setColor"); // Connect to main snippet
+  ```
+
   ![Isolate example](https://raw.github.com/unconed/shadergraph/master/docs/images/isolate.png)
 
 - `.callback().….end()`
-  Create an isolated subgraph and use as a callback.
+
+  Create an isolated subgraph and add it to the graph as a callback.
+
   ![Callback example](https://raw.github.com/unconed/shadergraph/master/docs/images/callback.png)
 
 - `.split().….next().….end()`
-  Create two or more branches and split connections across them 1-to-1.
+
+  Create two or more branches and split connections across them 1-to-1. Connectors which are connected to a branch will not be available for any subsequent branch.
+
   ![Split example](https://raw.github.com/unconed/shadergraph/master/docs/images/split.png)
 
 - `.fan().….next().….end()`
-  Create two or more branches and fan connections across them 1-to-N.
+
+  Create two or more branches and fan connections across them 1-to-N. All connectors are available in each branch.
+
   ![Fan example](https://raw.github.com/unconed/shadergraph/master/docs/images/fan.png)
 
 - `.pass()`
-  Use this instead of .end() to make additional passthrough connections that skip the entire block.
+
+  Use this instead of `.end()` to make additional passthrough connections that skip the entire block. In other words, all connectors at the beginning of the branch will be available again for subsequent nodes.
+
   ![Pass example](https://raw.github.com/unconed/shadergraph/master/docs/images/pass.png)
 
 - `.graph()`
+
   Finalize the graph and return it. The factory is reset to an empty state.
 
 - `.compile(name)`
-  Finalize the graph and compile it immediately (no callbacks). The graph is discarded.
+
+  Finalize the graph and compile it immediately (no callbacks). Returns a GLSL shader string. The factory is reset to an empty state.
 
 - `.link(name)`
-  Finalize the graph and link it with its subgraphs immediately (with callbacks). The graph is discarded.
 
-_Graph_
+  Finalize the graph and link it with its subgraphs immediately (with callbacks). Returns a complete GLSL shader string with a main function. The factory is reset to an empty state.
+
+### Graph
 
 - `.compile(name)`
+
   Compile the graph (no callbacks). The graph is retained.
 
 - `.link(name)`
+
   Compile and link the graph and its subgraphs (with callbacks). The graph is retained.
 
-_Material_
+### Material
 
 - `.link(options = {})`
+
   Link the material's vertex and fragment shader. Returns Three.js style ShaderMaterial options, merged with any existing options passed in.
 
 ## Manual Use
